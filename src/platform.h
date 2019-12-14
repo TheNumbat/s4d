@@ -2,18 +2,19 @@
 #pragma once
 
 #include <SDL2/SDL.h>
-#include <glad/glad.h>
-#include <imgui/imgui.h>
-#include <imgui/imgui_impl_sdl.h>
-#include <imgui/imgui_impl_opengl3.h>
 
-class Engine {
+#include "lib/3d_math.h"
+#include "app.h"
+
+class Platform {
 
 public:
-    Engine();
-    ~Engine();
+    Platform();
+    ~Platform();
 
-    void loop();
+    void loop(App& app);
+
+    v2 window_dim();
 
 private:
     void platform_init();
@@ -23,6 +24,5 @@ private:
 
     SDL_Window* window = nullptr;
     SDL_GLContext gl_context = nullptr;
-    
     bool has_gl_43 = false;
 };

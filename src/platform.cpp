@@ -1,6 +1,11 @@
 
-#include "engine.h"
+#include "platform.h"
 #include "lib/log.h"
+
+#include <glad/glad.h>
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_sdl.h>
+#include <imgui/imgui_impl_opengl3.h>
 
 static void gl_check_leaked_handles() {
 
@@ -102,15 +107,15 @@ static void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severit
 	}
 }
 
-Engine::Engine() {
+Platform::Platform() {
     platform_init();
 }
 
-Engine::~Engine() {
+Platform::~Platform() {
     platform_shutdown();
 }
 
-void Engine::platform_init() {
+void Platform::platform_init() {
 
 	if(SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         die("Failed to initialize SDL: %s", SDL_GetError());
@@ -132,7 +137,7 @@ void Engine::platform_init() {
         warn("Failed to create OpenGL 4.3 context. Trying OpenGL 3.3...");
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	    gl_context = SDL_GL_CreateContext(window);
 
         if(!gl_context) {
@@ -164,7 +169,7 @@ void Engine::platform_init() {
     ImGui::GetStyle().WindowRounding = 0.0f;
 }
 
-void Engine::platform_shutdown() {
+void Platform::platform_shutdown() {
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
@@ -178,14 +183,14 @@ void Engine::platform_shutdown() {
 	SDL_Quit();	
 }
 
-void Engine::complete_frame() {
+void Platform::complete_frame() {
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	SDL_GL_SwapWindow(window);
 }
 
-void Engine::begin_frame() {
+void Platform::begin_frame() {
 
 	glClearColor(0.6f, 0.65f, 0.7f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -195,7 +200,7 @@ void Engine::begin_frame() {
 	ImGui::NewFrame();
 }
 
-void Engine::loop() {
+void Platform::loop(App& app) {
 
 	bool running = true;
 	while(running) {
@@ -207,6 +212,10 @@ void Engine::loop() {
 		while(SDL_PollEvent(&e)) {
 
 			ImGui_ImplSDL2_ProcessEvent(&e);
+            if(io.WantCaptureMouse && (e.type == SDL_MOUSEWHEEL || e.type == SDL_MOUSEBUTTONDOWN)) 
+                continue;
+            if(io.WantCaptureKeyboard && (e.type == SDL_TEXTINPUT || e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)) 
+                continue;
 
 			switch(e.type) {
 			case SDL_QUIT: {
@@ -218,8 +227,18 @@ void Engine::loop() {
 				}
 			} break;
 			}
+
+			app.event(e);
 		}
+
+        app.render();
 
 		complete_frame();
 	}
+}
+
+v2 Platform::window_dim() {
+	int w, h;
+	SDL_GetWindowSize(window, &w, &h);
+	return v2((float)w, (float)h);
 }

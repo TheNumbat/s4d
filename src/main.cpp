@@ -2,11 +2,12 @@
 #include <misc/flags.h>
 #include <iostream>
 
-#include "engine.h"
+#include "platform.h"
 
 int main(int argc, char** argv) {
 
-	Engine eng;
-	eng.loop();
+	Platform eng;
+	App app(eng);
+	eng.loop(app);
 	return 0;
 }

@@ -15,7 +15,8 @@ sources = [
 	'deps/imgui/imgui_impl_opengl3.cpp',
 	'deps/glad/glad.cpp',
 	'src/lib/lib.cpp',
-	'src/engine.cpp',
+	'src/platform.cpp',
+	'src/app.cpp',
 	'src/main.cpp']
 
 link = []

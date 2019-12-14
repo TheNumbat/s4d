@@ -1,15 +1,20 @@
 
 Scotty4D
 
-    replace my 3d_math.h with more readable & commented files
+    [WIP] replace my 3d_math.h with more readable & commented files
+
+    color imgui button for current state
 
     openGL management: buffers, shaders, framebuffers, etc.
         multisampling
 
-    half-edge mesh implementation
+    basic object creation/mesh rendering
 
-    rendering half-edge mesh information & picking
+    object transforms/scene graph
         movement, rotate, and scale widgets
+
+    half-edge mesh implementation
+    rendering half-edge mesh information & picking
 
     loading & saving meshes
 

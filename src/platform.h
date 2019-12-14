@@ -3,7 +3,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "lib/3d_math.h"
+#include "lib/math.h"
 #include "app.h"
 
 class Platform {
@@ -14,7 +14,7 @@ public:
 
     void loop(App& app);
 
-    v2 window_dim();
+    Vec2 window_dim();
 
 private:
     void platform_init();

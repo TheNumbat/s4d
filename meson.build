@@ -17,6 +17,7 @@ sources = [
 	'src/lib/lib.cpp',
 	'src/platform.cpp',
 	'src/app.cpp',
+	'src/scene_object.cpp',
 	'src/main.cpp']
 
 link = []

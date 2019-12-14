@@ -2,51 +2,33 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 
-#ifdef _WIN32
-#include <intrin.h>
-#endif
+#include "vec2.h"
+#include "vec3.h"
+#include "vec4.h"
+#include "mat4.h"
 
-#define PI32 3.14159265358979323846264338327950288f
-#define PI64 3.14159265358979323846264338327950288
-
-#define _MAX(a,b) ((a) > (b) ? (a) : (b))
-#define _MIN(a,b) ((a) < (b) ? (a) : (b))
-
-#define Radians(v) (v * (PI32 / 180.0f)) 
-#define Degrees(v) (v * (180.0f / PI32)) 
-
-#define KB(x) (1024 * (x))
-#define MB(x) (1024 * KB(x))
-#define GB(x) (1024 * MB(x))
-
-inline unsigned int prev_pow2(unsigned int val) {
-
-	unsigned int pos = 0;
-#ifdef _MSC_VER
-	_BitScanReverse((unsigned long*)&pos, val);
-#else
-    for(unsigned int bit = 31; bit >= 0; bit--) {
-        if(val & (1 << bit)) {
-            pos = bit;
-            break;
-        }
-    }
-#endif
-	return 1 << pos;
-}
-
-inline unsigned int ceil_pow2(unsigned int x) {
-	unsigned int prev = prev_pow2(x);
-	return x == prev ? x : prev << 1;
-}
-
-inline float lerp(float min, float max, float t) {
-    return min + (max - min) * t;
-}
+#define PI 3.14159265358979323846264338327950288f
+#define Radians(v) (v * (PI / 180.0f)) 
+#define Degrees(v) (v * (180.0f / PI)) 
 
 inline float clamp(float x, float min, float max) {
-    return _MIN(_MAX(x,min),max);
+    return std::min(std::max(x,min),max);
+}
+inline Vec2 clamp(Vec2 v, Vec2 min, Vec2 max) {
+    return Vec2(clamp(v.x, min.x, max.x), clamp(v.y, min.y, max.y));
+}
+inline Vec3 clamp(Vec3 v, Vec3 min, Vec3 max) {
+    return Vec3(clamp(v.x, min.x, max.x), clamp(v.y, min.y, max.y), clamp(v.z, min.z, max.z));
+}
+inline Vec4 clamp(Vec4 v, Vec4 min, Vec4 max) {
+    return Vec4(clamp(v.x, min.x, max.x), clamp(v.y, min.y, max.y), clamp(v.z, min.z, max.z), clamp(v.w, min.w, max.w));
+}
+
+template<typename T>
+T lerp(T start, T end, T t) {
+    return start + (end - start) * t;
 }
 
 inline float frac(float x) {
@@ -57,4 +39,3 @@ inline float smoothstep(float e0, float e1, float x) {
 	float t = clamp((x - e0) / (e1 - e0), 0.0f, 1.0f);
     return t * t * (3.0f - 2.0f * t);
 }
-

@@ -237,8 +237,8 @@ void Platform::loop(App& app) {
 	}
 }
 
-v2 Platform::window_dim() {
+Vec2 Platform::window_dim() {
 	int w, h;
 	SDL_GetWindowSize(window, &w, &h);
-	return v2((float)w, (float)h);
+	return Vec2((float)w, (float)h);
 }

@@ -17,6 +17,9 @@ void App::event(SDL_Event e) {
 
 void App::render() {
 
+    for(auto& entry : objs) {
+        entry.second.render();
+    }
     render_gui();
 }
 
@@ -45,6 +48,9 @@ void App::gui_top() {
             ImGui::EndMenu();
         }
 
+        if(ImGui::SmallButton("Scene"))
+            state.mode = Mode::scene;
+
         if(ImGui::SmallButton("Model"))
             state.mode = Mode::model;
 
@@ -63,30 +69,48 @@ void App::gui_top() {
 
 void App::gui_side() {
 
-    v2 dim = plt.window_dim();
+    Vec2 dim = plt.window_dim();
 
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
 
     ImGui::SetNextWindowPos({0.0, 18.0});
     ImGui::SetNextWindowSize({dim.x / 5.0f, dim.y});
-    ImGui::SetNextWindowCollapsed(state.sidebar_hidden);
 
-    switch(state.mode) {
-    case Mode::model: {
-        ImGui::Begin("Model", nullptr, flags);
-    } break;
-    case Mode::render: {
-        ImGui::Begin("Render", nullptr, flags);
-    } break;
-    case Mode::rig: {
-        ImGui::Begin("Rig", nullptr, flags);
-    } break;
-    case Mode::animate: {
-        ImGui::Begin("Animate", nullptr, flags);
-    } break;
+    ImGui::Begin("Objects", nullptr, flags);
+
+    if(ImGui::Button("Create Object")) {
+
+    }
+    if(ImGui::Button("Load Object")) {
+
     }
 
-    state.sidebar_hidden = ImGui::IsWindowCollapsed();
+    if(objs.size() > 0)
+        ImGui::Separator();
+
+    int i = 0;
+    for(auto& entry : objs) {
+
+        ImGui::PushID(entry.first);
+
+        if(entry.first == selected_id) {
+            ImGui::Text("[Object %d]", entry.first);
+        } else {
+            ImGui::Text("Object %d", entry.first);
+        }
+        
+        if(ImGui::SmallButton("Select")) {
+            selected_id = entry.first;
+        }
+        if(i++ != objs.size() - 1) ImGui::Separator();
+
+        ImGui::PopID();
+    }
+
     ImGui::End();
+}
+
+void App::add_object(const Scene_Object& obj) {
+    objs.insert({next_id++, obj});
 }
 

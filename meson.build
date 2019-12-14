@@ -15,6 +15,7 @@ sources = [
 	'deps/imgui/imgui_impl_opengl3.cpp',
 	'deps/glad/glad.cpp',
 	'src/lib/lib.cpp',
+	'src/engine.cpp',
 	'src/main.cpp']
 
 link = []
@@ -44,5 +45,6 @@ executable('s4d', sources,
 	dependencies : deps,
 	include_directories : inc_dir, 
 	cpp_args : args,
-	link_args : link)
+	link_args : link,
+	gui_app : true)
 

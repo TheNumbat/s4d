@@ -1,0 +1,16 @@
+
+Scotty4D
+
+    replace my 3d_math.h with more readable & commented files
+
+    openGL management: buffers, shaders, framebuffers, etc.
+        multisampling
+
+    half-edge mesh implementation
+
+    rendering half-edge mesh information & picking
+
+    loading & saving meshes
+
+    undo/redo
+

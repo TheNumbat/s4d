@@ -9,6 +9,7 @@ Scotty4D
     half-edge mesh implementation
 
     rendering half-edge mesh information & picking
+        movement, rotate, and scale widgets
 
     loading & saving meshes
 

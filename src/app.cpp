@@ -69,7 +69,7 @@ void App::gui_side() {
 
     ImGui::SetNextWindowPos({0.0, 18.0});
     ImGui::SetNextWindowSize({dim.x / 5.0f, dim.y});
-    ImGui::SetNextWindowCollapsed(state.sidebar);
+    ImGui::SetNextWindowCollapsed(state.sidebar_hidden);
 
     switch(state.mode) {
     case Mode::model: {
@@ -86,7 +86,7 @@ void App::gui_side() {
     } break;
     }
 
-    state.sidebar = ImGui::IsWindowCollapsed();
+    state.sidebar_hidden = ImGui::IsWindowCollapsed();
     ImGui::End();
 }
 

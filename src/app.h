@@ -14,7 +14,7 @@ public:
 
 private:
     Platform& plt;
-    
+
     enum class Mode {
         model,
         render,
@@ -24,7 +24,7 @@ private:
 
     struct Gui {
         Mode mode = Mode::model;
-        bool sidebar = true;
+        bool sidebar_hidden = false;
     };
     Gui state;
 

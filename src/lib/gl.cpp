@@ -1,0 +1,145 @@
+	
+#include "gl.h"
+#include "log.h"
+
+#include <fstream>
+
+GL_Mesh::GL_Mesh() {
+	create();
+}
+
+GL_Mesh::GL_Mesh(const std::vector<Vec3>& vertices, const std::vector<unsigned int>& elements) {
+	create();
+	update(vertices, elements);
+}
+
+GL_Mesh::GL_Mesh(GL_Mesh&& src) {
+	vao = src.vao; src.vao = 0;
+	vbo = src.vbo; src.vbo = 0;
+	ebo = src.ebo; src.ebo = 0;
+	num_tris = src.num_tris; src.num_tris = 0;
+}
+
+GL_Mesh::~GL_Mesh() {
+	destroy();
+}
+
+void GL_Mesh::create() {
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+	glGenBuffers(1, &ebo);
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+	glBindVertexArray(0);
+}
+
+void GL_Mesh::destroy() {
+	glDeleteBuffers(1, &vbo);
+	glDeleteBuffers(1, &ebo);
+	glDeleteVertexArrays(1, &vao);
+	vao = vbo = ebo = 0;
+}
+
+void GL_Mesh::update(const std::vector<Vec3>& vertices, const std::vector<unsigned int>& elements) {
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vec3) * vertices.size(), vertices.size() ? &vertices[0] : nullptr, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * elements.size(), elements.size() ? &elements[0] : nullptr, GL_STATIC_DRAW);
+
+	glBindVertexArray(0);
+
+	num_tris = elements.size();
+}
+
+void GL_Mesh::render() {
+
+	glDrawElements(GL_TRIANGLES, num_tris, GL_UNSIGNED_INT, nullptr);
+}
+
+GL_Shader::GL_Shader(std::string vertex, std::string fragment) {
+    load(vertex, fragment);
+}
+
+GL_Shader::~GL_Shader() {
+    destroy();
+}
+
+void GL_Shader::bind() {
+    glUseProgram(program);
+}
+
+void GL_Shader::destroy() {
+	glUseProgram(0);
+	glDeleteShader(v);
+	glDeleteShader(f);
+	glDeleteProgram(program);
+	v = f = program = 0;
+}
+
+GLuint GL_Shader::uniform(std::string name) const {
+
+    return glGetUniformLocation(program, name.c_str());
+}
+
+void GL_Shader::load(std::string vertex, std::string fragment) {
+
+	std::string vs, fs;
+	std::ifstream vfin(vertex), ffin(fragment);
+	std::getline(vfin, vs, '\0');
+	std::getline(ffin, fs, '\0');
+
+	v = glCreateShader(GL_VERTEX_SHADER);
+	f = glCreateShader(GL_FRAGMENT_SHADER);
+	const GLchar* vs_c = vs.c_str();
+	const GLchar* fs_c = fs.c_str();
+	glShaderSource(v, 1, &vs_c, NULL);
+	glShaderSource(f, 1, &fs_c, NULL);
+	glCompileShader(v);
+	glCompileShader(f);
+
+	if(!validate(v)) {
+        destroy();
+        return;
+    }
+	if(!validate(f)) {
+        destroy();
+        return;
+    }
+
+	program = glCreateProgram();
+	glAttachShader(program, v);
+	glAttachShader(program, f);
+	glLinkProgram(program);
+}
+
+bool GL_Shader::validate(GLuint program) {
+
+	GLint compiled = 0;
+	glGetShaderiv(program, GL_COMPILE_STATUS, &compiled);
+	if(compiled == GL_FALSE) {
+		
+		GLint len = 0;
+		glGetShaderiv(program, GL_INFO_LOG_LENGTH, &len);
+
+		GLchar* msg = new GLchar[len];
+		glGetShaderInfoLog(program, len, &len, msg);
+
+		warn("Shader %d failed to compile: %s", program, msg);
+		delete[] msg;
+
+        return false;
+	}
+    return true;
+}
+

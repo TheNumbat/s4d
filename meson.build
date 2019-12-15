@@ -15,9 +15,12 @@ sources = [
 	'deps/imgui/imgui_impl_opengl3.cpp',
 	'deps/glad/glad.cpp',
 	'src/lib/lib.cpp',
+	'src/lib/gl.cpp',
 	'src/platform.cpp',
 	'src/app.cpp',
-	'src/scene_object.cpp',
+	'src/scene/scene.cpp',
+	'src/scene/scene_object.cpp',
+	'src/scene/proc_objects.cpp',
 	'src/main.cpp']
 
 link = []

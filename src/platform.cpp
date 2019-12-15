@@ -28,12 +28,12 @@ static void gl_check_leaked_handles() {
 			GLint shader_len = 0;
 			glGetShaderiv(i, GL_SHADER_SOURCE_LENGTH, &shader_len);
 
-			GLchar* shader = (GLchar*)malloc(shader_len);
+			GLchar* shader = new GLchar[shader_len];
 			glGetShaderSource(i, shader_len, nullptr, shader);
 
 			warn("Leaked OpenGL shader %u. Source: %s", i, shader); 
 
-			free(shader);
+			delete[] shader;
 		}
 	}
 

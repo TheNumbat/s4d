@@ -13,21 +13,12 @@ App::~App() {
 
 void App::event(SDL_Event e) {
     
-    
 }
 
 void App::render() {
 
-    for(auto& entry : objs) {
-        entry.second.render();
-    }
+    scene.render();
     render_gui();
-}
-
-void App::render_gui() {
-
-    gui_side();
-    gui_top();
 }
 
 bool App::state_button(Mode mode, std::string name) {
@@ -43,7 +34,7 @@ bool App::state_button(Mode mode, std::string name) {
     return clicked;
 }
 
-void App::gui_top() {
+void App::render_gui() {
 
     if(ImGui::BeginMainMenuBar()) {
 
@@ -79,52 +70,8 @@ void App::gui_top() {
 
         ImGui::EndMainMenuBar();
     }
+
+    scene.gui(plt.window_dim());
 }
 
-void App::gui_side() {
-
-    Vec2 dim = plt.window_dim();
-
-    const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
-
-    ImGui::SetNextWindowPos({0.0, 18.0});
-    ImGui::SetNextWindowSize({dim.x / 5.0f, dim.y});
-
-    ImGui::Begin("Objects", nullptr, flags);
-
-    if(ImGui::Button("Create Object")) {
-
-    }
-    if(ImGui::Button("Load Object")) {
-
-    }
-
-    if(objs.size() > 0)
-        ImGui::Separator();
-
-    int i = 0;
-    for(auto& entry : objs) {
-
-        ImGui::PushID(entry.first);
-
-        if(entry.first == selected_id) {
-            ImGui::Text("[Object %d]", entry.first);
-        } else {
-            ImGui::Text("Object %d", entry.first);
-        }
-        
-        if(ImGui::SmallButton("Select")) {
-            selected_id = entry.first;
-        }
-        if(i++ != objs.size() - 1) ImGui::Separator();
-
-        ImGui::PopID();
-    }
-
-    ImGui::End();
-}
-
-void App::add_object(const Scene_Object& obj) {
-    objs.insert({next_id++, obj});
-}
 

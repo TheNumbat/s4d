@@ -302,7 +302,7 @@ inline Mat4 Mat4::scale(Vec3 s) {
 	return r;
 }
 
-inline Mat4 ortho(float l, float r, float b, float t, float n, float f) {
+inline Mat4 Mat4::ortho(float l, float r, float b, float t, float n, float f) {
 	Mat4 rs;
 	rs[0][0] = 2.0f / (r - l);
 	rs[1][1] = 2.0f / (t - b);
@@ -313,7 +313,7 @@ inline Mat4 ortho(float l, float r, float b, float t, float n, float f) {
 	return rs;
 }
 
-inline Mat4 project(float fov, float ar, float n) {
+inline Mat4 Mat4::project(float fov, float ar, float n) {
 	float f = 1.0f / std::tanf(Radians(fov) / 2.0f);
 	Mat4 r;
 	r[0][0] = f / ar;
@@ -325,7 +325,7 @@ inline Mat4 project(float fov, float ar, float n) {
 	return r;
 }
 
-inline Mat4 look_at(Vec3 pos, Vec3 at, Vec3 up) {
+inline Mat4 Mat4::look_at(Vec3 pos, Vec3 at, Vec3 up) {
 	Mat4 r = Mat4::Zero;
 	Vec3 F = (at - pos).unit();
 	Vec3 S = cross(F, up).unit();

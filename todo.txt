@@ -1,15 +1,28 @@
 
 Scotty4D
 
-    color imgui button for current state
+    // BASE
 
-    openGL management: buffers, shaders, framebuffers, etc.
+    basic rendering
+        render a mesh
+        camera
+        event system - free camera, mouse grab/ungrab
+        framebuffers
         multisampling
 
-    basic object creation/mesh rendering
+    mesh names
+    creating meshes of different shapes
+    mesh picking for selection
+
+    mesh preview ??? render to texture at default pos and keep
+
+    loading meshes
 
     object transforms/scene graph
+        UI on selected object
         movement, rotate, and scale widgets
+
+    // MESHEDIT
 
     half-edge mesh implementation
     rendering half-edge mesh information & picking
@@ -17,4 +30,8 @@ Scotty4D
     loading & saving meshes
 
     undo/redo
+
+    // PATHTRACER
+
+    // ANIMATIOn
 

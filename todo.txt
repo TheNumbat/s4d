@@ -1,8 +1,6 @@
 
 Scotty4D
 
-    [WIP] replace my 3d_math.h with more readable & commented files
-
     color imgui button for current state
 
     openGL management: buffers, shaders, framebuffers, etc.

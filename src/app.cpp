@@ -13,6 +13,7 @@ App::~App() {
 
 void App::event(SDL_Event e) {
     
+    
 }
 
 void App::render() {
@@ -27,6 +28,19 @@ void App::render_gui() {
 
     gui_side();
     gui_top();
+}
+
+bool App::state_button(Mode mode, std::string name) {
+    
+    bool active = state.mode == mode;
+    
+    if(active) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonActive));
+
+    bool clicked = ImGui::SmallButton(name.c_str());
+
+    if(active) ImGui::PopStyleColor();
+
+    return clicked;
 }
 
 void App::gui_top() {
@@ -48,19 +62,19 @@ void App::gui_top() {
             ImGui::EndMenu();
         }
 
-        if(ImGui::SmallButton("Scene"))
+        if(state_button(Mode::scene, "Scene"))
             state.mode = Mode::scene;
 
-        if(ImGui::SmallButton("Model"))
+        if(state_button(Mode::model, "Model"))
             state.mode = Mode::model;
 
-        if(ImGui::SmallButton("Render"))
+        if(state_button(Mode::render, "Render"))
             state.mode = Mode::render;
 
-        if(ImGui::SmallButton("Rig"))
+        if(state_button(Mode::rig, "Rig"))
             state.mode = Mode::rig;
 
-        if(ImGui::SmallButton("Animate"))
+        if(state_button(Mode::animate, "Animate"))
             state.mode = Mode::animate;
 
         ImGui::EndMainMenuBar();

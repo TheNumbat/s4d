@@ -2,6 +2,8 @@
 #pragma once
 
 #include <map>
+#include <string>
+
 #include <SDL2/SDL.h>
 
 #include "scene_object.h"
@@ -38,5 +40,7 @@ private:
     void render_gui();
     void gui_top();
     void gui_side();
+    bool state_button(Mode mode, std::string name);
+
     void add_object(const Scene_Object& obj);
 };

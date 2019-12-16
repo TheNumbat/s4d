@@ -8,6 +8,7 @@ Scotty4D
         mesh normals - basic NdotL shading for view
         framebuffers
         multisampling
+        do we change to z-up?
 
     mesh names
     creating meshes of different shapes

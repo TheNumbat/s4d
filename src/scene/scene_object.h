@@ -18,7 +18,7 @@ public:
     ID id() {return _id;}
 
 private:
-    Vec3 color = {0.5f, 0.5f, 0.5f};
+    Vec3 color = {0.7f, 0.7f, 0.7f};
     ID _id = 0;
     Mat4 transform;
     GL_Mesh mesh;

@@ -41,6 +41,7 @@ void Scene::render() {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+    glDepthFunc(GL_GREATER);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     Mat4 proj_view = camera.proj() * camera.view();
@@ -49,7 +50,7 @@ void Scene::render() {
         mesh_shader.bind();
         glUniformMatrix4fv(mesh_shader.uniform("proj_view"), 1, GL_FALSE, proj_view.data);
         for(auto& obj : objs) {
-            // obj.second.render(mesh_shader);
+            obj.second.render(mesh_shader);
         }
     }
 

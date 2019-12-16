@@ -81,6 +81,11 @@ void GL_Shader::bind() {
     glUseProgram(program);
 }
 
+void GL_Shader::reload() {
+	destroy();
+	load(v_file, f_file);
+}
+
 void GL_Shader::destroy() {
 	glUseProgram(0);
 	glDeleteShader(v);
@@ -96,6 +101,8 @@ GLuint GL_Shader::uniform(std::string name) const {
 
 void GL_Shader::load(std::string vertex, std::string fragment) {
 
+	v_file = vertex;
+	f_file = fragment;
 	std::string vs, fs;
 	std::ifstream vfin(vertex), ffin(fragment);
 	std::getline(vfin, vs, '\0');

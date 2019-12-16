@@ -35,11 +35,13 @@ public:
     ~GL_Shader();
 
 	void bind();
+	void reload();
 	GLuint uniform(std::string name) const;
 
 	static bool validate(GLuint program);
 
 private:
+	std::string v_file, f_file;
 	GLuint program = 0;
 	GLuint v = 0, f = 0;
 

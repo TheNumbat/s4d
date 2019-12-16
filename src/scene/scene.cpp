@@ -14,6 +14,10 @@ Scene::~Scene() {
 
 }
 
+void Scene::reload_shaders() {
+    mesh_shader.reload();
+}
+
 void Scene::render() {
 
     glEnable(GL_DEPTH_TEST);

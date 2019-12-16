@@ -105,7 +105,9 @@ void App::render_gui() {
         }
 
         if(ImGui::BeginMenu("View")) {
-
+            if(ImGui::MenuItem("Reload Shaders")) {
+                scene.reload_shaders();
+            }
             ImGui::EndMenu();
         }
 

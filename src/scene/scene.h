@@ -24,6 +24,8 @@ public:
     void camera_move(Vec2 dmouse);
     void camera_radius(float dmouse);
 
+    void reload_shaders();
+
 private:
     Vec2 window_dim;
     Camera camera;

@@ -7,12 +7,12 @@
 namespace GL {
 
 void global_params() {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    glPolygonOffset(1.0f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_GREATER);
-    glClearDepthf(0.0f);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	glPolygonOffset(1.0f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_GREATER);
+	glClearDepthf(0.0f);
 }
 
 void clear_screen() {
@@ -162,7 +162,7 @@ void Lines::destroy() {
 }
 
 Shader::Shader(std::string vertex, std::string fragment) {
-    load(vertex, fragment);
+	load(vertex, fragment);
 }
 
 Shader::Shader(Shader&& src) {
@@ -174,11 +174,11 @@ Shader::Shader(Shader&& src) {
 }
 
 Shader::~Shader() {
-    destroy();
+	destroy();
 }
 
 void Shader::bind() const {
-    glUseProgram(program);
+	glUseProgram(program);
 }
 
 void Shader::reload() {
@@ -204,7 +204,7 @@ void Shader::uniform(std::string name, Vec3 vec3) const {
 
 GLuint Shader::loc(std::string name) const {
 
-    return glGetUniformLocation(program, name.c_str());
+	return glGetUniformLocation(program, name.c_str());
 }
 
 void Shader::load(std::string vertex, std::string fragment) {
@@ -226,13 +226,13 @@ void Shader::load(std::string vertex, std::string fragment) {
 	glCompileShader(f);
 
 	if(!validate(v)) {
-        destroy();
-        return;
-    }
+		destroy();
+		return;
+	}
 	if(!validate(f)) {
-        destroy();
-        return;
-    }
+		destroy();
+		return;
+	}
 
 	program = glCreateProgram();
 	glAttachShader(program, v);
@@ -255,9 +255,9 @@ bool Shader::validate(GLuint program) {
 		warn("Shader %d failed to compile: %s", program, msg);
 		delete[] msg;
 
-        return false;
+		return false;
 	}
-    return true;
+	return true;
 }
 
 Framebuffer::Framebuffer(int outputs, Vec2 dim, int samples) {

@@ -75,10 +75,10 @@ private:
 
 class Shader {	
 public:
-    Shader(std::string vertex_file, std::string fragment_file);
+	Shader(std::string vertex_file, std::string fragment_file);
 	Shader(const Shader& src) = delete;
 	Shader(Shader&& src);
-    ~Shader();
+	~Shader();
 
 	void bind() const;
 	void reload();
@@ -95,17 +95,17 @@ private:
 	GLuint v = 0, f = 0;
 
 	void load(std::string vertex, std::string fragment);
-    void destroy();
+	void destroy();
 };
 
 /// this is very restrictive; it assumes a set number of gl_rgb8 output
 /// textures and a floating point depth render buffer.
 class Framebuffer {
 public:
-    Framebuffer(int outputs, Vec2 dim, int samples = 1);
+	Framebuffer(int outputs, Vec2 dim, int samples = 1);
 	Framebuffer(const Framebuffer& src) = delete;
 	Framebuffer(Framebuffer&& src);
-    ~Framebuffer();
+	~Framebuffer();
 
 	static void bind_screen();
 

@@ -5,5 +5,5 @@
 
 namespace Proc_Objects {
 
-    GL::Mesh cube(float radius = 0.5f);
+	GL::Mesh cube(float radius = 0.5f);
 }

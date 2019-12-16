@@ -456,9 +456,6 @@ void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severity, GLsi
 	case GL_DEBUG_SEVERITY_MEDIUM:
 		warn("OpenGL | source: %s type: %s message: %s", source.c_str(), type.c_str(), message.c_str());
 		break;
-	case GL_DEBUG_SEVERITY_LOW:
-		info("OpenGL | source: %s type: %s message: %s", source.c_str(), type.c_str(), message.c_str());
-		break;
 	}
 }
 

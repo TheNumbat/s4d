@@ -14,8 +14,7 @@ Scotty4D
     // BASE
 
     basic rendering
-        framebuffers
-        multisampling
+        using framebuffers + multisampling
         make sure fringing goes away with floating point depth buffer
 
     mesh names

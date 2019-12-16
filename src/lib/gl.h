@@ -8,18 +8,24 @@
 
 #include "math.h"
 
-class GL_Mesh {
+namespace GL {
+
+void check_leaked_handles();
+void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severity, GLsizei length, const GLchar* glmessage, const void* up);
+void setup_debug_proc();
+
+class Mesh {
 public:
 	struct Vert {
 		Vec3 pos;
 		Vec3 norm;
 	};
 
-	GL_Mesh();
-	GL_Mesh(const std::vector<Vert>& vertices);
-	GL_Mesh(const GL_Mesh& src) = delete;
-	GL_Mesh(GL_Mesh&& src);
-	~GL_Mesh();
+	Mesh();
+	Mesh(const std::vector<Vert>& vertices);
+	Mesh(const Mesh& src) = delete;
+	Mesh(Mesh&& src);
+	~Mesh();
 
 	/// Assumes proper shader is already bound
 	void render();
@@ -33,12 +39,12 @@ private:
 	GLuint n_elem = 0;
 };
 
-class GL_Lines {
+class Lines {
 public:
-	GL_Lines(float thickness);
-	GL_Lines(const GL_Lines& src) = delete;
-	GL_Lines(GL_Lines&& src);
-	~GL_Lines();
+	Lines(float thickness);
+	Lines(const Lines& src) = delete;
+	Lines(Lines&& src);
+	~Lines();
 
 	/// Assumes proper shader is already bound
 	void render();
@@ -61,21 +67,23 @@ private:
 	std::vector<Line_Vert> vertices;
 };
 
-class GL_Shader {	
-
+class Shader {	
 public:
-    GL_Shader(std::string vertex_file, std::string fragment_file);
-	GL_Shader(const GL_Shader& src) = delete;
-	GL_Shader(GL_Shader&& src);
-    ~GL_Shader();
+    Shader(std::string vertex_file, std::string fragment_file);
+	Shader(const Shader& src) = delete;
+	Shader(Shader&& src);
+    ~Shader();
 
-	void bind();
+	void bind() const;
 	void reload();
-	GLuint uniform(std::string name) const;
-
-	static bool validate(GLuint program);
+	
+	void uniform(std::string name, Mat4 mat) const;
+	void uniform(std::string name, Vec3 vec3) const;
 
 private:
+	GLuint loc(std::string name) const;
+	static bool validate(GLuint program);
+
 	std::string v_file, f_file;
 	GLuint program = 0;
 	GLuint v = 0, f = 0;
@@ -83,3 +91,32 @@ private:
 	void load(std::string vertex, std::string fragment);
     void destroy();
 };
+
+/// this is very restrictive; it assumes a set number of gl_rgb8 output
+/// textures and a floating point depth render buffer.
+class Framebuffer {
+public:
+    Framebuffer(int outputs, Vec2 dim, int samples = 1);
+	Framebuffer(const Framebuffer& src) = delete;
+	Framebuffer(Framebuffer&& src);
+    ~Framebuffer();
+
+	static void bind_screen();
+
+	void resize(Vec2 dim, int samples = 1);
+	void bind() const;
+	bool is_multisampled() const;
+
+	GLuint get_output(int idx) const; 
+
+private:
+	void create();
+	void destroy();
+
+	std::vector<GLuint> output_textures;
+	GLuint depth_rbo = 0;
+	GLuint framebuffer = 0;
+	bool msaa = false;
+};
+
+}

@@ -3,9 +3,9 @@
 
 namespace Proc_Objects {
 
-    GL_Mesh cube(float r) {
+    GL::Mesh cube(float r) {
 
-        static const std::vector<GL_Mesh::Vert> verts = {
+        static const std::vector<GL::Mesh::Vert> verts = {
             {{-1.0f,-1.0f,-1.0f},{-1.0f,0.0f,0.0f}},
             {{-1.0f,-1.0f,1.0f},{-1.0f,0.0f,0.0f}},
             {{-1.0f,1.0f,1.0f},{-1.0f,0.0f,0.0f}}, // Left Side
@@ -44,6 +44,6 @@ namespace Proc_Objects {
             {{1.0f,-1.0f,1.0},{0.0f,0.0f,1.0f}}   // Front Side
         }; 
 
-        return GL_Mesh(verts);
+        return GL::Mesh(verts);
     }
 }

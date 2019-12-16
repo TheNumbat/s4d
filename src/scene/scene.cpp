@@ -9,6 +9,7 @@ Scene::Scene(Vec2 window_dim) :
     line_shader("line.vert", "line.frag"),
     window_dim(window_dim),
     camera(window_dim),
+    framebuffer(1, window_dim),
     baseplane(0.5f) {
 
     create_baseplane();
@@ -51,14 +52,15 @@ void Scene::render() {
 	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    Mat4 proj = camera.proj(), view = camera.view();;
+    Mat4 proj = camera.proj(), view = camera.view();
     Mat4 viewproj = proj * view;
 
+    // framebuffer.bind();
     {
         glEnable(GL_POLYGON_OFFSET_FILL);
 
         mesh_shader.bind();
-        glUniformMatrix4fv(mesh_shader.uniform("proj"), 1, GL_FALSE, proj.data);
+        mesh_shader.uniform("proj", proj);
 
         for(auto& obj : objs) {
             obj.second.render(view, mesh_shader);
@@ -69,7 +71,7 @@ void Scene::render() {
 
     {
         line_shader.bind();
-        glUniformMatrix4fv(line_shader.uniform("viewproj"), 1, GL_FALSE, viewproj.data);
+        line_shader.uniform("viewproj", viewproj);
         baseplane.render();
     }
 }
@@ -107,7 +109,7 @@ void Scene::gui() {
     ImGui::Begin("Objects", nullptr, flags);
 
     if(ImGui::Button("Create Object")) {
-        GL_Mesh cube = Proc_Objects::cube(1.0f);
+        GL::Mesh cube = Proc_Objects::cube(1.0f);
         add_object(Scene_Object(next_id++, Mat4::I, std::move(cube)));
     }
     if(ImGui::Button("Load Object")) {

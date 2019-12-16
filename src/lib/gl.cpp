@@ -4,26 +4,28 @@
 
 #include <fstream>
 
-GL_Mesh::GL_Mesh() {
+namespace GL {
+
+Mesh::Mesh() {
 	create();
 }
 
-GL_Mesh::GL_Mesh(const std::vector<Vert>& vertices) {
+Mesh::Mesh(const std::vector<Vert>& vertices) {
 	create();
 	update(vertices);
 }
 
-GL_Mesh::GL_Mesh(GL_Mesh&& src) {
+Mesh::Mesh(Mesh&& src) {
 	vao = src.vao; src.vao = 0;
 	vbo = src.vbo; src.vbo = 0;
 	n_elem = src.n_elem; src.n_elem = 0;
 }
 
-GL_Mesh::~GL_Mesh() {
+Mesh::~Mesh() {
 	destroy();
 }
 
-void GL_Mesh::create() {
+void Mesh::create() {
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
 
@@ -39,13 +41,13 @@ void GL_Mesh::create() {
 	glBindVertexArray(0);
 }
 
-void GL_Mesh::destroy() {
+void Mesh::destroy() {
 	glDeleteBuffers(1, &vbo);
 	glDeleteVertexArrays(1, &vao);
 	vao = vbo = 0;
 }
 
-void GL_Mesh::update(const std::vector<Vert>& vertices) {
+void Mesh::update(const std::vector<Vert>& vertices) {
 
 	glBindVertexArray(vao);
 
@@ -57,18 +59,18 @@ void GL_Mesh::update(const std::vector<Vert>& vertices) {
 	n_elem = vertices.size();
 }
 
-void GL_Mesh::render() {
+void Mesh::render() {
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, n_elem);
 	glBindVertexArray(0);
 }
 
-GL_Lines::GL_Lines(float thickness) : thickness(thickness) {
+Lines::Lines(float thickness) : thickness(thickness) {
 	create();
 }
 
-GL_Lines::GL_Lines(GL_Lines&& src) {
+Lines::Lines(Lines&& src) {
 	dirty = src.dirty; src.dirty = false;
 	thickness = src.thickness; src.thickness = 0.0f;
 	vao = src.vao; src.vao = 0;
@@ -76,11 +78,11 @@ GL_Lines::GL_Lines(GL_Lines&& src) {
 	vertices = std::move(src.vertices);
 }
 
-GL_Lines::~GL_Lines() {
+Lines::~Lines() {
 	destroy();
 }
 
-void GL_Lines::update() {
+void Lines::update() {
 
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -90,7 +92,7 @@ void GL_Lines::update() {
 	dirty = false;
 }
 
-void GL_Lines::render() {
+void Lines::render() {
 
 	if(dirty) update();
 
@@ -102,14 +104,14 @@ void GL_Lines::render() {
 	glBindVertexArray(0);
 }
 
-void GL_Lines::add(Vec3 start, Vec3 end, Vec3 color) {
+void Lines::add(Vec3 start, Vec3 end, Vec3 color) {
 
 	vertices.push_back({start, color});
 	vertices.push_back({end, color});
 	dirty = true;
 }
 
-void GL_Lines::create() {
+void Lines::create() {
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
 
@@ -125,7 +127,7 @@ void GL_Lines::create() {
 	glBindVertexArray(0);
 }
 
-void GL_Lines::destroy() {
+void Lines::destroy() {
 	glDeleteBuffers(1, &vbo);
 	glDeleteVertexArrays(1, &vao);
 	vao = vbo = 0;
@@ -133,11 +135,11 @@ void GL_Lines::destroy() {
 	dirty = false;
 }
 
-GL_Shader::GL_Shader(std::string vertex, std::string fragment) {
+Shader::Shader(std::string vertex, std::string fragment) {
     load(vertex, fragment);
 }
 
-GL_Shader::GL_Shader(GL_Shader&& src) {
+Shader::Shader(Shader&& src) {
 	v_file = std::move(src.v_file);
 	f_file = std::move(src.f_file);
 	program = src.program; src.program = 0;
@@ -145,20 +147,20 @@ GL_Shader::GL_Shader(GL_Shader&& src) {
 	f = src.f; src.f = 0;
 }
 
-GL_Shader::~GL_Shader() {
+Shader::~Shader() {
     destroy();
 }
 
-void GL_Shader::bind() {
+void Shader::bind() const {
     glUseProgram(program);
 }
 
-void GL_Shader::reload() {
+void Shader::reload() {
 	destroy();
 	load(v_file, f_file);
 }
 
-void GL_Shader::destroy() {
+void Shader::destroy() {
 	glUseProgram(0);
 	glDeleteShader(v);
 	glDeleteShader(f);
@@ -166,12 +168,20 @@ void GL_Shader::destroy() {
 	v = f = program = 0;
 }
 
-GLuint GL_Shader::uniform(std::string name) const {
+void Shader::uniform(std::string name, Mat4 mat) const {
+	glUniformMatrix4fv(loc(name), 1, GL_FALSE, mat.data);
+}
+
+void Shader::uniform(std::string name, Vec3 vec3) const {
+	glUniform3fv(loc(name), 1, vec3.data);
+}
+
+GLuint Shader::loc(std::string name) const {
 
     return glGetUniformLocation(program, name.c_str());
 }
 
-void GL_Shader::load(std::string vertex, std::string fragment) {
+void Shader::load(std::string vertex, std::string fragment) {
 
 	v_file = vertex;
 	f_file = fragment;
@@ -204,7 +214,7 @@ void GL_Shader::load(std::string vertex, std::string fragment) {
 	glLinkProgram(program);
 }
 
-bool GL_Shader::validate(GLuint program) {
+bool Shader::validate(GLuint program) {
 
 	GLint compiled = 0;
 	glGetShaderiv(program, GL_COMPILE_STATUS, &compiled);
@@ -224,3 +234,206 @@ bool GL_Shader::validate(GLuint program) {
     return true;
 }
 
+Framebuffer::Framebuffer(int outputs, Vec2 dim, int samples) {
+	assert(outputs >= 0 && outputs < 32);
+	output_textures.resize(outputs);
+	resize(dim, samples);
+}
+
+Framebuffer::Framebuffer(Framebuffer&& src) {
+	output_textures = std::move(src.output_textures);
+	depth_rbo = src.depth_rbo; src.depth_rbo = 0;
+	framebuffer = src.framebuffer; src.framebuffer = 0;
+	msaa = src.msaa; src.msaa = false;
+}
+
+Framebuffer::~Framebuffer() {
+	destroy();
+}
+
+void Framebuffer::create() {
+	glGenFramebuffers(1, &framebuffer);
+	glGenTextures(output_textures.size(), output_textures.data());
+	glGenRenderbuffers(1, &depth_rbo);
+}
+
+void Framebuffer::destroy() {
+	glDeleteRenderbuffers(1, &depth_rbo);
+	glDeleteTextures(output_textures.size(), output_textures.data());
+	glDeleteFramebuffers(1, &framebuffer);
+	depth_rbo = framebuffer = 0;
+}
+
+void Framebuffer::resize(Vec2 dim, int samples) {
+
+	destroy();
+	create();
+	
+	int w = (int)dim.x;
+	int h = (int)dim.y;
+	msaa = samples != 1;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	GLenum type = msaa ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+
+	std::vector<GLenum> draw_buffers;
+
+	for(int i = 0; i < output_textures.size(); i++) {
+
+		glBindTexture(type, output_textures[i]);
+
+		if(msaa) {
+			glTexImage2DMultisample(type, samples, GL_RGB8, w, h, GL_TRUE);
+		} else {
+			glTexImage2D(type, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+			glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, type, output_textures[i], 0);
+
+		draw_buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
+
+		glBindTexture(type, 0);
+	}
+
+	glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo);
+	if(msaa) {
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT32F, w, h);  
+	} else {
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, w, h);
+	}
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glDrawBuffers(1, draw_buffers.data());
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Framebuffer::bind_screen() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Framebuffer::bind() const {
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+}
+
+GLuint Framebuffer::get_output(int idx) const {
+	assert(idx >= 0 && idx < output_textures.size());
+	return output_textures[idx];
+}
+
+bool Framebuffer::is_multisampled() const {
+	return msaa;
+}
+
+void check_leaked_handles() {
+
+	#define GL_CHECK(type) if(glIs##type && glIs##type(i) == GL_TRUE) { warn("Leaked OpenGL handle %u of type %s", i, #type); leaked = true;}
+
+	bool leaked = false;
+	for(GLuint i = 0; i < 10000; i++) {
+		GL_CHECK(Texture);
+		GL_CHECK(Buffer);
+		GL_CHECK(Framebuffer);
+		GL_CHECK(Renderbuffer);
+		GL_CHECK(VertexArray);
+		GL_CHECK(Program);
+		GL_CHECK(ProgramPipeline);
+		GL_CHECK(Query);
+
+		if(glIsShader(i) == GL_TRUE) {
+
+			leaked = true;
+			GLint shader_len = 0;
+			glGetShaderiv(i, GL_SHADER_SOURCE_LENGTH, &shader_len);
+
+			GLchar* shader = new GLchar[shader_len];
+			glGetShaderSource(i, shader_len, nullptr, shader);
+
+			warn("Leaked OpenGL shader %u. Source: %s", i, shader); 
+
+			delete[] shader;
+		}
+	}
+
+	#undef GL_CHECK
+}
+
+void setup_debug_proc() {
+	glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(debug_proc, nullptr);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+}
+
+void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severity, GLsizei length, const GLchar* glmessage, const void* up) {
+
+	std::string message(glmessage);
+	std::string source, type;
+
+	switch(glsource) {
+	case GL_DEBUG_SOURCE_API:
+		source = "OpenGL API";
+		break;
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+		source = "Window System";
+		break;
+	case GL_DEBUG_SOURCE_SHADER_COMPILER:
+		source = "Shader Compiler";
+		break;
+	case GL_DEBUG_SOURCE_THIRD_PARTY:
+		source = "Third Party";
+		break;
+	case GL_DEBUG_SOURCE_APPLICATION:
+		source = "Application";
+		break;
+	case GL_DEBUG_SOURCE_OTHER:
+		source = "Other";
+		break;
+	}
+
+	switch(gltype) {
+	case GL_DEBUG_TYPE_ERROR:
+		type = "Error";
+		break;
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+		type = "Deprecated";
+		break;
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+		type = "Undefined Behavior";
+		break;
+	case GL_DEBUG_TYPE_PORTABILITY:
+		type = "Portability";
+		break;
+	case GL_DEBUG_TYPE_PERFORMANCE:
+		type = "Performance";
+		break;
+	case GL_DEBUG_TYPE_MARKER:
+		type = "Marker";
+		break;
+	case GL_DEBUG_TYPE_PUSH_GROUP:
+		type = "Push Group";
+		break;
+	case GL_DEBUG_TYPE_POP_GROUP:
+		type = "Pop Group";
+		break;
+	case GL_DEBUG_TYPE_OTHER:
+		type = "Other";
+		break;
+	}
+
+	switch(severity) {
+	case GL_DEBUG_SEVERITY_HIGH:
+	case GL_DEBUG_SEVERITY_MEDIUM:
+		warn("OpenGL | source: %s type: %s message: %s", source.c_str(), type.c_str(), message.c_str());
+		break;
+	case GL_DEBUG_SEVERITY_LOW:
+		info("OpenGL | source: %s type: %s message: %s", source.c_str(), type.c_str(), message.c_str());
+		break;
+	}
+}
+
+}

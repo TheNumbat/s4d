@@ -69,6 +69,67 @@ void GL_Mesh::render() {
 	glBindVertexArray(0);
 }
 
+GL_Lines::GL_Lines(float thickness) : thickness(thickness) {
+	create();
+}
+
+GL_Lines::~GL_Lines() {
+	destroy();
+}
+
+void GL_Lines::update() {
+
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Line_Vert) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	glBindVertexArray(0);
+
+	dirty = false;
+}
+
+void GL_Lines::render() {
+
+	if(dirty) update();
+
+	glLineWidth(thickness);
+	glEnable(GL_LINE_SMOOTH);
+
+	glBindVertexArray(vao);
+	glDrawArrays(GL_LINES, 0, vertices.size());
+	glBindVertexArray(0);
+}
+
+void GL_Lines::add(Vec3 start, Vec3 end, Vec3 color) {
+
+	vertices.push_back({start, color});
+	vertices.push_back({end, color});
+	dirty = true;
+}
+
+void GL_Lines::create() {
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Line_Vert), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Line_Vert), (GLvoid*)sizeof(Vec3));
+	glEnableVertexAttribArray(1);
+	
+	glBindVertexArray(0);
+}
+
+void GL_Lines::destroy() {
+	glDeleteBuffers(1, &vbo);
+	glDeleteVertexArrays(1, &vao);
+	vao = vbo = 0;
+	vertices.clear();
+	dirty = false;
+}
+
 GL_Shader::GL_Shader(std::string vertex, std::string fragment) {
     load(vertex, fragment);
 }

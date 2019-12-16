@@ -27,9 +27,12 @@ public:
     void reload_shaders();
 
 private:
+    void create_baseplane();
+    GL_Lines baseplane;
+    
     Vec2 window_dim;
     Camera camera;
-    GL_Shader mesh_shader;
+    GL_Shader mesh_shader, line_shader;
 
     std::map<Scene_Object::ID, Scene_Object> objs;
     Scene_Object::ID next_id = 1;

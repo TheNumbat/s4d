@@ -18,6 +18,11 @@ struct Vec3 {
 		y = _y;
 		z = _z;
 	}
+	Vec3(int _x, int _y, int _z) {
+		x = (float)_x;
+		y = (float)_y;
+		z = (float)_z;
+	}
 	Vec3(const Vec3& src) {
 		x = src.x;
 		y = src.y;

@@ -16,6 +16,10 @@ struct Vec2 {
 		x = _x;
 		y = _y;
 	}
+	Vec2(int _x, int _y) {
+		x = (float)_x;
+		y = (float)_y;
+	}
 	Vec2(const Vec2& src) {
 		x = src.x;
 		y = src.y;

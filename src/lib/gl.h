@@ -28,6 +28,32 @@ private:
 	GLuint n_elem = 0;
 };
 
+class GL_Lines {
+public:
+	GL_Lines(float thickness);
+	~GL_Lines();
+
+	/// Assumes proper shader is already bound
+	void render();
+	void add(Vec3 start, Vec3 end, Vec3 color);
+
+private:
+	void create();
+	void destroy();
+	void update();
+
+	bool dirty = false;
+	float thickness = 0.0f;
+	GLuint vao = 0, vbo = 0;
+
+	struct Line_Vert {
+		Vec3 pos;
+		Vec3 color;
+	};
+
+	std::vector<Line_Vert> vertices;
+};
+
 class GL_Shader {	
 
 public:

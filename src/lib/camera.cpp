@@ -31,7 +31,7 @@ void Camera::update_pos() {
 
 void Camera::reset() {
     fov = 90.0f;
-    pitch = -45.0f;
+    pitch = 45.0f;
     yaw = 225.0f;
     n = 0.1f;
     radius = 5.0f;

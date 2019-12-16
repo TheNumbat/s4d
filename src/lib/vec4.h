@@ -21,6 +21,12 @@ struct Vec4 {
 		z = _z;
 		w = _w;
 	}
+	Vec4(int _x, int _y, int _z, int _w) {
+		x = (float)_x;
+		y = (float)_y;
+		z = (float)_z;
+		w = (float)_w;
+	}
 	Vec4(Vec3 xyz, float _w) {
 		x = xyz.x;
 		y = xyz.y;

@@ -6,29 +6,57 @@
 
 Scene::Scene(Vec2 window_dim) :
     mesh_shader("mesh.vert", "mesh.frag"),
+    line_shader("line.vert", "line.frag"),
     window_dim(window_dim),
-    camera(window_dim) {
+    camera(window_dim),
+    baseplane(0.5f) {
+
+    create_baseplane();
 }
 
 Scene::~Scene() {
 
 }
 
+void Scene::create_baseplane() {
+
+    const int R = 25;
+    for(int i = -R; i <= R; i++) {
+        if(i == 0) {
+            baseplane.add({-R, 0, i}, {R, 0, i}, {0.6f, 0.1f, 0.1f});
+            baseplane.add({i, 0, -R}, {i, 0, R}, {0.1f, 0.6f, 0.1f});
+            continue;
+        }
+        baseplane.add({i, 0, -R}, {i, 0, R}, {0.5f, 0.5f, 0.5f});
+        baseplane.add({-R, 0, i}, {R, 0, i}, {0.5f, 0.5f, 0.5f});
+    }
+}
+
 void Scene::reload_shaders() {
     mesh_shader.reload();
+    line_shader.reload();
 }
 
 void Scene::render() {
 
     glEnable(GL_DEPTH_TEST);
-
-    mesh_shader.bind();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     Mat4 proj_view = camera.proj() * camera.view();
-    glUniformMatrix4fv(mesh_shader.uniform("proj_view"), 1, GL_FALSE, proj_view.data);
 
-    for(auto& obj : objs) {
-        obj.second.render(mesh_shader);
+    {
+        mesh_shader.bind();
+        glUniformMatrix4fv(mesh_shader.uniform("proj_view"), 1, GL_FALSE, proj_view.data);
+        for(auto& obj : objs) {
+            // obj.second.render(mesh_shader);
+        }
+    }
+
+    {
+        line_shader.bind();
+        glUniformMatrix4fv(line_shader.uniform("proj_view"), 1, GL_FALSE, proj_view.data);
+        baseplane.render();
     }
 }
 

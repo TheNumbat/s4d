@@ -242,3 +242,17 @@ Vec2 Platform::window_dim() {
 	SDL_GetWindowSize(window, &w, &h);
 	return Vec2((float)w, (float)h);
 }
+
+void Platform::capture_mouse() {
+	SDL_CaptureMouse(SDL_TRUE);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+}
+
+void Platform::release_mouse() {
+	SDL_CaptureMouse(SDL_FALSE);
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+}
+
+void Platform::set_mouse(Vec2 pos) {
+	SDL_WarpMouseInWindow(window, pos.x, pos.y);
+}

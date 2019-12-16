@@ -5,7 +5,9 @@
 #include <SDL2/SDL.h>
 #include <imgui/imgui.h>
 
-App::App(Platform& plt) : plt(plt) {
+App::App(Platform& plt) : 
+    plt(plt), 
+    scene(plt.window_dim()) {
 }
 
 App::~App() {
@@ -13,6 +15,44 @@ App::~App() {
 
 void App::event(SDL_Event e) {
     
+    ImGuiIO& io = ImGui::GetIO();
+
+    switch(e.type) {
+	case SDL_WINDOWEVENT: {
+        if (e.window.event == SDL_WINDOWEVENT_RESIZED ||
+            e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+
+            scene.apply_window_dim(Vec2((float)e.window.data1, (float)e.window.data2));
+        }
+    } break;
+
+    case SDL_MOUSEMOTION: {
+        if(state.mouse_captured) {
+            float dx = (e.motion.x - state.mouse.x);
+            float dy = (e.motion.y - state.mouse.y);
+            scene.move_camera(Vec2(dx, dy));
+        }
+        state.mouse.x = (float)e.motion.x;
+        state.mouse.y = (float)e.motion.y;
+    } break;
+
+    case SDL_MOUSEBUTTONDOWN: {
+        if(!io.WantCaptureMouse) {
+            state.mouse_captured = true;
+            plt.capture_mouse();
+        }
+        state.last_mouse.x = (float)e.button.x;
+        state.last_mouse.y = (float)e.button.y;
+    } break;
+
+    case SDL_MOUSEBUTTONUP: {
+        if(!io.WantCaptureMouse && state.mouse_captured) {
+            state.mouse_captured = false;
+            plt.release_mouse();
+            plt.set_mouse(state.last_mouse);
+        }
+    } break;
+    }
 }
 
 void App::render() {
@@ -71,7 +111,7 @@ void App::render_gui() {
         ImGui::EndMainMenuBar();
     }
 
-    scene.gui(plt.window_dim());
+    scene.gui();
 }
 
 

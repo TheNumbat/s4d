@@ -4,9 +4,9 @@ Scotty4D
     // BASE
 
     basic rendering
-        render a mesh
-        camera
+        free camera
         event system - free camera, mouse grab/ungrab
+        mesh normals - basic NdotL shading for view
         framebuffers
         multisampling
 

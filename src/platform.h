@@ -16,6 +16,10 @@ public:
 
     Vec2 window_dim();
 
+    void capture_mouse();
+    void release_mouse();
+    void set_mouse(Vec2 pos);
+
 private:
     void platform_init();
     void platform_shutdown();

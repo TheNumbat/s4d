@@ -4,9 +4,10 @@
 
 #include <imgui/imgui.h>
 
-Scene::Scene() :
-    mesh_shader("mesh.vert", "mesh.frag") {
-
+Scene::Scene(Vec2 window_dim) :
+    mesh_shader("mesh.vert", "mesh.frag"),
+    window_dim(window_dim),
+    camera(window_dim) {
 }
 
 Scene::~Scene() {
@@ -17,7 +18,7 @@ void Scene::render() {
 
     mesh_shader.bind();
 
-    Mat4 proj_view = proj * view;
+    Mat4 proj_view = camera.proj() * camera.view();
     glUniformMatrix4fv(mesh_shader.uniform("proj_view"), 1, GL_FALSE, proj_view.data);
 
     for(auto& obj : objs) {
@@ -29,12 +30,18 @@ void Scene::add_object(Scene_Object&& obj) {
     objs.emplace(std::make_pair(obj.id(), std::move(obj)));
 }
 
-void Scene::gui(Vec2 window_dim) {
+void Scene::move_camera(Vec2 dmouse) {
+    camera.mouse(dmouse);
+}
 
-    // TODO(max): move to real event system and update
+void Scene::apply_window_dim(Vec2 new_dim) {
+
+    window_dim = new_dim;
+    camera.set_ar(window_dim);
     glViewport(0, 0, (GLsizei)window_dim.x, (GLsizei)window_dim.y);
-    view = Mat4::look_at({5, 0, 0}, {});
-    proj = Mat4::project(90.0f, window_dim.x / window_dim.y, 0.1f);
+}
+
+void Scene::gui() {
 
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
 

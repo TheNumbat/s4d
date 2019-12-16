@@ -3,22 +3,28 @@
 
 #include "../lib/math.h"
 #include "../lib/gl.h"
+#include "../lib/camera.h"
+
 #include "scene_object.h"
 
 #include <map>
 
 class Scene {
 public:
-    Scene();
+    Scene(Vec2 window_dim);
     ~Scene();
 
     void render();
-    void gui(Vec2 window_dim);
+    void gui();
 
+    void apply_window_dim(Vec2 new_dim);
     void add_object(Scene_Object&& obj);
 
+    void move_camera(Vec2 dmouse);
+
 private:
-    Mat4 view, proj;
+    Vec2 window_dim;
+    Camera camera;
     GL_Shader mesh_shader;
 
     std::map<Scene_Object::ID, Scene_Object> objs;

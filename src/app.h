@@ -30,6 +30,9 @@ private:
 
     struct Gui {
         Mode mode = Mode::scene;
+        
+        bool mouse_captured = false;
+        Vec2 mouse, last_mouse;
     };
     Gui state;
 

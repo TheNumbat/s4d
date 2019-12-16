@@ -16,6 +16,7 @@ sources = [
 	'deps/glad/glad.cpp',
 	'src/lib/lib.cpp',
 	'src/lib/gl.cpp',
+	'src/lib/camera.cpp',
 	'src/platform.cpp',
 	'src/app.cpp',
 	'src/scene/scene.cpp',

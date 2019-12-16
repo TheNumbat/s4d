@@ -36,6 +36,8 @@ private:
 class GL_Lines {
 public:
 	GL_Lines(float thickness);
+	GL_Lines(const GL_Lines& src) = delete;
+	GL_Lines(GL_Lines&& src);
 	~GL_Lines();
 
 	/// Assumes proper shader is already bound
@@ -63,6 +65,8 @@ class GL_Shader {
 
 public:
     GL_Shader(std::string vertex_file, std::string fragment_file);
+	GL_Shader(const GL_Shader& src) = delete;
+	GL_Shader(GL_Shader&& src);
     ~GL_Shader();
 
 	void bind();

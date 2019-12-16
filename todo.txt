@@ -1,6 +1,16 @@
 
 Scotty4D
 
+    Goals
+        Using OpenGL 3.3+
+        Less implicit / keybind-only UI
+        Fix UI bugs / better object picking and property editing
+        Scene graph (or at least a mesh listing)
+        Undo / redo for modeling and animation
+        Much better modeling + skinning performance on large meshes (point 1 and some halfedge changes will really help)
+        Simpler/smaller codebase / use more straightforward C++ features
+        Smaller items: rendering remotely without X forwarding, path traced animations, textures in the path tracer (maybe pbr parameters?), more checks for halfedge meshes, more mesh/scene formats, multisampling
+
     // BASE
 
     basic rendering
@@ -11,6 +21,7 @@ Scotty4D
     mesh names
     mesh wireframe (precursor to halfedges etc)
     mesh picking for selection
+        outline or color selected mesh
 
     loading & saving meshes
 
@@ -21,14 +32,14 @@ Scotty4D
         UI on selected object
         movement, rotate, and scale widgets
 
+    undo/redo
+
     // MESHEDIT
 
     half-edge mesh implementation
     rendering half-edge mesh information & picking
 
     loading & saving meshes
-
-    undo/redo
 
     // PATHTRACER
 

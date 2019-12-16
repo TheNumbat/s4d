@@ -68,6 +68,14 @@ GL_Lines::GL_Lines(float thickness) : thickness(thickness) {
 	create();
 }
 
+GL_Lines::GL_Lines(GL_Lines&& src) {
+	dirty = src.dirty; src.dirty = false;
+	thickness = src.thickness; src.thickness = 0.0f;
+	vao = src.vao; src.vao = 0;
+	vbo = src.vbo; src.vbo = 0;
+	vertices = std::move(src.vertices);
+}
+
 GL_Lines::~GL_Lines() {
 	destroy();
 }
@@ -127,6 +135,14 @@ void GL_Lines::destroy() {
 
 GL_Shader::GL_Shader(std::string vertex, std::string fragment) {
     load(vertex, fragment);
+}
+
+GL_Shader::GL_Shader(GL_Shader&& src) {
+	v_file = std::move(src.v_file);
+	f_file = std::move(src.f_file);
+	program = src.program; src.program = 0;
+	v = src.v; src.v = 0;
+	f = src.f; src.f = 0;
 }
 
 GL_Shader::~GL_Shader() {

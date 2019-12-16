@@ -11,21 +11,21 @@
 class GL_Mesh {
 public:
 	GL_Mesh();
-	GL_Mesh(const std::vector<Vec3>& vertices, const std::vector<unsigned int>& elements);
+	GL_Mesh(const std::vector<Vec3>& vertices, const std::vector<GLuint>& elements);
 	GL_Mesh(const GL_Mesh& src) = delete;
 	GL_Mesh(GL_Mesh&& src);
 	~GL_Mesh();
 
 	/// Assumes proper shader is already bound
 	void render();
-	void update(const std::vector<Vec3>& vertices, const std::vector<unsigned int>& elements);
+	void update(const std::vector<Vec3>& vertices, const std::vector<GLuint>& elements);
 
 private:
 	void create();
 	void destroy();
 
 	GLuint vao = 0, vbo = 0, ebo = 0;
-	GLuint num_tris = 0;
+	GLuint n_elem = 0;
 };
 
 class GL_Shader {	

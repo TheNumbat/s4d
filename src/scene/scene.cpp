@@ -31,10 +31,10 @@ void Scene::add_object(Scene_Object&& obj) {
 
 void Scene::gui(Vec2 window_dim) {
 
-    // TODO(max): move to real event system and update NOCHECKIN
+    // TODO(max): move to real event system and update
     glViewport(0, 0, (GLsizei)window_dim.x, (GLsizei)window_dim.y);
     view = Mat4::look_at({5, 0, 0}, {});
-    proj = Mat4::project(90.0f, window_dim.y / window_dim.x, 0.1f);
+    proj = Mat4::project(90.0f, window_dim.x / window_dim.y, 0.1f);
 
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
 

@@ -20,5 +20,6 @@ Scene_Object::~Scene_Object() {
 void Scene_Object::render(const GL_Shader& shader) {
 
     glUniformMatrix4fv(shader.uniform("model"), 1, GL_FALSE, transform.data);
+    glUniform3fv(shader.uniform("color"), 1, color.data);
     mesh.render();
 }

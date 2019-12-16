@@ -152,7 +152,7 @@ struct Mat4 {
 			for(int j = 0; j < 4; j++) {
 				ret[i][j] = 0.0f;
 				for(int k = 0; k < 4; k++) {
-					ret[i][j] += cols[i][k] * m[k][j];
+					ret[i][j] += m[i][k] * cols[k][j];
 				}
 			}
 		}

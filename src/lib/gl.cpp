@@ -8,7 +8,7 @@ GL_Mesh::GL_Mesh() {
 	create();
 }
 
-GL_Mesh::GL_Mesh(const std::vector<Vec3>& vertices, const std::vector<unsigned int>& elements) {
+GL_Mesh::GL_Mesh(const std::vector<Vec3>& vertices, const std::vector<GLuint>& elements) {
 	create();
 	update(vertices, elements);
 }
@@ -17,7 +17,7 @@ GL_Mesh::GL_Mesh(GL_Mesh&& src) {
 	vao = src.vao; src.vao = 0;
 	vbo = src.vbo; src.vbo = 0;
 	ebo = src.ebo; src.ebo = 0;
-	num_tris = src.num_tris; src.num_tris = 0;
+	n_elem = src.n_elem; src.n_elem = 0;
 }
 
 GL_Mesh::~GL_Mesh() {
@@ -32,7 +32,7 @@ void GL_Mesh::create() {
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vec3), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 	
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -47,24 +47,26 @@ void GL_Mesh::destroy() {
 	vao = vbo = ebo = 0;
 }
 
-void GL_Mesh::update(const std::vector<Vec3>& vertices, const std::vector<unsigned int>& elements) {
+void GL_Mesh::update(const std::vector<Vec3>& vertices, const std::vector<GLuint>& elements) {
 
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vec3) * vertices.size(), vertices.size() ? &vertices[0] : nullptr, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * elements.size(), elements.size() ? &elements[0] : nullptr, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * elements.size(), elements.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
 
-	num_tris = elements.size();
+	n_elem = elements.size();
 }
 
 void GL_Mesh::render() {
 
-	glDrawElements(GL_TRIANGLES, num_tris, GL_UNSIGNED_INT, nullptr);
+	glBindVertexArray(vao);
+	glDrawElements(GL_TRIANGLES, n_elem, GL_UNSIGNED_INT, nullptr);
+	glBindVertexArray(0);
 }
 
 GL_Shader::GL_Shader(std::string vertex, std::string fragment) {

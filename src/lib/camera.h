@@ -12,16 +12,21 @@ public:
 	Mat4 proj() const;
 
 	void reset();
-	void mouse(Vec2 off);
+	
+	void mouse_orbit(Vec2 off);
+	void mouse_move(Vec2 off);
+	void mouse_radius(float off);
+
 	void set_ar(Vec2 dim);
 
 private:
-	void update_dirs();
+	void update_pos();
 
 	// parameters
-	float pitch, yaw, fov, n, ar, sens;
-	Vec3 pos, global_up;
+	float pitch, yaw, fov, n, ar, radius;
+	float orbit_sens, move_sens, radius_sens;
+	Vec3 global_up, center;
 
-	// set by update_dirs
-	Vec3 front, up, right;
+	// set by update_pos
+	Vec3 pos;
 };

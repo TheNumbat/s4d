@@ -20,7 +20,9 @@ public:
     void apply_window_dim(Vec2 new_dim);
     void add_object(Scene_Object&& obj);
 
-    void move_camera(Vec2 dmouse);
+    void camera_orbit(Vec2 dmouse);
+    void camera_move(Vec2 dmouse);
+    void camera_radius(float dmouse);
 
 private:
     Vec2 window_dim;

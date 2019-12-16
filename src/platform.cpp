@@ -192,7 +192,7 @@ void Platform::complete_frame() {
 
 void Platform::begin_frame() {
 
-	glClearColor(0.6f, 0.65f, 0.7f, 1.0f);
+	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	ImGui_ImplOpenGL3_NewFrame();
@@ -254,5 +254,5 @@ void Platform::release_mouse() {
 }
 
 void Platform::set_mouse(Vec2 pos) {
-	SDL_WarpMouseInWindow(window, pos.x, pos.y);
+	SDL_WarpMouseInWindow(window, (int)pos.x, (int)pos.y);
 }

@@ -27,11 +27,16 @@ private:
         rig,
         animate
     };
+    enum class Camera_Control {
+        none,
+        orbit,
+        move
+    };
 
     struct Gui {
         Mode mode = Mode::scene;
         
-        bool mouse_captured = false;
+        Camera_Control cam_mode = Camera_Control::none;
         Vec2 mouse, last_mouse;
     };
     Gui state;

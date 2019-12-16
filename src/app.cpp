@@ -27,18 +27,28 @@ void App::event(SDL_Event e) {
     } break;
 
     case SDL_MOUSEMOTION: {
-        if(state.mouse_captured) {
-            float dx = (e.motion.x - state.mouse.x);
-            float dy = (e.motion.y - state.mouse.y);
-            scene.move_camera(Vec2(dx, dy));
+        float dx = (e.motion.x - state.mouse.x);
+        float dy = (e.motion.y - state.mouse.y);
+        
+        if(state.cam_mode == Camera_Control::orbit) {
+            scene.camera_orbit(Vec2(dx, dy));
+        } else if(state.cam_mode == Camera_Control::move) {
+            scene.camera_move(Vec2(dx, dy));
         }
+
         state.mouse.x = (float)e.motion.x;
         state.mouse.y = (float)e.motion.y;
     } break;
 
     case SDL_MOUSEBUTTONDOWN: {
+        if(e.button.button == SDL_BUTTON_LEFT) break;
+
         if(!io.WantCaptureMouse) {
-            state.mouse_captured = true;
+            if(e.button.button == SDL_BUTTON_RIGHT) {
+                state.cam_mode = Camera_Control::orbit;
+            } else if(e.button.button == SDL_BUTTON_MIDDLE) {
+                state.cam_mode = Camera_Control::move;
+            }
             plt.capture_mouse();
         }
         state.last_mouse.x = (float)e.button.x;
@@ -46,10 +56,16 @@ void App::event(SDL_Event e) {
     } break;
 
     case SDL_MOUSEBUTTONUP: {
-        if(!io.WantCaptureMouse && state.mouse_captured) {
-            state.mouse_captured = false;
+        if(!io.WantCaptureMouse && state.cam_mode != Camera_Control::none) {
+            state.cam_mode = Camera_Control::none;
             plt.release_mouse();
             plt.set_mouse(state.last_mouse);
+        }
+    } break;
+
+    case SDL_MOUSEWHEEL: {
+        if(!io.WantCaptureMouse) {
+            scene.camera_radius((float)e.wheel.y);
         }
     } break;
     }

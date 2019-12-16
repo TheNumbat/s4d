@@ -16,6 +16,8 @@ Scene::~Scene() {
 
 void Scene::render() {
 
+    glEnable(GL_DEPTH_TEST);
+
     mesh_shader.bind();
 
     Mat4 proj_view = camera.proj() * camera.view();
@@ -30,8 +32,16 @@ void Scene::add_object(Scene_Object&& obj) {
     objs.emplace(std::make_pair(obj.id(), std::move(obj)));
 }
 
-void Scene::move_camera(Vec2 dmouse) {
-    camera.mouse(dmouse);
+void Scene::camera_orbit(Vec2 dmouse) {
+    camera.mouse_orbit(dmouse);
+}
+
+void Scene::camera_move(Vec2 dmouse) {
+    camera.mouse_move(dmouse);
+}
+
+void Scene::camera_radius(float dmouse) {
+    camera.mouse_radius(dmouse);
 }
 
 void Scene::apply_window_dim(Vec2 new_dim) {

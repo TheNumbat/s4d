@@ -8,15 +8,14 @@ GL_Mesh::GL_Mesh() {
 	create();
 }
 
-GL_Mesh::GL_Mesh(const std::vector<Vec3>& vertices, const std::vector<GLuint>& elements) {
+GL_Mesh::GL_Mesh(const std::vector<Vert>& vertices) {
 	create();
-	update(vertices, elements);
+	update(vertices);
 }
 
 GL_Mesh::GL_Mesh(GL_Mesh&& src) {
 	vao = src.vao; src.vao = 0;
 	vbo = src.vbo; src.vbo = 0;
-	ebo = src.ebo; src.ebo = 0;
 	n_elem = src.n_elem; src.n_elem = 0;
 }
 
@@ -27,45 +26,41 @@ GL_Mesh::~GL_Mesh() {
 void GL_Mesh::create() {
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
-	glGenBuffers(1, &ebo);
 
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vec3), (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vert), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vert), (GLvoid*)sizeof(Vec3));
+	glEnableVertexAttribArray(1);
+	
 	glBindVertexArray(0);
 }
 
 void GL_Mesh::destroy() {
 	glDeleteBuffers(1, &vbo);
-	glDeleteBuffers(1, &ebo);
 	glDeleteVertexArrays(1, &vao);
-	vao = vbo = ebo = 0;
+	vao = vbo = 0;
 }
 
-void GL_Mesh::update(const std::vector<Vec3>& vertices, const std::vector<GLuint>& elements) {
+void GL_Mesh::update(const std::vector<Vert>& vertices) {
 
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * elements.size(), elements.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vert) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
 
-	n_elem = elements.size();
+	n_elem = vertices.size();
 }
 
 void GL_Mesh::render() {
 
 	glBindVertexArray(vao);
-	glDrawElements(GL_TRIANGLES, n_elem, GL_UNSIGNED_INT, nullptr);
+	glDrawArrays(GL_TRIANGLES, 0, n_elem);
 	glBindVertexArray(0);
 }
 

@@ -10,8 +10,16 @@ Camera::~Camera() {
 
 }
 
+Vec3 Camera::front() const {
+    return (_pos - center).unit();
+}
+
+Vec3 Camera::pos() const {
+    return _pos;
+}
+
 Mat4 Camera::view() const {
-    return Mat4::look_at(pos, center, global_up);
+    return Mat4::look_at(_pos, center, global_up);
 }
 
 Mat4 Camera::proj() const {
@@ -23,10 +31,10 @@ void Camera::set_ar(Vec2 dim) {
 }
 
 void Camera::update_pos() {
-    pos.x = std::cos(Radians(pitch)) * std::cos(Radians(yaw));
-    pos.y = std::sin(Radians(pitch));
-    pos.z = std::sin(Radians(yaw)) * std::cos(Radians(pitch));
-    pos = radius * pos.unit() + center;
+    _pos.x = std::cos(Radians(pitch)) * std::cos(Radians(yaw));
+    _pos.y = std::sin(Radians(pitch));
+    _pos.z = std::sin(Radians(yaw)) * std::cos(Radians(pitch));
+    _pos = radius * _pos.unit() + center;
 }
 
 void Camera::reset() {
@@ -53,7 +61,7 @@ void Camera::mouse_orbit(Vec2 off) {
 }
 
 void Camera::mouse_move(Vec2 off) {
-    Vec3 front = (pos - center).unit();
+    Vec3 front = (_pos - center).unit();
     Vec3 right = cross(front, global_up).unit();
     Vec3 up = cross(front, right).unit();
     center += right * off.x * move_sens - up * off.y * move_sens;

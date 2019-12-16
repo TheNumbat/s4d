@@ -17,9 +17,13 @@ Scene_Object::~Scene_Object() {
 
 }
 
-void Scene_Object::render(const GL_Shader& shader) {
+void Scene_Object::render(Mat4 view, const GL_Shader& shader) {
 
-    glUniformMatrix4fv(shader.uniform("model"), 1, GL_FALSE, transform.data);
+    Mat4 modelview = view * transform;
+    Mat4 normal = Mat4::transpose(Mat4::inverse(modelview));
+
+    glUniformMatrix4fv(shader.uniform("modelview"), 1, GL_FALSE, modelview.data);
+    glUniformMatrix4fv(shader.uniform("normal"), 1, GL_FALSE, normal.data);
     glUniform3fv(shader.uniform("color"), 1, color.data);
     mesh.render();
 }

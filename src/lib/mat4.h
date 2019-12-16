@@ -38,8 +38,12 @@ struct Mat4 {
 	/// Return orthogonal projection matrix with given left, right, bottom, top,
 	/// near, and far planes.
 	static Mat4 ortho(float l, float r, float b, float t, float n, float f);
+	
 	/// Return perspective projection matrix with given field of view, aspect ratio,
-	/// and near plane. The far plane is assumed to be at infinity. 
+	/// and near plane. The far plane is assumed to be at infinity. This projection
+	/// also outputs 1-z for better precision with floating point depth buffers, so we use 
+	/// a depth mapping where 0 is the far plane (infinity) and 1 is the near plane, and
+	/// an object is closer if is depth is greater.
 	static Mat4 project(float fov, float ar, float n);
 
 	Mat4() {

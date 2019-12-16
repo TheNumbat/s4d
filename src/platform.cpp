@@ -192,10 +192,6 @@ void Platform::complete_frame() {
 
 void Platform::begin_frame() {
 
-	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-	glClearDepthf(0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(window);
 	ImGui::NewFrame();

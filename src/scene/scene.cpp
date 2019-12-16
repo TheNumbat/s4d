@@ -12,6 +12,15 @@ Scene::Scene(Vec2 window_dim) :
     baseplane(0.5f) {
 
     create_baseplane();
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glPolygonOffset(1.0f, 1.0f);
+
+    // use reversed depth
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_GREATER);
+    glClearDepthf(0.0f);
 }
 
 Scene::~Scene() {
@@ -39,24 +48,28 @@ void Scene::reload_shaders() {
 
 void Scene::render() {
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glDepthFunc(GL_GREATER);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    Mat4 proj_view = camera.proj() * camera.view();
+    Mat4 proj = camera.proj(), view = camera.view();;
+    Mat4 viewproj = proj * view;
 
     {
+        glEnable(GL_POLYGON_OFFSET_FILL);
+
         mesh_shader.bind();
-        glUniformMatrix4fv(mesh_shader.uniform("proj_view"), 1, GL_FALSE, proj_view.data);
+        glUniformMatrix4fv(mesh_shader.uniform("proj"), 1, GL_FALSE, proj.data);
+
         for(auto& obj : objs) {
-            obj.second.render(mesh_shader);
+            obj.second.render(view, mesh_shader);
         }
+        
+        glDisable(GL_POLYGON_OFFSET_FILL);
     }
 
     {
         line_shader.bind();
-        glUniformMatrix4fv(line_shader.uniform("proj_view"), 1, GL_FALSE, proj_view.data);
+        glUniformMatrix4fv(line_shader.uniform("viewproj"), 1, GL_FALSE, viewproj.data);
         baseplane.render();
     }
 }

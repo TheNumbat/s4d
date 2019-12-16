@@ -4,19 +4,18 @@ Scotty4D
     // BASE
 
     basic rendering
-        rendering base plane / axes
-        mesh normals - basic NdotL shading for view
         framebuffers
         multisampling
-        do we change to z-up?
+        make sure fringing goes away with floating point depth buffer
 
     mesh names
-    creating meshes of different shapes
+    mesh wireframe (precursor to halfedges etc)
     mesh picking for selection
 
-    mesh preview ??? render to texture at default pos and keep
+    loading & saving meshes
 
-    loading meshes
+    mesh preview ??? render to texture at default pos and keep
+    default meshes of different shapes
 
     object transforms/scene graph
         UI on selected object

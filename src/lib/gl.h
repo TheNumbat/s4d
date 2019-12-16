@@ -10,21 +10,26 @@
 
 class GL_Mesh {
 public:
+	struct Vert {
+		Vec3 pos;
+		Vec3 norm;
+	};
+
 	GL_Mesh();
-	GL_Mesh(const std::vector<Vec3>& vertices, const std::vector<GLuint>& elements);
+	GL_Mesh(const std::vector<Vert>& vertices);
 	GL_Mesh(const GL_Mesh& src) = delete;
 	GL_Mesh(GL_Mesh&& src);
 	~GL_Mesh();
 
 	/// Assumes proper shader is already bound
 	void render();
-	void update(const std::vector<Vec3>& vertices, const std::vector<GLuint>& elements);
+	void update(const std::vector<Vert>& vertices);
 
 private:
 	void create();
 	void destroy();
 
-	GLuint vao = 0, vbo = 0, ebo = 0;
+	GLuint vao = 0, vbo = 0;
 	GLuint n_elem = 0;
 };
 

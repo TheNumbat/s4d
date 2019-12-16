@@ -13,7 +13,7 @@ public:
 	Scene_Object(Scene_Object&& src);
     ~Scene_Object();
 
-    void render(const GL_Shader& shader);
+    void render(Mat4 view, const GL_Shader& shader);
 
     ID id() {return _id;}
 

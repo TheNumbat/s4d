@@ -10,6 +10,9 @@ public:
 
 	Mat4 view() const;
 	Mat4 proj() const;
+	
+	Vec3 pos() const;
+	Vec3 front() const;
 
 	void reset();
 	
@@ -28,5 +31,5 @@ private:
 	Vec3 global_up, center;
 
 	// set by update_pos
-	Vec3 pos;
+	Vec3 _pos;
 };

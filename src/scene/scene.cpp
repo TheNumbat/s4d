@@ -12,16 +12,8 @@ Scene::Scene(Vec2 window_dim) :
     framebuffer(1, window_dim),
     baseplane(0.5f) {
 
+    GL::global_params();
     create_baseplane();
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    glPolygonOffset(1.0f, 1.0f);
-
-    // use reversed depth
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_GREATER);
-    glClearDepthf(0.0f);
 }
 
 Scene::~Scene() {
@@ -49,15 +41,14 @@ void Scene::reload_shaders() {
 
 void Scene::render() {
 
-	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	GL::clear_screen();
 
     Mat4 proj = camera.proj(), view = camera.view();
     Mat4 viewproj = proj * view;
 
     // framebuffer.bind();
     {
-        glEnable(GL_POLYGON_OFFSET_FILL);
+        GL::begin_offset();
 
         mesh_shader.bind();
         mesh_shader.uniform("proj", proj);
@@ -65,8 +56,8 @@ void Scene::render() {
         for(auto& obj : objs) {
             obj.second.render(view, mesh_shader);
         }
-        
-        glDisable(GL_POLYGON_OFFSET_FILL);
+
+        GL::end_offset();        
     }
 
     {
@@ -96,7 +87,7 @@ void Scene::apply_window_dim(Vec2 new_dim) {
 
     window_dim = new_dim;
     camera.set_ar(window_dim);
-    glViewport(0, 0, (GLsizei)window_dim.x, (GLsizei)window_dim.y);
+    GL::viewport(new_dim);
 }
 
 void Scene::gui() {

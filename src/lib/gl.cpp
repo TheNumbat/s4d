@@ -6,6 +6,32 @@
 
 namespace GL {
 
+void global_params() {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glPolygonOffset(1.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_GREATER);
+    glClearDepthf(0.0f);
+}
+
+void clear_screen() {
+	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void begin_offset() {
+	glEnable(GL_POLYGON_OFFSET_FILL);
+}
+
+void end_offset() {
+	glDisable(GL_POLYGON_OFFSET_FILL);
+}
+
+void viewport(Vec2 dim) {
+	glViewport(0, 0, (GLsizei)dim.x, (GLsizei)dim.y);
+}
+
 Mesh::Mesh() {
 	create();
 }

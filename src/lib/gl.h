@@ -10,6 +10,12 @@
 
 namespace GL {
 
+void global_params();
+void clear_screen();
+void begin_offset();
+void end_offset();
+void viewport(Vec2 dim);
+
 void check_leaked_handles();
 void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severity, GLsizei length, const GLchar* glmessage, const void* up);
 void setup_debug_proc();

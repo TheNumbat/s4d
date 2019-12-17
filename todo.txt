@@ -13,11 +13,7 @@ Scotty4D
 
     // BASE
 
-    mesh names
-    mesh wireframe (precursor to halfedges etc)
     mesh picking for selection
-        outline or color selected mesh
-
     loading & saving meshes
 
     mesh preview ??? render to texture at default pos and keep

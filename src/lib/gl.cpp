@@ -12,7 +12,8 @@ void global_params() {
 	glPolygonOffset(1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_GREATER);
-	glClearDepthf(0.0f);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glClearDepth(0.0);
 }
 
 void clear_screen(Vec4 col) {
@@ -21,12 +22,38 @@ void clear_screen(Vec4 col) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void begin_wireframe() {
+	glEnable(GL_POLYGON_OFFSET_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void end_wireframe() {
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glDisable(GL_POLYGON_OFFSET_LINE);
+}
+
 void begin_offset() {
 	glEnable(GL_POLYGON_OFFSET_FILL);
 }
 
 void end_offset() {
 	glDisable(GL_POLYGON_OFFSET_FILL);
+}
+
+void start_stencil() {
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 1, 0xff); 
+	glStencilMask(0xff);
+}
+
+void use_stencil() {
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilMask(0x00);
+}
+
+void end_stencil() {
+	glStencilMask(0xff);
+	glDisable(GL_STENCIL_TEST);
 }
 
 void viewport(Vec2 dim) {
@@ -213,6 +240,10 @@ void Shader::uniform(std::string name, GLint i) const {
 	glUniform1i(loc(name), i);
 }
 
+void Shader::uniform(std::string name, bool b) const {
+	glUniform1i(loc(name), b);
+}
+
 GLuint Shader::loc(std::string name) const {
 
 	return glGetUniformLocation(program, name.c_str());
@@ -340,11 +371,11 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 
 	glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo);
 	if(s > 1) {
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, s, GL_DEPTH_COMPONENT32F, w, h);  
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, s, GL_DEPTH32F_STENCIL8, w, h);  
 	} else {
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, w, h);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH32F_STENCIL8, w, h);
 	}
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rbo);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	glDrawBuffers(1, draw_buffers.data());
@@ -355,7 +386,7 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 void Framebuffer::clear(Vec4 col) const {
 	bind();
 	glClearColor(col.x, col.y, col.z, col.w);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void Framebuffer::bind_screen() {
@@ -432,7 +463,9 @@ void Resolve::to_screen(const Framebuffer& framebuffer, int buf) {
 	resolve_shader.uniform("samples", framebuffer.s);
 	resolve_shader.uniform("tex_size", Vec2(framebuffer.w, framebuffer.h));
 
+	glDisable(GL_DEPTH_TEST);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glEnable(GL_DEPTH_TEST);
 	glBindVertexArray(0);
 }
 

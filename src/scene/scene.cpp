@@ -41,8 +41,6 @@ void Scene::reload_shaders() {
 
 void Scene::render() {
 
-	GL::clear_screen({});
-
 	Mat4 proj = camera.proj(), view = camera.view();
 	Mat4 viewproj = proj * view;
 
@@ -53,7 +51,7 @@ void Scene::render() {
 		mesh_shader.uniform("proj", proj);
 
 		for(auto& obj : objs) {
-			obj.second.render(view, mesh_shader);
+			obj.second.render(view, obj.first == selected_id, mesh_shader);
 		}
 	}
 
@@ -116,7 +114,8 @@ void Scene::gui() {
 
 		ImGui::PushID(entry.first);
 
-		ImGui::InputText("##name", entry.second.name.data(), entry.second.name.capacity());
+		std::string& name = entry.second.opt.name;
+		ImGui::InputText("##name", name.data(), name.capacity());
 		
 		bool selected = entry.first == selected_id;
 		ImGui::SameLine();
@@ -125,6 +124,7 @@ void Scene::gui() {
 			else selected_id = 0;
 		}
 
+		ImGui::Checkbox("Wireframe", &entry.second.opt.wireframe);
 		if(ImGui::SmallButton("Delete")) {
 			to_delete = entry.first;
 		}

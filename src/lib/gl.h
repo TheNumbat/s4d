@@ -15,9 +15,15 @@ void shutdown();
 
 void global_params();
 void clear_screen(Vec4 col);
+void viewport(Vec2 dim);
+
 void begin_offset();
 void end_offset();
-void viewport(Vec2 dim);
+void begin_wireframe();
+void end_wireframe();
+void start_stencil();
+void use_stencil();
+void end_stencil();
 
 class Mesh {
 public:
@@ -88,6 +94,7 @@ public:
 	void uniform(std::string name, Vec3 vec3) const;
 	void uniform(std::string name, Vec2 vec2) const;
 	void uniform(std::string name, GLint i) const;
+	void uniform(std::string name, bool b) const;
 
 private:
 	GLuint loc(std::string name) const;

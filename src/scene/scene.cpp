@@ -116,15 +116,15 @@ void Scene::gui() {
 
 		ImGui::PushID(entry.first);
 
-		if(entry.first == selected_id) {
-			ImGui::Text("[Object %d]", entry.first);
-		} else {
-			ImGui::Text("Object %d", entry.first);
+		ImGui::InputText("##name", entry.second.name.data(), entry.second.name.capacity());
+		
+		bool selected = entry.first == selected_id;
+		ImGui::SameLine();
+		if(ImGui::Checkbox("##selected", &selected)) {
+			if(selected) selected_id = entry.first;
+			else selected_id = 0;
 		}
 
-		if(ImGui::SmallButton("Select")) {
-			selected_id = entry.first;
-		}
 		if(ImGui::SmallButton("Delete")) {
 			to_delete = entry.first;
 		}

@@ -3,6 +3,7 @@
 
 Scene_Object::Scene_Object(Scene_Object&& src) :
 	mesh(std::move(src.mesh)), 
+	name(std::move(src.name)),
 	_id(src._id), 
 	transform(src.transform) {
 }
@@ -11,6 +12,9 @@ Scene_Object::Scene_Object(ID id, Mat4 t, GL::Mesh&& m) :
 	mesh(std::move(m)),
 	_id(id),
 	transform(t) {
+	
+	name.reserve(max_name_len);
+	snprintf(name.data(), name.capacity(), "Object %d", id);
 }
 
 Scene_Object::~Scene_Object() {

@@ -43,7 +43,7 @@ void App::event(SDL_Event e) {
 	case SDL_MOUSEBUTTONDOWN: {
 		if(e.button.button == SDL_BUTTON_LEFT) break;
 
-		if(!io.WantCaptureMouse) {
+		if(!io.WantCaptureMouse && state.cam_mode == Camera_Control::none) {
 			if(e.button.button == SDL_BUTTON_RIGHT) {
 				state.cam_mode = Camera_Control::orbit;
 			} else if(e.button.button == SDL_BUTTON_MIDDLE) {
@@ -56,9 +56,12 @@ void App::event(SDL_Event e) {
 	} break;
 
 	case SDL_MOUSEBUTTONUP: {
-		if(!io.WantCaptureMouse && state.cam_mode != Camera_Control::none) {
-			state.cam_mode = Camera_Control::none;
-			plt.release_mouse();
+		if(!io.WantCaptureMouse) {
+			if(e.button.button == SDL_BUTTON_RIGHT && state.cam_mode == Camera_Control::orbit ||
+			   e.button.button == SDL_BUTTON_MIDDLE && state.cam_mode == Camera_Control::move) {
+				state.cam_mode = Camera_Control::none;
+				plt.release_mouse();
+			}
 			plt.set_mouse(state.last_mouse);
 		}
 	} break;

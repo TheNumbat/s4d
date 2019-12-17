@@ -49,16 +49,12 @@ void Scene::render() {
 	framebuffer.bind();
 	framebuffer.clear({0.4f, 0.4f, 0.4f, 1.0f});
 	{
-		GL::begin_offset();
-
 		mesh_shader.bind();
 		mesh_shader.uniform("proj", proj);
 
 		for(auto& obj : objs) {
 			obj.second.render(view, mesh_shader);
 		}
-
-		GL::end_offset();        
 	}
 
 	{

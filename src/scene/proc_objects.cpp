@@ -42,7 +42,7 @@ namespace Proc_Objects {
 			{{r,r,r},{0.0f,0.0f,1.0f}},
 			{{-r,r,r},{0.0f,0.0f,1.0f}},
 			{{r,-r,r},{0.0f,0.0f,1.0f}}   // Front Side
-		}; 
+		};
 
 		return GL::Mesh(verts);
 	}

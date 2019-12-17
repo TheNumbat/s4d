@@ -13,10 +13,6 @@ Scotty4D
 
     // BASE
 
-    basic rendering
-        using framebuffers + multisampling
-        make sure fringing goes away with floating point depth buffer
-
     mesh names
     mesh wireframe (precursor to halfedges etc)
     mesh picking for selection

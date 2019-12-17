@@ -10,15 +10,14 @@
 
 namespace GL {
 
+void setup();
+void shutdown();
+
 void global_params();
-void clear_screen();
+void clear_screen(Vec4 col);
 void begin_offset();
 void end_offset();
 void viewport(Vec2 dim);
-
-void check_leaked_handles();
-void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severity, GLsizei length, const GLchar* glmessage, const void* up);
-void setup_debug_proc();
 
 class Mesh {
 public:
@@ -75,6 +74,7 @@ private:
 
 class Shader {	
 public:
+	Shader();
 	Shader(std::string vertex_file, std::string fragment_file);
 	Shader(const Shader& src) = delete;
 	Shader(Shader&& src);
@@ -82,9 +82,12 @@ public:
 
 	void bind() const;
 	void reload();
+	void load(std::string vertex, std::string fragment);
 	
 	void uniform(std::string name, Mat4 mat) const;
 	void uniform(std::string name, Vec3 vec3) const;
+	void uniform(std::string name, Vec2 vec2) const;
+	void uniform(std::string name, GLint i) const;
 
 private:
 	GLuint loc(std::string name) const;
@@ -94,7 +97,6 @@ private:
 	GLuint program = 0;
 	GLuint v = 0, f = 0;
 
-	void load(std::string vertex, std::string fragment);
 	void destroy();
 };
 
@@ -114,6 +116,9 @@ public:
 	bool is_multisampled() const;
 
 	GLuint get_output(int idx) const; 
+	
+	void blit_to_screen(int idx, Vec2 dim) const;
+	void clear(Vec4 col) const;
 
 private:
 	void create();
@@ -122,7 +127,33 @@ private:
 	std::vector<GLuint> output_textures;
 	GLuint depth_rbo = 0;
 	GLuint framebuffer = 0;
-	bool msaa = false;
+
+	int w = 0, h = 0, s = 0;
+
+	friend class Resolve;
+};
+
+class Resolve {
+public:
+	static void to_screen(const Framebuffer& framebuffer, int buf);
+
+private:
+	static void init();
+	static void destroy();
+
+	static inline Shader resolve_shader;
+	static inline GLuint vao = 0, vbo = 0;
+	static inline const GLfloat data[] = {
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		1.0f, -1.0f,  1.0f, 0.0f,
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		1.0f, -1.0f,  1.0f, 0.0f,
+		1.0f,  1.0f,  1.0f, 1.0f
+	};
+
+	friend void setup();
+	friend void shutdown();
 };
 
 }

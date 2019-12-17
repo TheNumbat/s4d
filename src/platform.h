@@ -28,5 +28,4 @@ private:
 
 	SDL_Window* window = nullptr;
 	SDL_GLContext gl_context = nullptr;
-	bool has_gl_43 = false;
 };

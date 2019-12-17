@@ -9,8 +9,8 @@ Scene::Scene(Vec2 window_dim) :
 	line_shader("line.vert", "line.frag"),
 	window_dim(window_dim),
 	camera(window_dim),
-	framebuffer(1, window_dim),
-	baseplane(0.5f) {
+	framebuffer(1, window_dim, 4),
+	baseplane(1.0f) {
 
 	GL::global_params();
 	create_baseplane();
@@ -41,12 +41,13 @@ void Scene::reload_shaders() {
 
 void Scene::render() {
 
-	GL::clear_screen();
+	GL::clear_screen({});
 
 	Mat4 proj = camera.proj(), view = camera.view();
 	Mat4 viewproj = proj * view;
 
-	// framebuffer.bind();
+	framebuffer.bind();
+	framebuffer.clear({0.4f, 0.4f, 0.4f, 1.0f});
 	{
 		GL::begin_offset();
 
@@ -65,6 +66,8 @@ void Scene::render() {
 		line_shader.uniform("viewproj", viewproj);
 		baseplane.render();
 	}
+
+	framebuffer.blit_to_screen(0, window_dim);
 }
 
 void Scene::add_object(Scene_Object&& obj) {

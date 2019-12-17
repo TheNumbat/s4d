@@ -15,8 +15,9 @@ void global_params() {
 	glClearDepthf(0.0f);
 }
 
-void clear_screen() {
-	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+void clear_screen(Vec4 col) {
+	Framebuffer::bind_screen();
+	glClearColor(col.x, col.y, col.z, col.w);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -161,6 +162,8 @@ void Lines::destroy() {
 	dirty = false;
 }
 
+Shader::Shader() {}
+
 Shader::Shader(std::string vertex, std::string fragment) {
 	load(vertex, fragment);
 }
@@ -200,6 +203,14 @@ void Shader::uniform(std::string name, Mat4 mat) const {
 
 void Shader::uniform(std::string name, Vec3 vec3) const {
 	glUniform3fv(loc(name), 1, vec3.data);
+}
+
+void Shader::uniform(std::string name, Vec2 vec2) const {
+	glUniform2fv(loc(name), 1, vec2.data);
+}
+
+void Shader::uniform(std::string name, GLint i) const {
+	glUniform1i(loc(name), i);
 }
 
 GLuint Shader::loc(std::string name) const {
@@ -270,7 +281,9 @@ Framebuffer::Framebuffer(Framebuffer&& src) {
 	output_textures = std::move(src.output_textures);
 	depth_rbo = src.depth_rbo; src.depth_rbo = 0;
 	framebuffer = src.framebuffer; src.framebuffer = 0;
-	msaa = src.msaa; src.msaa = false;
+	w = src.w; src.w = 0;
+	h = src.h; src.h = 0;
+	s = src.s; src.s = 0;
 }
 
 Framebuffer::~Framebuffer() {
@@ -295,13 +308,14 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 	destroy();
 	create();
 	
-	int w = (int)dim.x;
-	int h = (int)dim.y;
-	msaa = samples != 1;
+	w = (int)dim.x;
+	h = (int)dim.y;
+	s = samples;
+	assert(w > 0 && h > 0 && s > 0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-	GLenum type = msaa ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+	GLenum type = samples == 1 ? GL_TEXTURE_2D : GL_TEXTURE_2D_MULTISAMPLE;
 
 	std::vector<GLenum> draw_buffers;
 
@@ -309,8 +323,8 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 
 		glBindTexture(type, output_textures[i]);
 
-		if(msaa) {
-			glTexImage2DMultisample(type, samples, GL_RGB8, w, h, GL_TRUE);
+		if(s > 1) {
+			glTexImage2DMultisample(type, s, GL_RGB8, w, h, GL_TRUE);
 		} else {
 			glTexImage2D(type, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 			glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -325,8 +339,8 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 	}
 
 	glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo);
-	if(msaa) {
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT32F, w, h);  
+	if(s > 1) {
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, s, GL_DEPTH_COMPONENT32F, w, h);  
 	} else {
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, w, h);
 	}
@@ -336,6 +350,12 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 	glDrawBuffers(1, draw_buffers.data());
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Framebuffer::clear(Vec4 col) const {
+	bind();
+	glClearColor(col.x, col.y, col.z, col.w);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Framebuffer::bind_screen() {
@@ -351,51 +371,72 @@ GLuint Framebuffer::get_output(int idx) const {
 	return output_textures[idx];
 }
 
-bool Framebuffer::is_multisampled() const {
-	return msaa;
-}
+void Framebuffer::blit_to_screen(int idx, Vec2 dim) const {
 
-void check_leaked_handles() {
-
-	#define GL_CHECK(type) if(glIs##type && glIs##type(i) == GL_TRUE) { warn("Leaked OpenGL handle %u of type %s", i, #type); leaked = true;}
-
-	bool leaked = false;
-	for(GLuint i = 0; i < 10000; i++) {
-		GL_CHECK(Texture);
-		GL_CHECK(Buffer);
-		GL_CHECK(Framebuffer);
-		GL_CHECK(Renderbuffer);
-		GL_CHECK(VertexArray);
-		GL_CHECK(Program);
-		GL_CHECK(ProgramPipeline);
-		GL_CHECK(Query);
-
-		if(glIsShader(i) == GL_TRUE) {
-
-			leaked = true;
-			GLint shader_len = 0;
-			glGetShaderiv(i, GL_SHADER_SOURCE_LENGTH, &shader_len);
-
-			GLchar* shader = new GLchar[shader_len];
-			glGetShaderSource(i, shader_len, nullptr, shader);
-
-			warn("Leaked OpenGL shader %u. Source: %s", i, shader); 
-
-			delete[] shader;
-		}
+	if(s > 1) {
+		Resolve::to_screen(*this, idx);
+		return;
 	}
 
-	#undef GL_CHECK
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + idx);
+	glBlitFramebuffer(0, 0, w, h, 0, 0, (GLint)dim.x, (GLint)dim.y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void setup_debug_proc() {
-	glEnable(GL_DEBUG_OUTPUT);
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-	glDebugMessageCallback(debug_proc, nullptr);
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+bool Framebuffer::is_multisampled() const {
+	return s > 1;
 }
 
-void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severity, GLsizei length, const GLchar* glmessage, const void* up) {
+void Resolve::init() {
+
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	glBindVertexArray(0);
+
+	resolve_shader.load("resolve.vert", "resolve.frag");
+}
+
+void Resolve::destroy() {
+
+	glDeleteBuffers(1, &vbo);
+	glDeleteVertexArrays(1, &vao);
+	vao = vbo = 0;
+	resolve_shader.~Shader();
+}
+
+void Resolve::to_screen(const Framebuffer& framebuffer, int buf) {
+
+	Framebuffer::bind_screen();
+
+	resolve_shader.bind();
+	glBindVertexArray(vao);
+	
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer.output_textures[buf]);
+
+	resolve_shader.uniform("tex", 0);
+	resolve_shader.uniform("samples", framebuffer.s);
+	resolve_shader.uniform("tex_size", Vec2(framebuffer.w, framebuffer.h));
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+}
+
+static void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severity, GLsizei length, const GLchar* glmessage, const void* up) {
 
 	std::string message(glmessage);
 	std::string source, type;
@@ -459,4 +500,54 @@ void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severity, GLsi
 	}
 }
 
+static void check_leaked_handles() {
+
+	#define GL_CHECK(type) if(glIs##type && glIs##type(i) == GL_TRUE) { warn("Leaked OpenGL handle %u of type %s", i, #type); leaked = true;}
+
+	bool leaked = false;
+	for(GLuint i = 0; i < 10000; i++) {
+		GL_CHECK(Texture);
+		GL_CHECK(Buffer);
+		GL_CHECK(Framebuffer);
+		GL_CHECK(Renderbuffer);
+		GL_CHECK(VertexArray);
+		GL_CHECK(Program);
+		GL_CHECK(ProgramPipeline);
+		GL_CHECK(Query);
+
+		if(glIsShader(i) == GL_TRUE) {
+
+			leaked = true;
+			GLint shader_len = 0;
+			glGetShaderiv(i, GL_SHADER_SOURCE_LENGTH, &shader_len);
+
+			GLchar* shader = new GLchar[shader_len];
+			glGetShaderSource(i, shader_len, nullptr, shader);
+
+			warn("Leaked OpenGL shader %u. Source: %s", i, shader); 
+
+			delete[] shader;
+		}
+	}
+
+	#undef GL_CHECK
+}
+
+static void setup_debug_proc() {
+	if(!glDebugMessageCallback || !glDebugMessageControl) return;
+	glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(debug_proc, nullptr);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+}
+
+void setup() {
+	setup_debug_proc();
+	Resolve::init();
+}
+
+void shutdown() {
+	Resolve::destroy();
+	check_leaked_handles();
+}
 }

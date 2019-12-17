@@ -44,8 +44,6 @@ void Platform::platform_init() {
 		if(!gl_context) {
 			die("Failed to create OpenGL 3.3 context: %s", SDL_GetError());
 		}
-	} else {
-		has_gl_43 = true;
 	}
 
 	SDL_GL_MakeCurrent(window, gl_context);
@@ -55,9 +53,7 @@ void Platform::platform_init() {
 		die("Failed to load OpenGL functions.");
 	}
 
-	if(has_gl_43) {
-		GL::setup_debug_proc();
-	}
+	GL::setup();
 
 	ImGui::CreateContext();
 	ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
@@ -73,7 +69,7 @@ void Platform::platform_shutdown() {
 	ImGui_ImplSDL2_Shutdown();
 	ImGui::DestroyContext();
 
-	GL::check_leaked_handles();
+	GL::shutdown();
 	SDL_GL_DeleteContext(gl_context);
 	SDL_DestroyWindow(window);
 	window = nullptr;

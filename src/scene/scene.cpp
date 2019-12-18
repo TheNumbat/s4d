@@ -117,6 +117,7 @@ void Scene::apply_window_dim(Vec2 new_dim) {
 
 	camera.set_ar(window_dim);
 	framebuffer.resize(window_dim, samples);
+	id_resolve.resize(window_dim);
 	GL::viewport(window_dim);
 }
 

@@ -11,9 +11,9 @@ Scene_Object::Scene_Object(Scene_Object&& src) :
 }
 
 Scene_Object::Scene_Object(ID id, Mat4 t, GL::Mesh&& m) :
-	mesh(std::move(m)),
 	_id(id),
-	transform(t) {
+	transform(t),
+	mesh(std::move(m)) {
 	
 	opt.name.reserve(max_name_len);
 	snprintf(opt.name.data(), opt.name.capacity(), "Object %d", id);

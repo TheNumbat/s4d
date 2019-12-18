@@ -149,7 +149,7 @@ struct Vec4 {
 	}
 
 	Vec4 abs() const {
-		return Vec4(std::fabsf(x), std::fabsf(y), std::fabsf(z), std::fabsf(w));
+		return Vec4(std::abs(x), std::abs(y), std::abs(z), std::abs(w));
 	}
 	Vec4 operator-() const {
 		return Vec4(-x, -y, -z, -w);
@@ -174,7 +174,7 @@ struct Vec4 {
 		return x * x + y * y + z * z + w * w;
 	}
 	float norm() const {
-		return std::sqrtf(norm_squared());
+		return std::sqrt(norm_squared());
 	}
 
 	Vec3 xyz() const {

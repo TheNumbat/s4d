@@ -318,7 +318,7 @@ inline Mat4 Mat4::ortho(float l, float r, float b, float t, float n, float f) {
 }
 
 inline Mat4 Mat4::project(float fov, float ar, float n) {
-	float f = 1.0f / std::tanf(Radians(fov) / 2.0f);
+	float f = 1.0f / std::tan(Radians(fov) / 2.0f);
 	Mat4 r;
 	r[0][0] = f / ar;
 	r[1][1] = f;

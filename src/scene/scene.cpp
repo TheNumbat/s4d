@@ -5,13 +5,13 @@
 #include <imgui/imgui.h>
 
 Scene::Scene(Vec2 window_dim) :
+	camera(window_dim),
 	mesh_shader("mesh.vert", "mesh.frag"),
 	line_shader("line.vert", "line.frag"),
-	window_dim(window_dim),
-	camera(window_dim),
 	framebuffer(2, window_dim, default_samples),
 	id_resolve(1, window_dim),
-	baseplane(1.0f) {
+	baseplane(1.0f),
+	window_dim(window_dim) {
 
 	id_buffer = new float[(int)window_dim.x * (int)window_dim.y * 3];
 	GL::global_params();

@@ -129,7 +129,7 @@ struct Vec3 {
 	}
 
 	Vec3 abs() const {
-		return Vec3(std::fabsf(x), std::fabsf(y), std::fabsf(z));
+		return Vec3(std::abs(x), std::abs(y), std::abs(z));
 	}
 	Vec3 operator-() const {
 		return Vec3(-x, -y, -z);
@@ -153,7 +153,7 @@ struct Vec3 {
 		return x * x + y * y + z * z;
 	}
 	float norm() const {
-		return std::sqrtf(norm_squared());
+		return std::sqrt(norm_squared());
 	}
 
 	union {

@@ -116,7 +116,7 @@ struct Vec2 {
 	}
 
 	Vec2 abs() const {
-		return Vec2(std::fabsf(x), std::fabsf(y));
+		return Vec2(std::abs(x), std::abs(y));
 	}
 	Vec2 operator-() const {
 		return Vec2(-x, -y);
@@ -139,7 +139,7 @@ struct Vec2 {
 		return x * x + y * y;
 	}
 	float norm() const {
-		return std::sqrtf(norm_squared());
+		return std::sqrt(norm_squared());
 	}
 
 	union {

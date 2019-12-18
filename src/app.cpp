@@ -65,8 +65,8 @@ void App::event(SDL_Event e) {
 	case SDL_MOUSEBUTTONUP: {
 		if(io.WantCaptureMouse) break;
 
-		if(e.button.button == SDL_BUTTON_RIGHT && state.cam_mode == Camera_Control::orbit ||
-			e.button.button == SDL_BUTTON_MIDDLE && state.cam_mode == Camera_Control::move) {
+		if((e.button.button == SDL_BUTTON_RIGHT && state.cam_mode == Camera_Control::orbit) ||
+		   (e.button.button == SDL_BUTTON_MIDDLE && state.cam_mode == Camera_Control::move)) {
 			state.cam_mode = Camera_Control::none;
 			plt.release_mouse();
 			plt.set_mouse(state.last_mouse);

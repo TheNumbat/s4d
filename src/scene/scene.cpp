@@ -1,7 +1,8 @@
 
 #include "scene.h"
-#include "proc_objects.h"
+#include "util.h"
 
+#include <nfd/nfd.h>
 #include <imgui/imgui.h>
 
 Scene::Scene(Vec2 window_dim) :
@@ -131,11 +132,22 @@ void Scene::gui() {
 	ImGui::Begin("Objects", nullptr, flags);
 
 	if(ImGui::Button("Create Object")) {
-		GL::Mesh cube = Proc_Objects::cube(1.0f);
+		GL::Mesh cube = Util::cube_mesh(1.0f);
 		add_object(Scene_Object(next_id++, Mat4::I, std::move(cube)));
-	}
+	}	
 	if(ImGui::Button("Load Object")) {
-
+		char* path = nullptr;
+		NFD_OpenDialog("obj", nullptr, &path);
+		
+		if(path) {
+			GL::Mesh new_mesh;
+			if(Util::obj_mesh(std::string(path), new_mesh)) {
+				add_object(Scene_Object(next_id++, Mat4::I, std::move(new_mesh)));
+			} else {
+				// gui_error("Failed to load mesh from " + std::string(path));
+			}
+			free(path);
+		}
 	}
 
 	if(objs.size() > 0)

@@ -75,6 +75,12 @@ Mesh::Mesh(Mesh&& src) {
 	n_elem = src.n_elem; src.n_elem = 0;
 }
 
+void Mesh::operator=(Mesh&& src) {
+	vao = src.vao; src.vao = 0;
+	vbo = src.vbo; src.vbo = 0;
+	n_elem = src.n_elem; src.n_elem = 0;
+}
+
 Mesh::~Mesh() {
 	destroy();
 }
@@ -125,6 +131,14 @@ Lines::Lines(float thickness) : thickness(thickness) {
 }
 
 Lines::Lines(Lines&& src) {
+	dirty = src.dirty; src.dirty = false;
+	thickness = src.thickness; src.thickness = 0.0f;
+	vao = src.vao; src.vao = 0;
+	vbo = src.vbo; src.vbo = 0;
+	vertices = std::move(src.vertices);
+}
+
+void Lines::operator=(Lines&& src) {
 	dirty = src.dirty; src.dirty = false;
 	thickness = src.thickness; src.thickness = 0.0f;
 	vao = src.vao; src.vao = 0;
@@ -203,6 +217,14 @@ Shader::Shader(Shader&& src) {
 	f = src.f; src.f = 0;
 }
 
+void Shader::operator=(Shader&& src) {
+	v_file = std::move(src.v_file);
+	f_file = std::move(src.f_file);
+	program = src.program; src.program = 0;
+	v = src.v; src.v = 0;
+	f = src.f; src.f = 0;
+}
+
 Shader::~Shader() {
 	destroy();
 }
@@ -222,6 +244,10 @@ void Shader::destroy() {
 	glDeleteShader(f);
 	glDeleteProgram(program);
 	v = f = program = 0;
+}
+
+void Shader::uniform(std::string name, GLfloat f) const {
+	glUniform1f(loc(name), f);
 }
 
 void Shader::uniform(std::string name, Mat4 mat) const {
@@ -317,6 +343,15 @@ Framebuffer::Framebuffer(Framebuffer&& src) {
 	s = src.s; src.s = 0;
 }
 
+void Framebuffer::operator=(Framebuffer&& src) {
+	output_textures = std::move(src.output_textures);
+	depth_rbo = src.depth_rbo; src.depth_rbo = 0;
+	framebuffer = src.framebuffer; src.framebuffer = 0;
+	w = src.w; src.w = 0;
+	h = src.h; src.h = 0;
+	s = src.s; src.s = 0;
+}
+
 Framebuffer::~Framebuffer() {
 	destroy();
 }
@@ -350,7 +385,7 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 
 	std::vector<GLenum> draw_buffers;
 
-	for(int i = 0; i < output_textures.size(); i++) {
+	for(size_t i = 0; i < output_textures.size(); i++) {
 
 		glBindTexture(type, output_textures[i]);
 
@@ -384,7 +419,7 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 }
 
 void Framebuffer::clear(int buf, Vec4 col) const {
-	assert(buf >= 0 && buf < output_textures.size());
+	assert(buf >= 0 && buf < (int)output_textures.size());
 	bind();
 	glClearBufferfv(GL_COLOR, buf, col.data);
 }
@@ -403,20 +438,20 @@ void Framebuffer::bind() const {
 }
 
 GLuint Framebuffer::get_output(int buf) const {
-	assert(buf >= 0 && buf < output_textures.size());
+	assert(buf >= 0 && buf < (int)output_textures.size());
 	return output_textures[buf];
 }
 
 void Framebuffer::read(int buf, float* data) const {
 	assert(s == 1);
-	assert(buf >= 0 && buf < output_textures.size());
+	assert(buf >= 0 && buf < (int)output_textures.size());
 	glBindTexture(GL_TEXTURE_2D, output_textures[buf]);
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, data);
 }
 
 void Framebuffer::blit_to(int buf, const Framebuffer& fb, bool avg) const {
 
-	assert(buf >= 0 && buf < output_textures.size());
+	assert(buf >= 0 && buf < (int)output_textures.size());
 	if(s > 1) {
 		Resolve::to(buf, *this, fb, avg);
 		return;
@@ -433,7 +468,7 @@ void Framebuffer::blit_to(int buf, const Framebuffer& fb, bool avg) const {
 
 void Framebuffer::blit_to_screen(int buf, Vec2 dim) const {
 
-	assert(buf >= 0 && buf < output_textures.size());
+	assert(buf >= 0 && buf < (int)output_textures.size());
 	if(s > 1) {
 		Resolve::to_screen(buf, *this);
 		return;
@@ -487,7 +522,7 @@ void Resolve::to_screen(int buf, const Framebuffer& framebuffer) {
 	resolve_shader.bind();
 	glBindVertexArray(vao);
 	
-	assert(buf >= 0 && buf < framebuffer.output_textures.size());
+	assert(buf >= 0 && buf < (int)framebuffer.output_textures.size());
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer.output_textures[buf]);
 
 	resolve_shader.uniform("tex", 0);
@@ -507,7 +542,7 @@ void Resolve::to(int buf, const Framebuffer& from, const Framebuffer& to, bool a
 	resolve_shader.bind();
 	glBindVertexArray(vao);
 	
-	assert(buf >= 0 && buf < from.output_textures.size());
+	assert(buf >= 0 && buf < (int)from.output_textures.size());
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, from.output_textures[buf]);
 
 	resolve_shader.uniform("tex", 0);
@@ -612,6 +647,10 @@ static void check_leaked_handles() {
 
 			delete[] shader;
 		}
+	}
+
+	if(leaked) {
+		warn("Leaked OpenGL objects!");
 	}
 
 	#undef GL_CHECK

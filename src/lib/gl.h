@@ -38,6 +38,9 @@ public:
 	Mesh(Mesh&& src);
 	~Mesh();
 
+	void operator=(const Mesh& src) = delete;
+	void operator=(Mesh&& src);
+
 	/// Assumes proper shader is already bound
 	void render();
 	void update(const std::vector<Vert>& vertices);
@@ -56,6 +59,9 @@ public:
 	Lines(const Lines& src) = delete;
 	Lines(Lines&& src);
 	~Lines();
+
+	void operator=(const Lines& src) = delete;
+	void operator=(Lines&& src);
 
 	/// Assumes proper shader is already bound
 	void render();
@@ -86,6 +92,9 @@ public:
 	Shader(Shader&& src);
 	~Shader();
 
+	void operator=(const Shader& src) = delete;
+	void operator=(Shader&& src);
+
 	void bind() const;
 	void reload();
 	void load(std::string vertex, std::string fragment);
@@ -94,6 +103,7 @@ public:
 	void uniform(std::string name, Vec3 vec3) const;
 	void uniform(std::string name, Vec2 vec2) const;
 	void uniform(std::string name, GLint i) const;
+	void uniform(std::string name, GLfloat f) const;
 	void uniform(std::string name, bool b) const;
 
 private:
@@ -115,6 +125,9 @@ public:
 	Framebuffer(const Framebuffer& src) = delete;
 	Framebuffer(Framebuffer&& src);
 	~Framebuffer();
+
+	void operator=(const Framebuffer& src) = delete;
+	void operator=(Framebuffer&& src);
 
 	static void bind_screen();
 

@@ -13,23 +13,30 @@ Scotty4D
 
     // BASE
 
-    loading & saving meshes
-
-    mesh preview ??? render to texture at default pos and keep
-    default meshes of different shapes
-
+    gui_error
+    parsing error messages
+    could improve mesh outlining
+    
     object transforms/scene graph
         UI on selected object
         movement, rotate, and scale widgets
+
+    saving meshes - obj
+    loading glTF / collada
+    saving glTF / collada
+
+    mesh preview ??? render to texture at default pos and keep
+    different basic shapes
 
     undo/redo
 
     // MESHEDIT
 
     half-edge mesh implementation
-    rendering half-edge mesh information & picking
-
-    loading & saving meshes
+    rendering half-edge mesh as mesh
+    rendering half-edge mesh as editable
+    
+    transform widgets per face/edge/vert
 
     // PATHTRACER
 

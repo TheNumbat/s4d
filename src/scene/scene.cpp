@@ -136,7 +136,7 @@ void Scene::gui() {
 	if(ImGui::Button("Create Object")) {
 		GL::Mesh cube = Util::cube_mesh(1.0f);
 		add_object(Scene_Object(next_id++, Mat4::I, std::move(cube)));
-	}	
+	}
 	if(ImGui::Button("Load Object")) {
 		char* path = nullptr;
 		NFD_OpenDialog("obj", nullptr, &path);

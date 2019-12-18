@@ -13,8 +13,6 @@ Scotty4D
 
     // BASE
 
-    parsing error messages
-    
     object transforms/scene graph
         UI on selected object
         movement, rotate, and scale widgets

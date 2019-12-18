@@ -16,6 +16,8 @@ App::~App() {
 
 void App::event(SDL_Event e) {
 
+	ImGuiIO& IO = ImGui::GetIO();
+
 	switch(e.type) {
 	case SDL_WINDOWEVENT: {
 		if (e.window.event == SDL_WINDOWEVENT_RESIZED ||
@@ -43,7 +45,7 @@ void App::event(SDL_Event e) {
 	case SDL_MOUSEBUTTONDOWN: {
 
 		if(e.button.button == SDL_BUTTON_LEFT) {
-			scene.select(Vec2(e.button.x, e.button.y));
+			if(!IO.WantCaptureMouse) scene.select(Vec2(e.button.x, e.button.y));
 			break;
 		}
 
@@ -138,6 +140,8 @@ void App::render_gui() {
 
 		if(state_button(Mode::animate, "Animate"))
 			state.mode = Mode::animate;
+
+		ImGui::Text("FPS: %f", ImGui::GetIO().Framerate);
 
 		ImGui::EndMainMenuBar();
 	}

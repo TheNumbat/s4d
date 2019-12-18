@@ -122,10 +122,14 @@ public:
 	void bind() const;
 	bool is_multisampled() const;
 
-	GLuint get_output(int idx) const; 
+	GLuint get_output(int buf) const; 
+	void read(int buf, float* data) const;
 	
-	void blit_to_screen(int idx, Vec2 dim) const;
-	void clear(Vec4 col) const;
+	void blit_to_screen(int buf, Vec2 dim) const;
+	void blit_to(int buf, const Framebuffer& fb, bool avg = true) const;
+
+	void clear(int buf, Vec4 col) const;
+	void clear_ds() const;
 
 private:
 	void create();
@@ -142,7 +146,8 @@ private:
 
 class Resolve {
 public:
-	static void to_screen(const Framebuffer& framebuffer, int buf);
+	static void to_screen(int buf, const Framebuffer& framebuffer);
+	static void to(int buf, const Framebuffer& from, const Framebuffer& to, bool avg = true);
 
 private:
 	static void init();

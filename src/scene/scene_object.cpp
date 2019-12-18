@@ -28,31 +28,32 @@ void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
 	Mat4 modelview = view * transform;
 	Mat4 normal = Mat4::transpose(Mat4::inverse(modelview));
 
+	shader.uniform("id", _id);
 	shader.uniform("modelview", modelview);
 	shader.uniform("normal", normal);
 	
 	if(opt.wireframe) {
 		shader.uniform("solid", true);
+		shader.uniform("write_id", false);
 		shader.uniform("color", Vec3());
 		GL::begin_wireframe();
 		mesh.render();
 		GL::end_wireframe();
 	}
 
-	shader.uniform("modelview", modelview);
-	shader.uniform("normal", normal);
-	shader.uniform("solid", false);
-	shader.uniform("color", color);
-
 	if(outline) GL::start_stencil();
 
+	shader.uniform("solid", false);
+	shader.uniform("color", color);
+	shader.uniform("write_id", true);
 	mesh.render();
 
 	if(outline) {
 		Mat4 s_mv = modelview * Mat4::scale(Vec3(1.02f, 1.02f, 1.02f));
 		shader.uniform("modelview", s_mv);
 		shader.uniform("solid", true);
-		shader.uniform("color", Vec3(242.0f / 255.0f, 153.0f / 255.0f, 41.0f / 255.0f));
+		shader.uniform("write_id", false);
+		shader.uniform("color", outline_color);
 
 		GL::use_stencil();
 		mesh.render();

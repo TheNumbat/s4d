@@ -23,17 +23,26 @@ public:
 	void camera_orbit(Vec2 dmouse);
 	void camera_move(Vec2 dmouse);
 	void camera_radius(float dmouse);
+	void select(Vec2 mouse);
 
 	void reload_shaders();
+	void show_settings();
 
 private:
-	void create_baseplane();
-	GL::Lines baseplane;
-	GL::Framebuffer framebuffer;
-	
-	Vec2 window_dim;
 	Camera camera;
 	GL::Shader mesh_shader, line_shader;
+	GL::Framebuffer framebuffer, id_resolve;
+	
+	void create_baseplane();
+	GL::Lines baseplane;
+	
+	Vec2 window_dim;
+	static const int default_samples = 4;
+	int samples = default_samples;
+	bool settings_open = false;
+
+	Scene_Object::ID read_id(Vec2 pos);
+	float* id_buffer = nullptr;
 
 	std::map<Scene_Object::ID, Scene_Object> objs;
 	Scene_Object::ID next_id = 1;

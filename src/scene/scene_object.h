@@ -25,6 +25,7 @@ public:
 
 private:
 	static const int max_name_len = 256;
+	static inline const Vec3 outline_color = Vec3(242.0f / 255.0f, 153.0f / 255.0f, 41.0f / 255.0f);
 
 	Vec3 color = {0.7f, 0.7f, 0.7f};
 	ID _id = 0;

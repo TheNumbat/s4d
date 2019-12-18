@@ -9,15 +9,17 @@ Scene::Scene(Vec2 window_dim) :
 	line_shader("line.vert", "line.frag"),
 	window_dim(window_dim),
 	camera(window_dim),
-	framebuffer(1, window_dim, 4),
+	framebuffer(2, window_dim, default_samples),
+	id_resolve(1, window_dim),
 	baseplane(1.0f) {
 
+	id_buffer = new float[(int)window_dim.x * (int)window_dim.y * 3];
 	GL::global_params();
 	create_baseplane();
 }
 
 Scene::~Scene() {
-
+	delete[] id_buffer;
 }
 
 void Scene::create_baseplane() {
@@ -34,9 +36,26 @@ void Scene::create_baseplane() {
 	}
 }
 
+void Scene::show_settings() {
+	settings_open = true;
+}
+
 void Scene::reload_shaders() {
 	mesh_shader.reload();
 	line_shader.reload();
+}
+
+Scene_Object::ID Scene::read_id(Vec2 pos) {
+	
+	int x = (int)pos.x;
+	int y = (int)(window_dim.y - pos.y - 1);
+	int idx = y * (int)window_dim.x * 3 + x * 3;
+	
+	int a = (int)(id_buffer[idx] * 255.0f);
+	int b = (int)(id_buffer[idx + 1] * 255.0f);
+	int c = (int)(id_buffer[idx + 2] * 255.0f);
+
+	return a | b << 8 | c << 16;
 }
 
 void Scene::render() {
@@ -44,8 +63,10 @@ void Scene::render() {
 	Mat4 proj = camera.proj(), view = camera.view();
 	Mat4 viewproj = proj * view;
 
+	framebuffer.clear(0, {0.4f, 0.4f, 0.4f, 1.0f});
+	framebuffer.clear(1, {0.0f, 0.0f, 0.0f, 1.0f});
+	framebuffer.clear_ds();
 	framebuffer.bind();
-	framebuffer.clear({0.4f, 0.4f, 0.4f, 1.0f});
 	{
 		mesh_shader.bind();
 		mesh_shader.uniform("proj", proj);
@@ -54,7 +75,10 @@ void Scene::render() {
 			obj.second.render(view, obj.first == selected_id, mesh_shader);
 		}
 	}
+	framebuffer.blit_to(1, id_resolve, false);
+	id_resolve.read(0, id_buffer);
 
+	framebuffer.bind();
 	{
 		line_shader.bind();
 		line_shader.uniform("viewproj", viewproj);
@@ -62,6 +86,10 @@ void Scene::render() {
 	}
 
 	framebuffer.blit_to_screen(0, window_dim);
+}
+
+void Scene::select(Vec2 mouse) {
+	selected_id = read_id(mouse);
 }
 
 void Scene::add_object(Scene_Object&& obj) {
@@ -83,8 +111,13 @@ void Scene::camera_radius(float dmouse) {
 void Scene::apply_window_dim(Vec2 new_dim) {
 
 	window_dim = new_dim;
+
+	delete[] id_buffer;
+	id_buffer = new float[(int)window_dim.x * (int)window_dim.y * 3];
+
 	camera.set_ar(window_dim);
-	GL::viewport(new_dim);
+	framebuffer.resize(window_dim, samples);
+	GL::viewport(window_dim);
 }
 
 void Scene::gui() {
@@ -136,4 +169,17 @@ void Scene::gui() {
 	if(to_delete) objs.erase(to_delete);
 
 	ImGui::End();
+
+	if(settings_open) {
+		ImGui::Begin("Display Settings", &settings_open);
+		
+		ImGui::InputInt("Multisampling", &samples);
+		if(samples < 1) samples = 1;
+		if(samples > 16) samples = 16;
+
+		if(ImGui::Button("Apply")) {
+			framebuffer.resize(window_dim, samples);
+		}
+		ImGui::End();
+	}
 }

@@ -13,7 +13,6 @@ Scotty4D
 
     // BASE
 
-    mesh picking for selection
     loading & saving meshes
 
     mesh preview ??? render to texture at default pos and keep

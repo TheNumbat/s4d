@@ -378,15 +378,20 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-	glDrawBuffers(1, draw_buffers.data());
+	glDrawBuffers(draw_buffers.size(), draw_buffers.data());
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Framebuffer::clear(Vec4 col) const {
+void Framebuffer::clear(int buf, Vec4 col) const {
+	assert(buf >= 0 && buf < output_textures.size());
 	bind();
-	glClearColor(col.x, col.y, col.z, col.w);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glClearBufferfv(GL_COLOR, buf, col.data);
+}
+
+void Framebuffer::clear_ds() const {
+	bind();
+	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void Framebuffer::bind_screen() {
@@ -397,22 +402,47 @@ void Framebuffer::bind() const {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 }
 
-GLuint Framebuffer::get_output(int idx) const {
-	assert(idx >= 0 && idx < output_textures.size());
-	return output_textures[idx];
+GLuint Framebuffer::get_output(int buf) const {
+	assert(buf >= 0 && buf < output_textures.size());
+	return output_textures[buf];
 }
 
-void Framebuffer::blit_to_screen(int idx, Vec2 dim) const {
+void Framebuffer::read(int buf, float* data) const {
+	assert(s == 1);
+	assert(buf >= 0 && buf < output_textures.size());
+	glBindTexture(GL_TEXTURE_2D, output_textures[buf]);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, data);
+}
 
+void Framebuffer::blit_to(int buf, const Framebuffer& fb, bool avg) const {
+
+	assert(buf >= 0 && buf < output_textures.size());
 	if(s > 1) {
-		Resolve::to_screen(*this, idx);
+		Resolve::to(buf, *this, fb, avg);
+		return;
+	}
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb.framebuffer);
+
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + buf);
+	glBlitFramebuffer(0, 0, w, h, 0, 0, fb.w, fb.h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Framebuffer::blit_to_screen(int buf, Vec2 dim) const {
+
+	assert(buf >= 0 && buf < output_textures.size());
+	if(s > 1) {
+		Resolve::to_screen(buf, *this);
 		return;
 	}
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-	glReadBuffer(GL_COLOR_ATTACHMENT0 + idx);
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + buf);
 	glBlitFramebuffer(0, 0, w, h, 0, 0, (GLint)dim.x, (GLint)dim.y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -450,18 +480,39 @@ void Resolve::destroy() {
 	resolve_shader.~Shader();
 }
 
-void Resolve::to_screen(const Framebuffer& framebuffer, int buf) {
+void Resolve::to_screen(int buf, const Framebuffer& framebuffer) {
 
 	Framebuffer::bind_screen();
 
 	resolve_shader.bind();
 	glBindVertexArray(vao);
 	
+	assert(buf >= 0 && buf < framebuffer.output_textures.size());
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer.output_textures[buf]);
 
 	resolve_shader.uniform("tex", 0);
 	resolve_shader.uniform("samples", framebuffer.s);
 	resolve_shader.uniform("tex_size", Vec2(framebuffer.w, framebuffer.h));
+
+	glDisable(GL_DEPTH_TEST);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glEnable(GL_DEPTH_TEST);
+	glBindVertexArray(0);
+}
+
+void Resolve::to(int buf, const Framebuffer& from, const Framebuffer& to, bool avg) {
+
+	to.bind();
+
+	resolve_shader.bind();
+	glBindVertexArray(vao);
+	
+	assert(buf >= 0 && buf < from.output_textures.size());
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, from.output_textures[buf]);
+
+	resolve_shader.uniform("tex", 0);
+	resolve_shader.uniform("samples", avg ? from.s : 1);
+	resolve_shader.uniform("tex_size", Vec2(from.w, from.h));
 
 	glDisable(GL_DEPTH_TEST);
 	glDrawArrays(GL_TRIANGLES, 0, 6);

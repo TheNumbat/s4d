@@ -2,4 +2,4 @@
 
 CMU 15462
 
-![screenshot](https://i.imgur.com/WlqPcDG.png)
+![screenshot](https://i.imgur.com/10MyFQC.png)

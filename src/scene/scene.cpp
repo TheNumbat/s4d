@@ -143,10 +143,11 @@ void Scene::gui() {
 		
 		if(path) {
 			GL::Mesh new_mesh;
-			if(Util::obj_mesh(std::string(path), new_mesh)) {
+			std::string error = Util::obj_mesh(std::string(path), new_mesh);
+			if(error.empty()) {
 				add_object(Scene_Object(next_id++, Mat4::I, std::move(new_mesh)));
 			} else {
-				app.gui_error("Failed to load mesh from " + std::string(path));
+				app.gui_error(error);
 			}
 			free(path);
 		}

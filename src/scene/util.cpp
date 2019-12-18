@@ -5,7 +5,7 @@
 
 namespace Util {
 
-	bool obj_mesh(std::string obj_file, GL::Mesh& mesh) {
+	std::string obj_mesh(std::string obj_file, GL::Mesh& mesh) {
 
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
@@ -14,8 +14,14 @@ namespace Util {
 		std::string warn, err;
 		bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_file.c_str());
 
-		if (!ret || !err.empty() || !warn.empty()) {
-			return false;
+		if(!ret) {
+			return "Failed to load mesh '" + last_file(obj_file) + "': unknown error";
+		}
+		if (!err.empty()) {
+			return "Failed to load mesh '" + last_file(obj_file) + "': " + err;
+		}
+		if(shapes.size() == 0) {
+			return "Failed to load mesh '" + last_file(obj_file) + "': no shapes found.";
 		}
 
 		std::vector<GL::Mesh::Vert> verts;
@@ -29,7 +35,11 @@ namespace Util {
 
 				for (size_t v = 0; v < fv; v++) {
 					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-					if(idx.normal_index == -1) return false;
+
+					if(idx.normal_index == -1) {
+						return "Failed to load mesh '" + last_file(obj_file) + "': no vertex normals.";
+					}
+
 					float vx = attrib.vertices[3*idx.vertex_index+0];
 					float vy = attrib.vertices[3*idx.vertex_index+1];
 					float vz = attrib.vertices[3*idx.vertex_index+2];
@@ -43,7 +53,7 @@ namespace Util {
 		}
 
 		mesh = GL::Mesh(verts);
-		return true;
+		return {};
 	}
 
 	GL::Mesh cube_mesh(float r) {

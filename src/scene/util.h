@@ -8,5 +8,5 @@
 namespace Util {
 
 	GL::Mesh cube_mesh(float radius = 0.5f);
-	bool obj_mesh(std::string obj_file, GL::Mesh& mesh);
+	std::string obj_mesh(std::string obj_file, GL::Mesh& mesh);
 }

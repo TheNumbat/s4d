@@ -32,8 +32,6 @@ void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
 	shader.uniform("modelview", modelview);
 	shader.uniform("normal", normal);
 	
-	GL::start_stencil();
-
 	if(opt.wireframe) {
 		shader.uniform("scale", 0.0f);
 		shader.uniform("solid", true);
@@ -44,6 +42,8 @@ void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
 		GL::end_wireframe();
 	}
 
+	if(outline) GL::start_stencil();
+
 	shader.uniform("scale", 0.0f);
 	shader.uniform("solid", false);
 	shader.uniform("color", color);
@@ -51,6 +51,7 @@ void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
 	mesh.render();
 
 	if(outline) {
+
 		shader.uniform("scale", 0.02f);
 		shader.uniform("solid", true);
 		shader.uniform("write_id", false);
@@ -58,7 +59,6 @@ void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
 
 		GL::use_stencil();
 		mesh.render();
+		GL::end_stencil();
 	}
-	
-	GL::end_stencil();
 }

@@ -13,9 +13,9 @@ Scotty4D
 
     // BASE
 
+    make mesh outline always on top
     gui_error
     parsing error messages
-    could improve mesh outlining
     
     object transforms/scene graph
         UI on selected object

@@ -12,7 +12,7 @@ void global_params() {
 	glPolygonOffset(1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_GREATER);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
 	glClearDepth(0.0);
 }
 
@@ -49,11 +49,13 @@ void start_stencil() {
 void use_stencil() {
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilMask(0x00);
+	glDepthFunc(GL_ALWAYS);
 }
 
 void end_stencil() {
 	glStencilMask(0xff);
 	glDisable(GL_STENCIL_TEST);
+	glDepthFunc(GL_GREATER);
 }
 
 void viewport(Vec2 dim) {

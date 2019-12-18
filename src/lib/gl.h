@@ -21,6 +21,7 @@ void begin_offset();
 void end_offset();
 void begin_wireframe();
 void end_wireframe();
+
 void start_stencil();
 void use_stencil();
 void end_stencil();

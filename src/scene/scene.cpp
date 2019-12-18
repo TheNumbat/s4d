@@ -1,11 +1,13 @@
 
 #include "scene.h"
 #include "util.h"
+#include "../app.h"
 
 #include <nfd/nfd.h>
 #include <imgui/imgui.h>
 
-Scene::Scene(Vec2 window_dim) :
+Scene::Scene(Vec2 window_dim, App& app) :
+	app(app),
 	camera(window_dim),
 	mesh_shader("mesh.vert", "mesh.frag"),
 	line_shader("line.vert", "line.frag"),
@@ -144,7 +146,7 @@ void Scene::gui() {
 			if(Util::obj_mesh(std::string(path), new_mesh)) {
 				add_object(Scene_Object(next_id++, Mat4::I, std::move(new_mesh)));
 			} else {
-				// gui_error("Failed to load mesh from " + std::string(path));
+				app.gui_error("Failed to load mesh from " + std::string(path));
 			}
 			free(path);
 		}

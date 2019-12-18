@@ -104,10 +104,6 @@ void Platform::loop(App& app) {
 		while(SDL_PollEvent(&e)) {
 
 			ImGui_ImplSDL2_ProcessEvent(&e);
-			if(io.WantCaptureMouse && (e.type == SDL_MOUSEWHEEL || e.type == SDL_MOUSEBUTTONDOWN)) 
-				continue;
-			if(io.WantCaptureKeyboard && (e.type == SDL_TEXTINPUT || e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)) 
-				continue;
 
 			switch(e.type) {
 			case SDL_QUIT: {

@@ -9,9 +9,10 @@
 
 #include <map>
 
+class App;
 class Scene {
 public:
-	Scene(Vec2 window_dim);
+	Scene(Vec2 window_dim, App& app);
 	~Scene();
 
 	void render();
@@ -29,6 +30,7 @@ public:
 	void show_settings();
 
 private:
+	App& app;
 	Camera camera;
 	GL::Shader mesh_shader, line_shader;
 	GL::Framebuffer framebuffer, id_resolve;

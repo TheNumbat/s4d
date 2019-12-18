@@ -13,7 +13,6 @@ Scotty4D
 
     // BASE
 
-    gui_error
     parsing error messages
     
     object transforms/scene graph

@@ -4,18 +4,17 @@
 
 #include <SDL2/SDL.h>
 #include <imgui/imgui.h>
+#include <imgui/imgui_impl_sdl.h>
 
 App::App(Platform& plt) : 
 	plt(plt), 
-	scene(plt.window_dim()) {
+	scene(plt.window_dim(), *this) {
 }
 
 App::~App() {
 }
 
 void App::event(SDL_Event e) {
-	
-	ImGuiIO& io = ImGui::GetIO();
 
 	switch(e.type) {
 	case SDL_WINDOWEVENT: {
@@ -27,7 +26,6 @@ void App::event(SDL_Event e) {
 	} break;
 
 	case SDL_MOUSEMOTION: {
-		if(io.WantCaptureMouse) break;
 
 		float dx = (e.motion.x - state.mouse.x);
 		float dy = (e.motion.y - state.mouse.y);
@@ -43,7 +41,6 @@ void App::event(SDL_Event e) {
 	} break;
 
 	case SDL_MOUSEBUTTONDOWN: {
-		if(io.WantCaptureMouse) break;
 
 		if(e.button.button == SDL_BUTTON_LEFT) {
 			scene.select(Vec2(e.button.x, e.button.y));
@@ -63,7 +60,6 @@ void App::event(SDL_Event e) {
 	} break;
 
 	case SDL_MOUSEBUTTONUP: {
-		if(io.WantCaptureMouse) break;
 
 		if((e.button.button == SDL_BUTTON_RIGHT && state.cam_mode == Camera_Control::orbit) ||
 		   (e.button.button == SDL_BUTTON_MIDDLE && state.cam_mode == Camera_Control::move)) {
@@ -75,8 +71,6 @@ void App::event(SDL_Event e) {
 	} break;
 
 	case SDL_MOUSEWHEEL: {
-		if(io.WantCaptureMouse) break;
-
 		scene.camera_radius((float)e.wheel.y);
 	} break;
 	}
@@ -86,6 +80,11 @@ void App::render() {
 
 	scene.render();
 	render_gui();
+}
+
+void App::gui_error(std::string msg) {
+	state.error_msg = msg;
+	state.error_shown = true;
 }
 
 bool App::state_button(Mode mode, std::string name) {
@@ -144,6 +143,16 @@ void App::render_gui() {
 	}
 
 	scene.gui();
+
+	if(state.error_shown) {
+		ImGui::SetNextWindowPosCenter();
+		ImGui::Begin("Error", &state.error_shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize);
+		ImGui::Text(state.error_msg.c_str());
+		if(ImGui::Button("Close")) {
+			state.error_shown = false;
+		}
+		ImGui::End();
+	}
 }
 
 

@@ -17,6 +17,8 @@ public:
 	void render();
 	void event(SDL_Event e);
 
+	void gui_error(std::string msg);
+
 private:
 	Platform& plt;
 
@@ -35,6 +37,9 @@ private:
 
 	struct Gui {
 		Mode mode = Mode::scene;
+
+		bool error_shown = false;
+		std::string error_msg;
 		
 		Camera_Control cam_mode = Camera_Control::none;
 		Vec2 mouse, last_mouse;

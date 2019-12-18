@@ -13,7 +13,6 @@ Scotty4D
 
     // BASE
 
-    make mesh outline always on top
     gui_error
     parsing error messages
     

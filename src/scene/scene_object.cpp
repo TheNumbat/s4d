@@ -35,6 +35,7 @@ void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
 	if(opt.wireframe) {
 		shader.uniform("scale", 0.0f);
 		shader.uniform("solid", true);
+		shader.uniform("front", false);
 		shader.uniform("write_id", false);
 		shader.uniform("color", Vec3());
 		GL::begin_wireframe();
@@ -46,6 +47,7 @@ void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
 
 	shader.uniform("scale", 0.0f);
 	shader.uniform("solid", false);
+	shader.uniform("front", false);
 	shader.uniform("color", color);
 	shader.uniform("write_id", true);
 	mesh.render();
@@ -54,6 +56,7 @@ void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
 
 		shader.uniform("scale", 0.02f);
 		shader.uniform("solid", true);
+		shader.uniform("front", true);
 		shader.uniform("write_id", false);
 		shader.uniform("color", outline_color);
 

@@ -14,6 +14,8 @@ void global_params() {
 	glDepthFunc(GL_GREATER);
 	glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
 	glClearDepth(0.0);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
 }
 
 void clear_screen(Vec4 col) {
@@ -50,12 +52,14 @@ void use_stencil() {
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilMask(0x00);
 	glDepthFunc(GL_ALWAYS);
+	glDisable(GL_CULL_FACE);
 }
 
 void end_stencil() {
 	glStencilMask(0xff);
 	glDisable(GL_STENCIL_TEST);
 	glDepthFunc(GL_GREATER);
+	glEnable(GL_CULL_FACE);
 }
 
 void viewport(Vec2 dim) {

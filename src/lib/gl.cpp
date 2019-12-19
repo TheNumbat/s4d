@@ -53,8 +53,6 @@ void start_stencil_only() {
 void use_stencil() {
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilMask(0x00);
-	glDepthFunc(GL_ALWAYS);
-	glDisable(GL_CULL_FACE);
 	glColorMask(true, true, true, true);
 	glDepthMask(true);
 }
@@ -62,8 +60,6 @@ void use_stencil() {
 void end_stencil_only() {
 	glStencilMask(0xff);
 	glDisable(GL_STENCIL_TEST);
-	glDepthFunc(GL_GREATER);
-	glEnable(GL_CULL_FACE);
 	glColorMask(true, true, true, true);
 	glDepthMask(true);
 }

@@ -20,6 +20,7 @@ Scotty4D
         rotate
         scale
 
+    improve outlining on flat stuff - offsetting by normal looks bad
     mesh preview ??? render to texture at default pos and keep
     more basic shapes
 

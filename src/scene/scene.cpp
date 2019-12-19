@@ -73,6 +73,9 @@ void Scene::render_widgets(const Scene_Object& obj) {
 	framebuffer.clear_d();
 	obj.render(view, mesh_shader, {true, false});
 
+	// TODO(max): maybe find a way to not have to clear the depth buffer twice,
+	// this will serialize all these draw calls
+	framebuffer.clear_d();
 	if(select_type == Select_Type::move) {
 		x_trans.pose.pos = obj.pose.pos + Vec3(0.15f, 0.0f, 0.0f);
 		x_trans.render(view, mesh_shader, {false, true});

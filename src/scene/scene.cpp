@@ -134,9 +134,28 @@ void Scene::gui() {
 	ImGui::Begin("Objects", nullptr, flags);
 
 	if(ImGui::Button("Create Object")) {
-		GL::Mesh cube = Util::cube_mesh(1.0f);
-		add_object(Scene_Object(next_id++, Mat4::I, std::move(cube)));
+		ImGui::OpenPopup("Type");
 	}
+	if(ImGui::BeginPopup("Type")) {
+		
+		if(ImGui::Button("Cube")) {
+			add_object(Scene_Object(next_id++, Mat4::I, Util::cube_mesh(1.0f)));
+			ImGui::CloseCurrentPopup();
+		}
+			
+		if(ImGui::Button("Cylinder")) {
+			add_object(Scene_Object(next_id++, Mat4::I, Util::cyl_mesh(1.0f, 1.0f)));
+			ImGui::CloseCurrentPopup();
+		}
+
+		if(ImGui::Button("Arrow")) {
+			add_object(Scene_Object(next_id++, Mat4::I, Util::arrow()));
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+
 	if(ImGui::Button("Load Object")) {
 		char* path = nullptr;
 		NFD_OpenDialog("obj", nullptr, &path);

@@ -13,9 +13,8 @@ Scotty4D
 
     // BASE
 
+    translate, rotate, and scale widgets
     object transforms/scene graph
-        UI on selected object
-        movement, rotate, and scale widgets
 
     saving meshes - obj
     loading glTF / collada

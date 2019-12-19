@@ -1,19 +1,45 @@
 
 #include "scene_object.h"
 
+Mat4 Pose::transform() const {
+	return Mat4::translate(pos) * 
+		   Mat4::rotate(euler.y, {0.0f, 1.0f, 0.0f}) * 
+		   Mat4::rotate(euler.z, {0.0f, 0.0f, 1.0f}) * 
+		   Mat4::rotate(euler.x, {1.0f, 0.0f, 0.0f}) * 
+		   Mat4::scale(scl);
+}
+
+Pose Pose::rotate(Vec3 angles) {
+	return {{}, angles, {1.0f, 1.0f, 1.0f}};
+}
+
+Pose Pose::move(Vec3 t) {
+	return {t, {}, {1.0f, 1.0f, 1.0f}};
+}
+
+Pose Pose::scale(Vec3 s) {
+	return {{}, {}, s};
+}
+
+Scene_Object::Scene_Object() {
+
+}
+
 Scene_Object::Scene_Object(Scene_Object&& src) :
 	mesh(std::move(src.mesh)) {
 
 	opt.name = std::move(src.opt.name);
 	opt.wireframe = src.opt.wireframe; src.opt.wireframe = false;
 	_id = src._id; src._id = 0;
-	transform = src.transform; src.transform = Mat4::I;
+	color = src.color; src.color = {};
+	pose = src.pose; src.pose = {};
 }
 
-Scene_Object::Scene_Object(ID id, Mat4 t, GL::Mesh&& m) :
+Scene_Object::Scene_Object(ID id, Pose p, GL::Mesh&& m, Vec3 c) :
 	_id(id),
-	transform(t),
-	mesh(std::move(m)) {
+	pose(p),
+	mesh(std::move(m)),
+	color(c) {
 	
 	opt.name.reserve(max_name_len);
 	snprintf(opt.name.data(), opt.name.capacity(), "Object %d", id);
@@ -23,9 +49,18 @@ Scene_Object::~Scene_Object() {
 
 }
 
-void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
+void Scene_Object::operator=(Scene_Object&& src) {
+	mesh = std::move(src.mesh);
+	opt.name = std::move(src.opt.name);
+	opt.wireframe = src.opt.wireframe; src.opt.wireframe = false;
+	_id = src._id; src._id = 0;
+	color = src.color; src.color = {};
+	pose = src.pose; src.pose = {};
+}
 
-	Mat4 modelview = view * transform;
+void Scene_Object::render(Mat4 view, const GL::Shader& shader, Params p) const {
+
+	Mat4 modelview = view * pose.transform();
 	Mat4 normal = Mat4::transpose(Mat4::inverse(modelview));
 
 	shader.uniform("id", _id);
@@ -34,8 +69,7 @@ void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
 	
 	if(opt.wireframe) {
 		shader.uniform("scale", 0.0f);
-		shader.uniform("solid", true);
-		shader.uniform("front", false);
+		shader.uniform("solid", p.solid);
 		shader.uniform("write_id", false);
 		shader.uniform("color", Vec3());
 		GL::begin_wireframe();
@@ -43,25 +77,25 @@ void Scene_Object::render(Mat4 view, bool outline, const GL::Shader& shader) {
 		GL::end_wireframe();
 	}
 
-	if(outline) GL::start_stencil();
+	if(p.outline) {
+		GL::start_stencil_only();
+	}
 
 	shader.uniform("scale", 0.0f);
-	shader.uniform("solid", false);
-	shader.uniform("front", false);
+	shader.uniform("solid", p.solid);
 	shader.uniform("color", color);
 	shader.uniform("write_id", true);
 	mesh.render();
 
-	if(outline) {
+	if(p.outline) {
 
 		shader.uniform("scale", 0.02f);
 		shader.uniform("solid", true);
-		shader.uniform("front", true);
 		shader.uniform("write_id", false);
 		shader.uniform("color", outline_color);
 
 		GL::use_stencil();
 		mesh.render();
-		GL::end_stencil();
+		GL::end_stencil_only();
 	}
 }

@@ -46,8 +46,32 @@ private:
 	Scene_Object::ID read_id(Vec2 pos);
 	float* id_buffer = nullptr;
 
+
+	enum class Base_Objs : Scene_Object::ID {
+		none,
+		x_trans,
+		y_trans,
+		z_trans,
+		x_rot,
+		y_rot,
+		z_rot,
+		x_scale,
+		y_scale,
+		z_scale,
+		count
+	};
+	Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot, x_scale, z_scale, y_scale;
+	void render_widgets(const Scene_Object& obj);
+
+	enum class Select_Type {
+		move,
+		rotate,
+		scale	
+	};
+	Select_Type select_type = Select_Type::move;
+
 	std::map<Scene_Object::ID, Scene_Object> objs;
-	Scene_Object::ID next_id = 1;
-	Scene_Object::ID selected_id = 0;
+	Scene_Object::ID next_id = (Scene_Object::ID)Base_Objs::count;
+	Scene_Object::ID selected_id = (Scene_Object::ID)Base_Objs::none;
 };
 

@@ -13,19 +13,27 @@ Scotty4D
 
     // BASE
 
-    translate, rotate, and scale widgets
-    object transforms/scene graph
-
-    saving meshes - obj
-    loading glTF / collada
-    saving glTF / collada
+    widgets
+        selecting/holding arrows
+        drag -> change value
+        move
+        rotate
+        scale
 
     mesh preview ??? render to texture at default pos and keep
-    different basic shapes
+    more basic shapes
+
+    scene graph?
 
     undo/redo
 
+    saving meshes - obj
+    loading collada / glTF 2
+    saving collada / glTF 2
+
     // MESHEDIT
+
+    Mode: model
 
     half-edge mesh implementation
     rendering half-edge mesh as mesh
@@ -35,5 +43,10 @@ Scotty4D
 
     // PATHTRACER
 
-    // ANIMATIOn
+    Mode: render
+
+    // ANIMATION
+
+    Mode: rig
+    Mode: animate
 

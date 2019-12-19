@@ -19,6 +19,10 @@ Scene::Scene(Vec2 window_dim, App& app) :
 	id_buffer = new float[(int)window_dim.x * (int)window_dim.y * 3];
 	GL::global_params();
 	create_baseplane();
+
+	x_trans = Scene_Object((Scene_Object::ID)Base_Objs::x_trans, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::arrow(), {0.6f, 0.1f, 0.1f});
+	y_trans = Scene_Object((Scene_Object::ID)Base_Objs::y_trans, {}, Util::arrow(), {0.1f, 0.6f, 0.1f});
+	z_trans = Scene_Object((Scene_Object::ID)Base_Objs::z_trans, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::arrow(), {0.1f, 0.1f, 0.6f});
 }
 
 Scene::~Scene() {
@@ -31,7 +35,7 @@ void Scene::create_baseplane() {
 	for(int i = -R; i <= R; i++) {
 		if(i == 0) {
 			baseplane.add({-R, 0, i}, {R, 0, i}, {0.6f, 0.1f, 0.1f});
-			baseplane.add({i, 0, -R}, {i, 0, R}, {0.1f, 0.6f, 0.1f});
+			baseplane.add({i, 0, -R}, {i, 0, R}, {0.1f, 0.1f, 0.6f});
 			continue;
 		}
 		baseplane.add({i, 0, -R}, {i, 0, R}, {0.5f, 0.5f, 0.5f});
@@ -61,6 +65,26 @@ Scene_Object::ID Scene::read_id(Vec2 pos) {
 	return a | b << 8 | c << 16;
 }
 
+void Scene::render_widgets(const Scene_Object& obj) {
+
+	mesh_shader.bind();
+	Mat4 view = camera.view();
+
+	framebuffer.clear_d();
+	obj.render(view, mesh_shader, {true, false});
+
+	if(select_type == Select_Type::move) {
+		x_trans.pose.pos = obj.pose.pos + Vec3(0.15f, 0.0f, 0.0f);
+		x_trans.render(view, mesh_shader, {false, true});
+
+		y_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.15f, 0.0f);
+		y_trans.render(view, mesh_shader, {false, true});
+
+		z_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.0f, 0.15f);
+		z_trans.render(view, mesh_shader, {false, true});
+	}
+}
+
 void Scene::render() {
 
 	Mat4 proj = camera.proj(), view = camera.view();
@@ -75,24 +99,33 @@ void Scene::render() {
 		mesh_shader.uniform("proj", proj);
 
 		for(auto& obj : objs) {
-			obj.second.render(view, obj.first == selected_id, mesh_shader);
+			obj.second.render(view, mesh_shader);
 		}
 	}
-	framebuffer.blit_to(1, id_resolve, false);
-	id_resolve.read(0, id_buffer);
-
-	framebuffer.bind();
 	{
 		line_shader.bind();
 		line_shader.uniform("viewproj", viewproj);
 		baseplane.render();
 	}
 
+	auto selected = objs.find(selected_id);
+	if(selected != objs.end()) {
+		render_widgets(selected->second);
+	}
+
+	framebuffer.blit_to(1, id_resolve, false);
+	id_resolve.read(0, id_buffer);
+
 	framebuffer.blit_to_screen(0, window_dim);
 }
 
 void Scene::select(Vec2 mouse) {
-	selected_id = read_id(mouse);
+	
+	Scene_Object::ID clicked = read_id(mouse);
+
+	if(clicked == 0 || clicked >= (Scene_Object::ID)Base_Objs::count) {
+		selected_id = clicked;
+	}
 }
 
 void Scene::add_object(Scene_Object&& obj) {
@@ -139,17 +172,12 @@ void Scene::gui() {
 	if(ImGui::BeginPopup("Type")) {
 		
 		if(ImGui::Button("Cube")) {
-			add_object(Scene_Object(next_id++, Mat4::I, Util::cube_mesh(1.0f)));
-			ImGui::CloseCurrentPopup();
-		}
-			
-		if(ImGui::Button("Cylinder")) {
-			add_object(Scene_Object(next_id++, Mat4::I, Util::cyl_mesh(1.0f, 1.0f)));
+			add_object(Scene_Object(next_id++, {}, Util::cube_mesh(1.0f)));
 			ImGui::CloseCurrentPopup();
 		}
 
-		if(ImGui::Button("Arrow")) {
-			add_object(Scene_Object(next_id++, Mat4::I, Util::arrow()));
+		if(ImGui::Button("Cylinder")) {
+			add_object(Scene_Object(next_id++, {}, Util::cyl_mesh(1.0f, 1.0f)));
 			ImGui::CloseCurrentPopup();
 		}
 
@@ -164,7 +192,7 @@ void Scene::gui() {
 			GL::Mesh new_mesh;
 			std::string error = Util::obj_mesh(std::string(path), new_mesh);
 			if(error.empty()) {
-				add_object(Scene_Object(next_id++, Mat4::I, std::move(new_mesh)));
+				add_object(Scene_Object(next_id++, {}, std::move(new_mesh)));
 			} else {
 				app.gui_error(error);
 			}
@@ -182,7 +210,8 @@ void Scene::gui() {
 
 		ImGui::PushID(entry.first);
 
-		std::string& name = entry.second.opt.name;
+		Scene_Object& obj = entry.second;
+		std::string& name = obj.opt.name;
 		ImGui::InputText("##name", name.data(), name.capacity());
 		
 		bool selected = entry.first == selected_id;
@@ -192,7 +221,10 @@ void Scene::gui() {
 			else selected_id = 0;
 		}
 
-		ImGui::Checkbox("Wireframe", &entry.second.opt.wireframe);
+		ImGui::Checkbox("Wireframe", &obj.opt.wireframe);
+		ImGui::DragFloat3("Position", obj.pose.pos.data, 0.1f);
+		ImGui::DragFloat3("Rotation", obj.pose.euler.data);
+		ImGui::DragFloat3("Scale", obj.pose.scl.data, 0.01f);
 		if(ImGui::SmallButton("Delete")) {
 			to_delete = entry.first;
 		}

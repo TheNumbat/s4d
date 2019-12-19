@@ -9,15 +9,14 @@ namespace Util {
 		return cone_mesh(radius, radius, height);
 	}
 
-	// https://wiki.unity3d.com/index.php/ProceduralPrimitives
 	GL::Mesh cone_mesh(float bradius, float tradius, float height) {
 		return GL::Mesh(Detail::cone_verts(bradius, tradius, height));
 	}
 
 	GL::Mesh arrow() {
-		auto base = Detail::cone_verts(0.05f, 0.05f, 1.0f);
-		auto tip = Detail::cone_verts(0.1f, 0.01f, 0.3f);
-		for(auto& v : tip) v.pos.y += 1.0f;
+		auto base = Detail::cone_verts(0.03f, 0.03f, 0.5f);
+		auto tip = Detail::cone_verts(0.075f, 0.005f, 0.2f);
+		for(auto& v : tip) v.pos.y += 0.5f;
 		base.insert(base.end(), tip.begin(), tip.end());
 		return GL::Mesh(base);
 	}
@@ -119,6 +118,7 @@ namespace Util {
 
 	namespace Detail {
 
+		// https://wiki.unity3d.com/index.php/ProceduralPrimitives
 		std::vector<GL::Mesh::Vert> cone_verts(float bradius, float tradius, float height) {
 
 			const int n_sides = 18;

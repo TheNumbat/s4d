@@ -22,9 +22,9 @@ void end_offset();
 void begin_wireframe();
 void end_wireframe();
 
-void start_stencil();
+void start_stencil_only();
 void use_stencil();
-void end_stencil();
+void end_stencil_only();
 
 class Mesh {
 public:
@@ -43,7 +43,7 @@ public:
 	void operator=(Mesh&& src);
 
 	/// Assumes proper shader is already bound
-	void render();
+	void render() const;
 	void update(const std::vector<Vert>& vertices);
 
 private:
@@ -144,6 +144,7 @@ public:
 
 	void clear(int buf, Vec4 col) const;
 	void clear_ds() const;
+	void clear_d() const;
 
 private:
 	void create();

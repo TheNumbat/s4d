@@ -42,10 +42,12 @@ void end_offset() {
 	glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
-void start_stencil() {
+void start_stencil_only() {
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_ALWAYS, 1, 0xff); 
 	glStencilMask(0xff);
+	glColorMask(false, false, false, false);
+	glDepthMask(false);
 }
 
 void use_stencil() {
@@ -53,13 +55,17 @@ void use_stencil() {
 	glStencilMask(0x00);
 	glDepthFunc(GL_ALWAYS);
 	glDisable(GL_CULL_FACE);
+	glColorMask(true, true, true, true);
+	glDepthMask(true);
 }
 
-void end_stencil() {
+void end_stencil_only() {
 	glStencilMask(0xff);
 	glDisable(GL_STENCIL_TEST);
 	glDepthFunc(GL_GREATER);
 	glEnable(GL_CULL_FACE);
+	glColorMask(true, true, true, true);
+	glDepthMask(true);
 }
 
 void viewport(Vec2 dim) {
@@ -125,7 +131,7 @@ void Mesh::update(const std::vector<Vert>& vertices) {
 	n_elem = vertices.size();
 }
 
-void Mesh::render() {
+void Mesh::render() const {
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, n_elem);
@@ -433,6 +439,11 @@ void Framebuffer::clear(int buf, Vec4 col) const {
 void Framebuffer::clear_ds() const {
 	bind();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+}
+
+void Framebuffer::clear_d() const {
+	bind();
+	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 void Framebuffer::bind_screen() {

@@ -1,17 +1,11 @@
 
 Scotty4D
 
-    Goals
-        Using OpenGL 3.3+
-        Less implicit / keybind-only UI
-        Fix UI bugs / better object picking and property editing
-        Scene graph (or at least a mesh listing)
-        Undo / redo for modeling and animation
-        Much better modeling + skinning performance on large meshes (point 1 and some halfedge changes will really help)
-        Simpler/smaller codebase / use more straightforward C++ features
-        Smaller items: rendering remotely without X forwarding, path traced animations, textures in the path tracer (maybe pbr parameters?), more checks for halfedge meshes, more mesh/scene formats, multisampling
-
     // BASE
+
+    fix transform widget scaling
+    depth based outlining instead of normal offsets
+        http://www.michalorzelek.com/blog/tutorial-creating-outline-effect-around-objects/
 
     widgets
         selecting/holding arrows
@@ -20,11 +14,10 @@ Scotty4D
         rotate
         scale
 
-    improve outlining on flat stuff - offsetting by normal looks bad
     mesh preview ??? render to texture at default pos and keep
     more basic shapes
-
     scene graph?
+    changing the origin of a mesh
 
     undo/redo
 

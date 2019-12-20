@@ -5,6 +5,8 @@ Scotty4D
 
     depth based outlining instead of normal offsets
         http://www.michalorzelek.com/blog/tutorial-creating-outline-effect-around-objects/
+        make outline shader
+        add single-sample outline shader
 
     widgets
         selecting/holding arrows
@@ -12,18 +14,19 @@ Scotty4D
         move
         rotate
         scale
-
-    mesh preview ??? render to texture at default pos and keep
-    more basic shapes
-    scene graph?
-    changing the origin of a mesh
-    fix transform widget scaling
+        fix widget scaling
 
     undo/redo
+    saving & loading
+        obj
+        collada
+        glTF 2
 
-    saving meshes - obj
-    loading collada / glTF 2
-    saving collada / glTF 2
+    small features
+        more basic shapes
+        mesh preview | render to texture at default pos and keep
+        scene graph?
+        changing the origin of a mesh
 
     // MESHEDIT
 

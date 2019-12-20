@@ -29,11 +29,7 @@ public:
 	void operator=(const Scene_Object& src) = delete;
 	void operator=(Scene_Object&& src);
 
-	struct Params {
-		bool outline = false;
-		bool solid = false;
-	};
-	void render(Mat4 view, const GL::Shader& shader, Params p = {}) const;
+	void render(Mat4 view, const GL::Shader& shader, bool solid = false) const;
 
 	ID id() {return _id;}
 	

@@ -58,7 +58,7 @@ void Scene_Object::operator=(Scene_Object&& src) {
 	pose = src.pose; src.pose = {};
 }
 
-void Scene_Object::render(Mat4 view, const GL::Shader& shader, Params p) const {
+void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid) const {
 
 	Mat4 modelview = view * pose.transform();
 	Mat4 normal = Mat4::transpose(Mat4::inverse(modelview));
@@ -69,7 +69,7 @@ void Scene_Object::render(Mat4 view, const GL::Shader& shader, Params p) const {
 	
 	if(opt.wireframe) {
 		shader.uniform("scale", 0.0f);
-		shader.uniform("solid", p.solid);
+		shader.uniform("solid", solid);
 		shader.uniform("write_id", false);
 		shader.uniform("color", Vec3());
 		GL::begin_wireframe();
@@ -77,25 +77,9 @@ void Scene_Object::render(Mat4 view, const GL::Shader& shader, Params p) const {
 		GL::end_wireframe();
 	}
 
-	if(p.outline) {
-		GL::start_stencil_only();
-	}
-
 	shader.uniform("scale", 0.0f);
-	shader.uniform("solid", p.solid);
+	shader.uniform("solid", solid);
 	shader.uniform("color", color);
 	shader.uniform("write_id", true);
 	mesh.render();
-
-	if(p.outline) {
-
-		shader.uniform("scale", 0.02f);
-		shader.uniform("solid", true);
-		shader.uniform("write_id", false);
-		shader.uniform("color", outline_color);
-
-		GL::use_stencil();
-		mesh.render();
-		GL::end_stencil_only();
-	}
 }

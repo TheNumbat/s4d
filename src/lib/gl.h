@@ -22,10 +22,6 @@ void end_offset();
 void begin_wireframe();
 void end_wireframe();
 
-void start_stencil_only();
-void use_stencil();
-void end_stencil_only();
-
 class Mesh {
 public:
 	struct Vert {
@@ -137,13 +133,13 @@ public:
 	bool is_multisampled() const;
 
 	GLuint get_output(int buf) const; 
+	GLuint get_depth() const; 
 	void read(int buf, float* data) const;
 	
 	void blit_to_screen(int buf, Vec2 dim) const;
 	void blit_to(int buf, const Framebuffer& fb, bool avg = true) const;
 
 	void clear(int buf, Vec4 col) const;
-	void clear_ds() const;
 	void clear_d() const;
 
 private:
@@ -157,19 +153,21 @@ private:
 	int w = 0, h = 0, s = 0;
 	bool depth = true;
 
-	friend class Resolve;
+	friend class Effects;
 };
 
-class Resolve {
+class Effects {
 public:
-	static void to_screen(int buf, const Framebuffer& framebuffer);
-	static void to(int buf, const Framebuffer& from, const Framebuffer& to, bool avg = true);
+	static void resolve_to_screen(int buf, const Framebuffer& framebuffer);
+	static void resolve_to(int buf, const Framebuffer& from, const Framebuffer& to, bool avg = true);
+
+	static void outline(const Framebuffer& from, const Framebuffer& to);
 
 private:
 	static void init();
 	static void destroy();
 
-	static inline Shader resolve_shader;
+	static inline Shader resolve_shader, outline_shader;
 	static inline GLuint vao = 0, vbo = 0;
 	static inline const GLfloat data[] = {
 		-1.0f,  1.0f,  0.0f, 1.0f,

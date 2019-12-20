@@ -71,11 +71,12 @@ void Scene::render_widgets(const Scene_Object& obj) {
 	Mat4 view = camera.view();
 
 	framebuffer.clear_d();
-	obj.render(view, mesh_shader, {true, false});
 
-	// TODO(max): maybe find a way to not have to clear the depth buffer twice,
-	// this will serialize all these draw calls
+	GL::Effects::outline(framebuffer, framebuffer);
+
 	framebuffer.clear_d();
+
+	mesh_shader.bind();
 	if(select_type == Select_Type::move) {
 		
 		// TODO(max): this only scales correctly given a constant object position...
@@ -84,15 +85,15 @@ void Scene::render_widgets(const Scene_Object& obj) {
 
 		x_trans.pose.scl = scale;
 		x_trans.pose.pos = obj.pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
-		x_trans.render(view, mesh_shader, {false, true});
+		x_trans.render(view, mesh_shader, true);
 
 		y_trans.pose.scl = scale;
 		y_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
-		y_trans.render(view, mesh_shader, {false, true});
+		y_trans.render(view, mesh_shader, true);
 
 		z_trans.pose.scl = scale;
 		z_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
-		z_trans.render(view, mesh_shader, {false, true});
+		z_trans.render(view, mesh_shader, true);
 	}
 }
 
@@ -103,7 +104,7 @@ void Scene::render() {
 
 	framebuffer.clear(0, {0.4f, 0.4f, 0.4f, 1.0f});
 	framebuffer.clear(1, {0.0f, 0.0f, 0.0f, 1.0f});
-	framebuffer.clear_ds();
+	framebuffer.clear_d();
 	framebuffer.bind();
 	{
 		mesh_shader.bind();

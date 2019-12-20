@@ -12,7 +12,6 @@ void global_params() {
 	glPolygonOffset(1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_GREATER);
-	glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
 	glClearDepth(0.0);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
@@ -40,28 +39,6 @@ void begin_offset() {
 
 void end_offset() {
 	glDisable(GL_POLYGON_OFFSET_FILL);
-}
-
-void start_stencil_only() {
-	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_ALWAYS, 1, 0xff); 
-	glStencilMask(0xff);
-	glColorMask(false, false, false, false);
-	glDepthMask(false);
-}
-
-void use_stencil() {
-	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-	glStencilMask(0x00);
-	glColorMask(true, true, true, true);
-	glDepthMask(true);
-}
-
-void end_stencil_only() {
-	glStencilMask(0xff);
-	glDisable(GL_STENCIL_TEST);
-	glColorMask(true, true, true, true);
-	glDepthMask(true);
 }
 
 void viewport(Vec2 dim) {
@@ -420,13 +397,13 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 	if(depth) {
 		glBindTexture(type, depth_tex);
 		if(s > 1) {
-			glTexImage2DMultisample(type, s, GL_DEPTH32F_STENCIL8, w, h, GL_TRUE);
+			glTexImage2DMultisample(type, s, GL_DEPTH_COMPONENT32F, w, h, GL_TRUE);
 		} else {
-			glTexImage2D(type, 0, GL_DEPTH32F_STENCIL8, w, h, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_BYTE, 0);
+			glTexImage2D(type, 0, GL_DEPTH_COMPONENT32F, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 			glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		}
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, type, depth_tex, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, type, depth_tex, 0);
 		glBindTexture(type, 0);
 	}
 
@@ -439,11 +416,6 @@ void Framebuffer::clear(int buf, Vec4 col) const {
 	assert(buf >= 0 && buf < (int)output_textures.size());
 	bind();
 	glClearBufferfv(GL_COLOR, buf, col.data);
-}
-
-void Framebuffer::clear_ds() const {
-	bind();
-	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void Framebuffer::clear_d() const {
@@ -464,6 +436,11 @@ GLuint Framebuffer::get_output(int buf) const {
 	return output_textures[buf];
 }
 
+GLuint Framebuffer::get_depth() const {
+	assert(depth_tex);
+	return depth_tex;
+}
+
 void Framebuffer::read(int buf, float* data) const {
 	assert(s == 1);
 	assert(buf >= 0 && buf < (int)output_textures.size());
@@ -475,7 +452,7 @@ void Framebuffer::blit_to(int buf, const Framebuffer& fb, bool avg) const {
 
 	assert(buf >= 0 && buf < (int)output_textures.size());
 	if(s > 1) {
-		Resolve::to(buf, *this, fb, avg);
+		Effects::resolve_to(buf, *this, fb, avg);
 		return;
 	}
 
@@ -492,7 +469,7 @@ void Framebuffer::blit_to_screen(int buf, Vec2 dim) const {
 
 	assert(buf >= 0 && buf < (int)output_textures.size());
 	if(s > 1) {
-		Resolve::to_screen(buf, *this);
+		Effects::resolve_to_screen(buf, *this);
 		return;
 	}
 
@@ -509,7 +486,7 @@ bool Framebuffer::is_multisampled() const {
 	return s > 1;
 }
 
-void Resolve::init() {
+void Effects::init() {
 
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
@@ -526,18 +503,40 @@ void Resolve::init() {
 
 	glBindVertexArray(0);
 
-	resolve_shader.load("resolve.vert", "resolve.frag");
+	resolve_shader.load("effects.vert", "resolve.frag");
+	outline_shader.load("effects.vert", "outline.frag");
 }
 
-void Resolve::destroy() {
+void Effects::destroy() {
 
 	glDeleteBuffers(1, &vbo);
 	glDeleteVertexArrays(1, &vao);
 	vao = vbo = 0;
 	resolve_shader.~Shader();
+	outline_shader.~Shader();
 }
 
-void Resolve::to_screen(int buf, const Framebuffer& framebuffer) {
+void Effects::outline(const Framebuffer& from, const Framebuffer& to) {
+
+	assert(from.is_multisampled());
+
+	to.bind();
+
+	outline_shader.bind();
+	
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, from.get_depth());
+	outline_shader.uniform("depth", 0);
+	outline_shader.uniform("samples", from.s);
+	outline_shader.uniform("tex_size", Vec2(from.w, from.h));
+
+	glBindVertexArray(vao);
+	glDisable(GL_DEPTH_TEST);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glEnable(GL_DEPTH_TEST);
+	glBindVertexArray(0);
+}
+
+void Effects::resolve_to_screen(int buf, const Framebuffer& framebuffer) {
 
 	Framebuffer::bind_screen();
 
@@ -557,7 +556,7 @@ void Resolve::to_screen(int buf, const Framebuffer& framebuffer) {
 	glBindVertexArray(0);
 }
 
-void Resolve::to(int buf, const Framebuffer& from, const Framebuffer& to, bool avg) {
+void Effects::resolve_to(int buf, const Framebuffer& from, const Framebuffer& to, bool avg) {
 
 	to.bind();
 
@@ -688,11 +687,11 @@ static void setup_debug_proc() {
 
 void setup() {
 	setup_debug_proc();
-	Resolve::init();
+	Effects::init();
 }
 
 void shutdown() {
-	Resolve::destroy();
+	Effects::destroy();
 	check_leaked_handles();
 }
 }

@@ -18,11 +18,10 @@ void main() {
 
     if(solid) {
         out_col = vec4(color, 1.0f);
-        return;
+    } else {
+        float ndotl = max(normalize(f_norm).z, 0.0f);
+        float light = clamp(0.2f + ndotl, 0.0f, 1.0f);
+
+        out_col = vec4(light * color, 1.0f);
     }
-
-    float ndotl = max(normalize(f_norm).z, 0.0f);
-    float light = clamp(0.2f + ndotl, 0.0f, 1.0f);
-
-    out_col = vec4(light * color, 1.0f);
 }

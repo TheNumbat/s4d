@@ -58,7 +58,7 @@ void Scene_Object::operator=(Scene_Object&& src) {
 	pose = src.pose; src.pose = {};
 }
 
-void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid) const {
+void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid, bool depth_only) const {
 
 	Mat4 modelview = view * pose.transform();
 	Mat4 normal = Mat4::transpose(Mat4::inverse(modelview));
@@ -67,6 +67,8 @@ void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid) const
 	shader.uniform("modelview", modelview);
 	shader.uniform("normal", normal);
 	
+	if(depth_only) GL::color_mask(false);
+
 	if(opt.wireframe) {
 		shader.uniform("scale", 0.0f);
 		shader.uniform("solid", solid);
@@ -82,4 +84,6 @@ void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid) const
 	shader.uniform("color", color);
 	shader.uniform("write_id", true);
 	mesh.render();
+
+	if(depth_only) GL::color_mask(true);
 }

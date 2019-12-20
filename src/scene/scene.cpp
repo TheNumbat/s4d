@@ -72,7 +72,8 @@ void Scene::render_widgets(const Scene_Object& obj) {
 
 	framebuffer.clear_d();
 
-	GL::Effects::outline(framebuffer, framebuffer);
+	obj.render(view, mesh_shader, false, true);
+	GL::Effects::outline(framebuffer, framebuffer, Scene_Object::outline_color);
 
 	framebuffer.clear_d();
 

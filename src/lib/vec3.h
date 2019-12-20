@@ -176,7 +176,7 @@ inline Vec3 operator*(float s, Vec3 v) {
 	return Vec3(v.x * s, v.y * s, v.z * s);
 }
 inline Vec3 operator/(float s, Vec3 v) {
-	return Vec3(v.x / s, v.y / s, v.z / s);
+	return Vec3(s / v.x, s / v.y, s / v.z);
 }
 
 inline Vec3 min(Vec3 l, Vec3 r) {

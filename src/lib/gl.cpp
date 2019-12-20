@@ -6,6 +6,23 @@
 
 namespace GL {
 
+static void setup_debug_proc();
+static void check_leaked_handles();
+
+void setup() {
+	setup_debug_proc();
+	Effects::init();
+}
+
+void shutdown() {
+	Effects::destroy();
+	check_leaked_handles();
+}
+
+void color_mask(bool enable) {
+	glColorMask(enable, enable, enable, enable);
+}
+
 void global_params() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -505,6 +522,7 @@ void Effects::init() {
 
 	resolve_shader.load("effects.vert", "resolve.frag");
 	outline_shader.load("effects.vert", "outline.frag");
+	outline_shader_ms.load("effects.vert", "outline_ms.frag");
 }
 
 void Effects::destroy() {
@@ -514,20 +532,27 @@ void Effects::destroy() {
 	vao = vbo = 0;
 	resolve_shader.~Shader();
 	outline_shader.~Shader();
+	outline_shader_ms.~Shader();
 }
 
-void Effects::outline(const Framebuffer& from, const Framebuffer& to) {
-
-	assert(from.is_multisampled());
+void Effects::outline(const Framebuffer& from, const Framebuffer& to, Vec3 color) {
 
 	to.bind();
 
-	outline_shader.bind();
-	
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, from.get_depth());
-	outline_shader.uniform("depth", 0);
-	outline_shader.uniform("samples", from.s);
-	outline_shader.uniform("tex_size", Vec2(from.w, from.h));
+	if(from.is_multisampled()) {	
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, from.get_depth());
+		outline_shader_ms.bind();
+		outline_shader_ms.uniform("depth", 0);
+		outline_shader_ms.uniform("color", color);
+		outline_shader_ms.uniform("samples", from.s);
+		outline_shader_ms.uniform("tex_size", Vec2(from.w, from.h));
+	} else {
+		glBindTexture(GL_TEXTURE_2D, from.get_depth());
+		outline_shader.bind();
+		outline_shader.uniform("depth", 0);
+		outline_shader.uniform("color", color);
+		outline_shader.uniform("i_tex_size", 1.0f / Vec2(from.w, from.h));
+	}
 
 	glBindVertexArray(vao);
 	glDisable(GL_DEPTH_TEST);
@@ -574,6 +599,12 @@ void Effects::resolve_to(int buf, const Framebuffer& from, const Framebuffer& to
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glEnable(GL_DEPTH_TEST);
 	glBindVertexArray(0);
+}
+
+void Effects::reload() {
+	outline_shader.reload();
+	outline_shader_ms.reload();
+	resolve_shader.reload();
 }
 
 static void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severity, GLsizei length, const GLchar* glmessage, const void* up) {
@@ -685,13 +716,4 @@ static void setup_debug_proc() {
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 }
 
-void setup() {
-	setup_debug_proc();
-	Effects::init();
-}
-
-void shutdown() {
-	Effects::destroy();
-	check_leaked_handles();
-}
 }

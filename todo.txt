@@ -2,12 +2,7 @@
 Scotty4D
 
     // BASE
-
-    depth based outlining instead of normal offsets
-        http://www.michalorzelek.com/blog/tutorial-creating-outline-effect-around-objects/
-        make outline shader
-        add single-sample outline shader
-
+    
     widgets
         selecting/holding arrows
         drag -> change value
@@ -22,7 +17,8 @@ Scotty4D
         collada
         glTF 2
 
-    small features
+    more features
+        sample rate shading the depth outline is very slow (literally SSAA)...
         more basic shapes
         mesh preview | render to texture at default pos and keep
         scene graph?

@@ -29,7 +29,7 @@ public:
 	void operator=(const Scene_Object& src) = delete;
 	void operator=(Scene_Object&& src);
 
-	void render(Mat4 view, const GL::Shader& shader, bool solid = false) const;
+	void render(Mat4 view, const GL::Shader& shader, bool solid = false, bool depth_only = false) const;
 
 	ID id() {return _id;}
 	
@@ -40,9 +40,10 @@ public:
 	Options opt;
 	Pose pose;
 
+	static inline const Vec3 outline_color = Vec3(242.0f / 255.0f, 153.0f / 255.0f, 41.0f / 255.0f);
+
 private:
 	static const int max_name_len = 256;
-	static inline const Vec3 outline_color = Vec3(242.0f / 255.0f, 153.0f / 255.0f, 41.0f / 255.0f);
 
 	Vec3 color;
 	ID _id = 0;

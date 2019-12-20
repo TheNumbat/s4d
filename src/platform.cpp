@@ -35,15 +35,7 @@ void Platform::platform_init() {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	gl_context = SDL_GL_CreateContext(window);
 	if(!gl_context) {
-		warn("Failed to create OpenGL 4.3 context. Trying OpenGL 3.3...");
-
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-		gl_context = SDL_GL_CreateContext(window);
-
-		if(!gl_context) {
-			die("Failed to create OpenGL 3.3 context: %s", SDL_GetError());
-		}
+		die("Failed to create OpenGL 4.3 context: %s", SDL_GetError());
 	}
 
 	SDL_GL_MakeCurrent(window, gl_context);

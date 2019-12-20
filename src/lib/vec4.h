@@ -205,7 +205,7 @@ inline Vec4 operator*(float s, Vec4 v) {
 	return Vec4(v.x * s, v.y * s, v.z * s, v.w * s);
 }
 inline Vec4 operator/(float s, Vec4 v) {
-	return Vec4(v.x / s, v.y / s, v.z / s, v.w / s);
+	return Vec4(s / v.x, s / v.y, s / v.z, s / v.w);
 }
 
 inline Vec4 min(Vec4 l, Vec4 r) {

@@ -3,7 +3,6 @@ Scotty4D
 
     // BASE
 
-    fix transform widget scaling
     depth based outlining instead of normal offsets
         http://www.michalorzelek.com/blog/tutorial-creating-outline-effect-around-objects/
 
@@ -18,6 +17,7 @@ Scotty4D
     more basic shapes
     scene graph?
     changing the origin of a mesh
+    fix transform widget scaling
 
     undo/redo
 

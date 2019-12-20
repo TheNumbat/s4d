@@ -84,6 +84,7 @@ Mesh::Mesh(Mesh&& src) {
 }
 
 void Mesh::operator=(Mesh&& src) {
+	destroy();
 	vao = src.vao; src.vao = 0;
 	vbo = src.vbo; src.vbo = 0;
 	n_elem = src.n_elem; src.n_elem = 0;
@@ -147,6 +148,7 @@ Lines::Lines(Lines&& src) {
 }
 
 void Lines::operator=(Lines&& src) {
+	destroy();
 	dirty = src.dirty; src.dirty = false;
 	thickness = src.thickness; src.thickness = 0.0f;
 	vao = src.vao; src.vao = 0;
@@ -226,6 +228,7 @@ Shader::Shader(Shader&& src) {
 }
 
 void Shader::operator=(Shader&& src) {
+	destroy();
 	v_file = std::move(src.v_file);
 	f_file = std::move(src.f_file);
 	program = src.program; src.program = 0;
@@ -336,15 +339,16 @@ bool Shader::validate(GLuint program) {
 	return true;
 }
 
-Framebuffer::Framebuffer(int outputs, Vec2 dim, int samples) {
-	assert(outputs >= 0 && outputs < 32);
+Framebuffer::Framebuffer(int outputs, Vec2 dim, int samples, bool d) {
+	assert(outputs >= 0 && outputs < 31);
+	depth = d;
 	output_textures.resize(outputs);
 	resize(dim, samples);
 }
 
 Framebuffer::Framebuffer(Framebuffer&& src) {
 	output_textures = std::move(src.output_textures);
-	depth_rbo = src.depth_rbo; src.depth_rbo = 0;
+	depth_tex = src.depth_tex; src.depth_tex = 0;
 	framebuffer = src.framebuffer; src.framebuffer = 0;
 	w = src.w; src.w = 0;
 	h = src.h; src.h = 0;
@@ -352,8 +356,9 @@ Framebuffer::Framebuffer(Framebuffer&& src) {
 }
 
 void Framebuffer::operator=(Framebuffer&& src) {
+	destroy();
 	output_textures = std::move(src.output_textures);
-	depth_rbo = src.depth_rbo; src.depth_rbo = 0;
+	depth_tex = src.depth_tex; src.depth_tex = 0;
 	framebuffer = src.framebuffer; src.framebuffer = 0;
 	w = src.w; src.w = 0;
 	h = src.h; src.h = 0;
@@ -367,14 +372,14 @@ Framebuffer::~Framebuffer() {
 void Framebuffer::create() {
 	glGenFramebuffers(1, &framebuffer);
 	glGenTextures(output_textures.size(), output_textures.data());
-	glGenRenderbuffers(1, &depth_rbo);
+	if(depth) glGenTextures(1, &depth_tex);
 }
 
 void Framebuffer::destroy() {
-	glDeleteRenderbuffers(1, &depth_rbo);
+	glDeleteTextures(1, &depth_tex);
 	glDeleteTextures(output_textures.size(), output_textures.data());
 	glDeleteFramebuffers(1, &framebuffer);
-	depth_rbo = framebuffer = 0;
+	depth_tex = framebuffer = 0;
 }
 
 void Framebuffer::resize(Vec2 dim, int samples) {
@@ -412,14 +417,18 @@ void Framebuffer::resize(Vec2 dim, int samples) {
 		glBindTexture(type, 0);
 	}
 
-	glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo);
-	if(s > 1) {
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, s, GL_DEPTH32F_STENCIL8, w, h);  
-	} else {
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH32F_STENCIL8, w, h);
+	if(depth) {
+		glBindTexture(type, depth_tex);
+		if(s > 1) {
+			glTexImage2DMultisample(type, s, GL_DEPTH32F_STENCIL8, w, h, GL_TRUE);
+		} else {
+			glTexImage2D(type, 0, GL_DEPTH32F_STENCIL8, w, h, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_BYTE, 0);
+			glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, type, depth_tex, 0);
+		glBindTexture(type, 0);
 	}
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	glDrawBuffers(draw_buffers.size(), draw_buffers.data());
 

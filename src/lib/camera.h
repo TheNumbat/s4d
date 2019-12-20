@@ -22,7 +22,7 @@ public:
 
 	void set_ar(Vec2 dim);
 
-private:
+// private:
 	void update_pos();
 
 	// parameters

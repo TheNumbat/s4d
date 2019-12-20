@@ -12,7 +12,7 @@ Scene::Scene(Vec2 window_dim, App& app) :
 	mesh_shader("mesh.vert", "mesh.frag"),
 	line_shader("line.vert", "line.frag"),
 	framebuffer(2, window_dim, default_samples),
-	id_resolve(1, window_dim),
+	id_resolve(1, window_dim, 1, false),
 	baseplane(1.0f),
 	window_dim(window_dim) {
 
@@ -78,6 +78,7 @@ void Scene::render_widgets(const Scene_Object& obj) {
 	framebuffer.clear_d();
 	if(select_type == Select_Type::move) {
 		
+		// TODO(max): this only scales correctly given a constant object position...
 		float scl = (camera.pos() - obj.pose.pos).norm() / 5.0f;
 		Vec3 scale = Vec3(scl, scl, scl);
 

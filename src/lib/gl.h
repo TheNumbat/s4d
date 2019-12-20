@@ -122,7 +122,7 @@ private:
 /// textures and a floating point depth render buffer.
 class Framebuffer {
 public:
-	Framebuffer(int outputs, Vec2 dim, int samples = 1);
+	Framebuffer(int outputs, Vec2 dim, int samples = 1, bool depth = true);
 	Framebuffer(const Framebuffer& src) = delete;
 	Framebuffer(Framebuffer&& src);
 	~Framebuffer();
@@ -151,10 +151,11 @@ private:
 	void destroy();
 
 	std::vector<GLuint> output_textures;
-	GLuint depth_rbo = 0;
+	GLuint depth_tex = 0;
 	GLuint framebuffer = 0;
 
 	int w = 0, h = 0, s = 0;
+	bool depth = true;
 
 	friend class Resolve;
 };

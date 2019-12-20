@@ -77,13 +77,20 @@ void Scene::render_widgets(const Scene_Object& obj) {
 	// this will serialize all these draw calls
 	framebuffer.clear_d();
 	if(select_type == Select_Type::move) {
-		x_trans.pose.pos = obj.pose.pos + Vec3(0.15f, 0.0f, 0.0f);
+		
+		float scl = (camera.pos() - obj.pose.pos).norm() / 5.0f;
+		Vec3 scale = Vec3(scl, scl, scl);
+
+		x_trans.pose.scl = scale;
+		x_trans.pose.pos = obj.pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
 		x_trans.render(view, mesh_shader, {false, true});
 
-		y_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.15f, 0.0f);
+		y_trans.pose.scl = scale;
+		y_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
 		y_trans.render(view, mesh_shader, {false, true});
 
-		z_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.0f, 0.15f);
+		z_trans.pose.scl = scale;
+		z_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
 		z_trans.render(view, mesh_shader, {false, true});
 	}
 }

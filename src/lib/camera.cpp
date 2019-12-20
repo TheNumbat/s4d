@@ -41,7 +41,7 @@ void Camera::reset() {
 	fov = 90.0f;
 	pitch = 45.0f;
 	yaw = 45.0f;
-	n = 0.1f;
+	n = 0.01f;
 	radius = 5.0f;
 	radius_sens = 0.25f;
 	move_sens = 0.015f;
@@ -70,6 +70,6 @@ void Camera::mouse_move(Vec2 off) {
 
 void Camera::mouse_radius(float off) {
 	radius -= off * radius_sens;
-	radius = std::max(radius, 0.0f);
+	radius = std::max(radius, 2.0f * n);
 	update_pos();
 }

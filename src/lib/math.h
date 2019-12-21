@@ -8,6 +8,7 @@
 #include "vec3.h"
 #include "vec4.h"
 #include "mat4.h"
+#include "bbox.h"
 
 #define PI 3.14159265358979323846264338327950288f
 #define Radians(v) (v * (PI / 180.0f)) 

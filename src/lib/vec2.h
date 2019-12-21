@@ -16,6 +16,9 @@ struct Vec2 {
 		x = _x;
 		y = _y;
 	}
+	Vec2(float f) {
+		x = y = f;
+	}
 	Vec2(int _x, int _y) {
 		x = (float)_x;
 		y = (float)_y;
@@ -164,10 +167,10 @@ inline Vec2 operator/(float s, Vec2 v) {
 	return Vec2(s / v.x, s / v.y);
 }
 
-inline Vec2 min(Vec2 l, Vec2 r) {
+inline Vec2 hmin(Vec2 l, Vec2 r) {
 	return Vec2(std::min(l.x, r.x), std::min(l.y, r.y));
 }
-inline Vec2 max(Vec2 l, Vec2 r) {
+inline Vec2 hmax(Vec2 l, Vec2 r) {
 	return Vec2(std::max(l.x, r.x), std::max(l.y, r.y));
 }
 

@@ -1,18 +1,15 @@
 
 #version 400 core
 
-in vec2 f_uv;
-
 out vec4 out_color;
 
 uniform sampler2DMS depth;
 uniform int samples;
-uniform vec2 tex_size;
 uniform vec3 color;
 
 void main() {
 
-    ivec2 coord = ivec2(f_uv * tex_size);
+    ivec2 coord = ivec2(gl_FragCoord.xy);
 
     float gx = 0.0f, gy = 0.0f;
     for (int i = -1; i <= 1; i++) {

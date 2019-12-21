@@ -2,7 +2,7 @@
 Scotty4D
 
     // BASE
-    
+
     widgets
         selecting/holding arrows
         drag -> change value
@@ -18,11 +18,11 @@ Scotty4D
         glTF 2
 
     more features
-        sample rate shading the depth outline is very slow (literally SSAA)...
         more basic shapes
         mesh preview | render to texture at default pos and keep
         scene graph?
         changing the origin of a mesh
+        sample rate shading the depth outline is rather slow
 
     // MESHEDIT
 

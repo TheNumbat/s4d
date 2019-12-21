@@ -44,10 +44,13 @@ public:
 	void render() const;
 	void update(const std::vector<Vert>& vertices);
 
+	BBox bbox() const;
+
 private:
 	void create();
 	void destroy();
 
+	BBox _bbox;
 	GLuint vao = 0, vbo = 0;
 	GLuint n_elem = 0;
 };
@@ -104,6 +107,7 @@ public:
 	void uniform(std::string name, GLint i) const;
 	void uniform(std::string name, GLfloat f) const;
 	void uniform(std::string name, bool b) const;
+	void uniform(std::string name, int count, const Vec2 items[]) const;
 
 private:
 	GLuint loc(std::string name) const;
@@ -163,7 +167,7 @@ public:
 	static void resolve_to_screen(int buf, const Framebuffer& framebuffer);
 	static void resolve_to(int buf, const Framebuffer& from, const Framebuffer& to, bool avg = true);
 
-	static void outline(const Framebuffer& from, const Framebuffer& to, Vec3 color);
+	static void outline(const Framebuffer& from, const Framebuffer& to, Vec3 color, Vec2 min, Vec2 max);
 
 	static void reload();
 
@@ -172,14 +176,12 @@ private:
 	static void destroy();
 
 	static inline Shader resolve_shader, outline_shader, outline_shader_ms;
-	static inline GLuint vao = 0, vbo = 0;
-	static inline const GLfloat data[] = {
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		-1.0f, -1.0f,  0.0f, 0.0f,
-		1.0f, -1.0f,  1.0f, 0.0f,
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		1.0f, -1.0f,  1.0f, 0.0f,
-		1.0f,  1.0f,  1.0f, 1.0f
+	static inline GLuint vao;
+	static inline const Vec2 screen_quad[] = {
+		{-1.0f,  1.0f},
+		{-1.0f, -1.0f},
+		{1.0f,  1.0f},
+		{1.0f, -1.0f}
 	};
 
 	friend void setup();

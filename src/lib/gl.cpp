@@ -75,6 +75,7 @@ Mesh::Mesh(Mesh&& src) {
 	vao = src.vao; src.vao = 0;
 	vbo = src.vbo; src.vbo = 0;
 	n_elem = src.n_elem; src.n_elem = 0;
+	_bbox = src._bbox; src._bbox.reset();
 }
 
 void Mesh::operator=(Mesh&& src) {
@@ -82,6 +83,7 @@ void Mesh::operator=(Mesh&& src) {
 	vao = src.vao; src.vao = 0;
 	vbo = src.vbo; src.vbo = 0;
 	n_elem = src.n_elem; src.n_elem = 0;
+	_bbox = src._bbox; src._bbox.reset();
 }
 
 Mesh::~Mesh() {
@@ -119,7 +121,15 @@ void Mesh::update(const std::vector<Vert>& vertices) {
 
 	glBindVertexArray(0);
 
+	_bbox.reset();
+	for(auto& v : vertices) {
+		_bbox.enclose(v.pos);
+	}
 	n_elem = vertices.size();
+}
+
+BBox Mesh::bbox() const {
+	return _bbox;
 }
 
 void Mesh::render() const {
@@ -249,6 +259,10 @@ void Shader::destroy() {
 	glDeleteShader(f);
 	glDeleteProgram(program);
 	v = f = program = 0;
+}
+
+void Shader::uniform(std::string name, int count, const Vec2 items[]) const {
+	glUniform2fv(loc(name), count, (GLfloat*)items);
 }
 
 void Shader::uniform(std::string name, GLfloat f) const {
@@ -506,20 +520,6 @@ bool Framebuffer::is_multisampled() const {
 void Effects::init() {
 
 	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
-
-	glBindVertexArray(vao);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
-	glBindVertexArray(0);
-
 	resolve_shader.load("effects.vert", "resolve.frag");
 	outline_shader.load("effects.vert", "outline.frag");
 	outline_shader_ms.load("effects.vert", "outline_ms.frag");
@@ -527,17 +527,23 @@ void Effects::init() {
 
 void Effects::destroy() {
 
-	glDeleteBuffers(1, &vbo);
 	glDeleteVertexArrays(1, &vao);
-	vao = vbo = 0;
+	vao = 0;
 	resolve_shader.~Shader();
 	outline_shader.~Shader();
 	outline_shader_ms.~Shader();
 }
 
-void Effects::outline(const Framebuffer& from, const Framebuffer& to, Vec3 color) {
+void Effects::outline(const Framebuffer& from, const Framebuffer& to, Vec3 color, Vec2 min, Vec2 max) {
 
 	to.bind();
+
+	Vec2 quad[] = {
+		{min.x, max.y},
+		min,
+		max,
+		{max.x, min.y}
+	};
 
 	if(from.is_multisampled()) {	
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, from.get_depth());
@@ -545,18 +551,19 @@ void Effects::outline(const Framebuffer& from, const Framebuffer& to, Vec3 color
 		outline_shader_ms.uniform("depth", 0);
 		outline_shader_ms.uniform("color", color);
 		outline_shader_ms.uniform("samples", from.s);
-		outline_shader_ms.uniform("tex_size", Vec2(from.w, from.h));
+		outline_shader_ms.uniform("bounds", 4, quad);
 	} else {
 		glBindTexture(GL_TEXTURE_2D, from.get_depth());
 		outline_shader.bind();
 		outline_shader.uniform("depth", 0);
 		outline_shader.uniform("color", color);
-		outline_shader.uniform("i_tex_size", 1.0f / Vec2(from.w, from.h));
+		outline_shader.uniform("i_screen_size", 1.0f / Vec2(from.w, from.h));
+		outline_shader.uniform("bounds", 4, quad);
 	}
 
 	glBindVertexArray(vao);
 	glDisable(GL_DEPTH_TEST);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glEnable(GL_DEPTH_TEST);
 	glBindVertexArray(0);
 }
@@ -566,17 +573,17 @@ void Effects::resolve_to_screen(int buf, const Framebuffer& framebuffer) {
 	Framebuffer::bind_screen();
 
 	resolve_shader.bind();
-	glBindVertexArray(vao);
 	
 	assert(buf >= 0 && buf < (int)framebuffer.output_textures.size());
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer.output_textures[buf]);
 
 	resolve_shader.uniform("tex", 0);
 	resolve_shader.uniform("samples", framebuffer.s);
-	resolve_shader.uniform("tex_size", Vec2(framebuffer.w, framebuffer.h));
+	resolve_shader.uniform("bounds", 4, screen_quad);
 
+	glBindVertexArray(vao);
 	glDisable(GL_DEPTH_TEST);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glEnable(GL_DEPTH_TEST);
 	glBindVertexArray(0);
 }
@@ -586,17 +593,17 @@ void Effects::resolve_to(int buf, const Framebuffer& from, const Framebuffer& to
 	to.bind();
 
 	resolve_shader.bind();
-	glBindVertexArray(vao);
 	
 	assert(buf >= 0 && buf < (int)from.output_textures.size());
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, from.output_textures[buf]);
 
 	resolve_shader.uniform("tex", 0);
 	resolve_shader.uniform("samples", avg ? from.s : 1);
-	resolve_shader.uniform("tex_size", Vec2(from.w, from.h));
+	resolve_shader.uniform("bounds", 4, screen_quad);
 
+	glBindVertexArray(vao);
 	glDisable(GL_DEPTH_TEST);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glEnable(GL_DEPTH_TEST);
 	glBindVertexArray(0);
 }

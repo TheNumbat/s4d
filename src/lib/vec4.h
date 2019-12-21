@@ -21,6 +21,9 @@ struct Vec4 {
 		z = _z;
 		w = _w;
 	}
+	Vec4(float f) {
+		x = y = z = w = f;
+	}
 	Vec4(int _x, int _y, int _z, int _w) {
 		x = (float)_x;
 		y = (float)_y;
@@ -208,10 +211,10 @@ inline Vec4 operator/(float s, Vec4 v) {
 	return Vec4(s / v.x, s / v.y, s / v.z, s / v.w);
 }
 
-inline Vec4 min(Vec4 l, Vec4 r) {
+inline Vec4 hmin(Vec4 l, Vec4 r) {
 	return Vec4(std::min(l.x, r.x), std::min(l.y, r.y), std::min(l.z, r.z), std::min(l.w, r.w));
 }
-inline Vec4 max(Vec4 l, Vec4 r) {
+inline Vec4 hmax(Vec4 l, Vec4 r) {
 	return Vec4(std::max(l.x, r.x), std::max(l.y, r.y), std::max(l.z, r.z), std::max(l.w, r.w));
 }
 

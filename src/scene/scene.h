@@ -32,6 +32,7 @@ public:
 private:
 	App& app;
 	Camera camera;
+	Mat4 view, proj, viewproj;
 	GL::Shader mesh_shader, line_shader;
 	GL::Framebuffer framebuffer, id_resolve;
 	

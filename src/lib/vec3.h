@@ -23,6 +23,9 @@ struct Vec3 {
 		y = (float)_y;
 		z = (float)_z;
 	}
+	Vec3(float f) {
+		x = y = z = f;
+	}
 	Vec3(const Vec3& src) {
 		x = src.x;
 		y = src.y;
@@ -179,10 +182,10 @@ inline Vec3 operator/(float s, Vec3 v) {
 	return Vec3(s / v.x, s / v.y, s / v.z);
 }
 
-inline Vec3 min(Vec3 l, Vec3 r) {
+inline Vec3 hmin(Vec3 l, Vec3 r) {
 	return Vec3(std::min(l.x, r.x), std::min(l.y, r.y), std::min(l.z, r.z));
 }
-inline Vec3 max(Vec3 l, Vec3 r) {
+inline Vec3 hmax(Vec3 l, Vec3 r) {
 	return Vec3(std::max(l.x, r.x), std::max(l.y, r.y), std::max(l.z, r.z));
 }
 

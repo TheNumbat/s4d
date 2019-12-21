@@ -67,13 +67,16 @@ Scene_Object::ID Scene::read_id(Vec2 pos) {
 
 void Scene::render_widgets(const Scene_Object& obj) {
 
-	mesh_shader.bind();
-	Mat4 view = camera.view();
-
 	framebuffer.clear_d();
 
+	mesh_shader.bind();
 	obj.render(view, mesh_shader, false, true);
-	GL::Effects::outline(framebuffer, framebuffer, Scene_Object::outline_color);
+	
+	Mat4 mvp = viewproj * obj.pose.transform();
+	Vec2 min, max;
+	obj.bbox().project(mvp, min, max);
+
+	GL::Effects::outline(framebuffer, framebuffer, Scene_Object::outline_color, min, max);
 
 	framebuffer.clear_d();
 
@@ -100,8 +103,8 @@ void Scene::render_widgets(const Scene_Object& obj) {
 
 void Scene::render() {
 
-	Mat4 proj = camera.proj(), view = camera.view();
-	Mat4 viewproj = proj * view;
+	proj = camera.proj(), view = camera.view();
+	viewproj = proj * view;
 
 	framebuffer.clear(0, {0.4f, 0.4f, 0.4f, 1.0f});
 	framebuffer.clear(1, {0.0f, 0.0f, 0.0f, 1.0f});

@@ -13,16 +13,16 @@ Scene::Scene(Vec2 window_dim, App& app) :
 	line_shader("line.vert", "line.frag"),
 	framebuffer(2, window_dim, default_samples),
 	id_resolve(1, window_dim, 1, false),
-	baseplane(1.0f),
-	window_dim(window_dim) {
+	baseplane(1.0f) {
 
-	id_buffer = new float[(int)window_dim.x * (int)window_dim.y * 3];
+	state.window_dim = window_dim;
+	id_buffer = new float[(int)state.window_dim.x * (int)state.window_dim.y * 3];
 	GL::global_params();
 	create_baseplane();
 
-	x_trans = Scene_Object((Scene_Object::ID)Base_Objs::x_trans, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::arrow(), {0.6f, 0.1f, 0.1f});
-	y_trans = Scene_Object((Scene_Object::ID)Base_Objs::y_trans, {}, Util::arrow(), {0.1f, 0.6f, 0.1f});
-	z_trans = Scene_Object((Scene_Object::ID)Base_Objs::z_trans, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::arrow(), {0.1f, 0.1f, 0.6f});
+	state.x_trans = Scene_Object((Scene_Object::ID)Gui::Basic::x_trans, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::arrow(), {0.6f, 0.1f, 0.1f});
+	state.y_trans = Scene_Object((Scene_Object::ID)Gui::Basic::y_trans, {}, Util::arrow(), {0.1f, 0.6f, 0.1f});
+	state.z_trans = Scene_Object((Scene_Object::ID)Gui::Basic::z_trans, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::arrow(), {0.1f, 0.1f, 0.6f});
 }
 
 Scene::~Scene() {
@@ -44,7 +44,7 @@ void Scene::create_baseplane() {
 }
 
 void Scene::show_settings() {
-	settings_open = true;
+	state.settings_open = true;
 }
 
 void Scene::reload_shaders() {
@@ -55,8 +55,8 @@ void Scene::reload_shaders() {
 Scene_Object::ID Scene::read_id(Vec2 pos) {
 	
 	int x = (int)pos.x;
-	int y = (int)(window_dim.y - pos.y - 1);
-	int idx = y * (int)window_dim.x * 3 + x * 3;
+	int y = (int)(state.window_dim.y - pos.y - 1);
+	int idx = y * (int)state.window_dim.x * 3 + x * 3;
 	
 	int a = (int)(id_buffer[idx] * 255.0f);
 	int b = (int)(id_buffer[idx + 1] * 255.0f);
@@ -81,23 +81,23 @@ void Scene::render_widgets(const Scene_Object& obj) {
 	framebuffer.clear_d();
 
 	mesh_shader.bind();
-	if(select_type == Select_Type::move) {
+	if(state.action == Gui::Action::move) {
 		
 		// TODO(max): this only scales correctly given a constant object position...
 		float scl = (camera.pos() - obj.pose.pos).norm() / 5.0f;
 		Vec3 scale = Vec3(scl, scl, scl);
 
-		x_trans.pose.scl = scale;
-		x_trans.pose.pos = obj.pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
-		x_trans.render(view, mesh_shader, true);
+		state.x_trans.pose.scl = scale;
+		state.x_trans.pose.pos = obj.pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
+		state.x_trans.render(view, mesh_shader, true);
 
-		y_trans.pose.scl = scale;
-		y_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
-		y_trans.render(view, mesh_shader, true);
+		state.y_trans.pose.scl = scale;
+		state.y_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
+		state.y_trans.render(view, mesh_shader, true);
 
-		z_trans.pose.scl = scale;
-		z_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
-		z_trans.render(view, mesh_shader, true);
+		state.z_trans.pose.scl = scale;
+		state.z_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
+		state.z_trans.render(view, mesh_shader, true);
 	}
 }
 
@@ -124,7 +124,7 @@ void Scene::render() {
 		baseplane.render();
 	}
 
-	auto selected = objs.find(selected_id);
+	auto selected = objs.find(state.id);
 	if(selected != objs.end()) {
 		render_widgets(selected->second);
 	}
@@ -132,16 +132,63 @@ void Scene::render() {
 	framebuffer.blit_to(1, id_resolve, false);
 	id_resolve.read(0, id_buffer);
 
-	framebuffer.blit_to_screen(0, window_dim);
+	framebuffer.blit_to_screen(0, state.window_dim);
 }
 
-void Scene::select(Vec2 mouse) {
+void Scene::mouse_pos(Vec2 dmouse) {
+
+	
+}
+
+bool Scene::select(Vec2 mouse) {
 	
 	Scene_Object::ID clicked = read_id(mouse);
+	state.selecting = true;
 
-	if(clicked == 0 || clicked >= (Scene_Object::ID)Base_Objs::count) {
-		selected_id = clicked;
+	switch(clicked) {
+	case (Scene_Object::ID)Gui::Basic::x_trans: {
+		state.action = Gui::Action::move;
+		state.axis = Gui::Axis::X;
+	} break;
+	case (Scene_Object::ID)Gui::Basic::y_trans: {
+		state.action = Gui::Action::move;
+		state.axis = Gui::Axis::Y;
+	} break;
+	case (Scene_Object::ID)Gui::Basic::z_trans: {
+		state.action = Gui::Action::move;
+		state.axis = Gui::Axis::Z;
+	} break;
+	case (Scene_Object::ID)Gui::Basic::x_rot: {
+		state.action = Gui::Action::rotate;
+		state.axis = Gui::Axis::X;
+	} break;
+	case (Scene_Object::ID)Gui::Basic::y_rot: {
+		state.action = Gui::Action::rotate;
+		state.axis = Gui::Axis::Y;
+	} break;
+	case (Scene_Object::ID)Gui::Basic::z_rot: {
+		state.action = Gui::Action::rotate;
+		state.axis = Gui::Axis::Z;
+	} break;
+	case (Scene_Object::ID)Gui::Basic::x_scale: {
+		state.action = Gui::Action::scale;
+		state.axis = Gui::Axis::X;
+	} break;
+	case (Scene_Object::ID)Gui::Basic::y_scale: {
+		state.action = Gui::Action::scale;
+		state.axis = Gui::Axis::Y;
+	} break;
+	case (Scene_Object::ID)Gui::Basic::z_scale: {
+		state.action = Gui::Action::scale;
+		state.axis = Gui::Axis::Z;
+	} break;
+	default: {
+		state.selecting = false;
+		state.id = clicked; 
+	} break;
 	}
+
+	return state.selecting;
 }
 
 void Scene::add_object(Scene_Object&& obj) {
@@ -162,15 +209,15 @@ void Scene::camera_radius(float dmouse) {
 
 void Scene::apply_window_dim(Vec2 new_dim) {
 
-	window_dim = new_dim;
+	state.window_dim = new_dim;
 
 	delete[] id_buffer;
-	id_buffer = new float[(int)window_dim.x * (int)window_dim.y * 3];
+	id_buffer = new float[(int)state.window_dim.x * (int)state.window_dim.y * 3];
 
-	camera.set_ar(window_dim);
-	framebuffer.resize(window_dim, samples);
-	id_resolve.resize(window_dim);
-	GL::viewport(window_dim);
+	camera.set_ar(state.window_dim);
+	framebuffer.resize(state.window_dim, samples);
+	id_resolve.resize(state.window_dim);
+	GL::viewport(state.window_dim);
 }
 
 void Scene::gui() {
@@ -178,7 +225,7 @@ void Scene::gui() {
 	const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
 
 	ImGui::SetNextWindowPos({0.0, 18.0});
-	ImGui::SetNextWindowSize({window_dim.x / 5.0f, window_dim.y});
+	ImGui::SetNextWindowSize({state.window_dim.x / 5.0f, state.window_dim.y});
 
 	ImGui::Begin("Objects", nullptr, flags);
 
@@ -230,11 +277,11 @@ void Scene::gui() {
 		std::string& name = obj.opt.name;
 		ImGui::InputText("##name", name.data(), name.capacity());
 		
-		bool selected = entry.first == selected_id;
+		bool selected = entry.first == state.id;
 		ImGui::SameLine();
 		if(ImGui::Checkbox("##selected", &selected)) {
-			if(selected) selected_id = entry.first;
-			else selected_id = 0;
+			if(selected) state.id = entry.first;
+			else state.id = 0;
 		}
 
 		ImGui::Checkbox("Wireframe", &obj.opt.wireframe);
@@ -253,15 +300,15 @@ void Scene::gui() {
 
 	ImGui::End();
 
-	if(settings_open) {
-		ImGui::Begin("Display Settings", &settings_open);
+	if(state.settings_open) {
+		ImGui::Begin("Display Settings", &state.settings_open);
 		
 		ImGui::InputInt("Multisampling", &samples);
 		if(samples < 1) samples = 1;
 		if(samples > 16) samples = 16;
 
 		if(ImGui::Button("Apply")) {
-			framebuffer.resize(window_dim, samples);
+			framebuffer.resize(state.window_dim, samples);
 		}
 		ImGui::End();
 	}

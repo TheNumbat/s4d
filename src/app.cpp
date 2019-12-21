@@ -32,7 +32,9 @@ void App::event(SDL_Event e) {
 		float dx = (e.motion.x - state.mouse.x);
 		float dy = (e.motion.y - state.mouse.y);
 		
-		if(state.cam_mode == Camera_Control::orbit) {
+		if(state.scene_captured) {
+			scene.mouse_pos(Vec2(e.motion.x, e.motion.y));
+		} else if(state.cam_mode == Camera_Control::orbit) {
 			scene.camera_orbit(Vec2(dx, dy));
 		} else if(state.cam_mode == Camera_Control::move) {
 			scene.camera_move(Vec2(dx, dy));
@@ -45,11 +47,11 @@ void App::event(SDL_Event e) {
 	case SDL_MOUSEBUTTONDOWN: {
 
 		if(e.button.button == SDL_BUTTON_LEFT) {
-			if(!IO.WantCaptureMouse) scene.select(Vec2(e.button.x, e.button.y));
-			break;
-		}
-
-		if(state.cam_mode == Camera_Control::none) {
+			if(!IO.WantCaptureMouse && scene.select(Vec2(e.button.x, e.button.y))) {
+				state.cam_mode = Camera_Control::none;
+				state.scene_captured = true;
+			}
+		} else if(state.cam_mode == Camera_Control::none) {
 			if(e.button.button == SDL_BUTTON_RIGHT) {
 				state.cam_mode = Camera_Control::orbit;
 			} else if(e.button.button == SDL_BUTTON_MIDDLE) {
@@ -57,11 +59,20 @@ void App::event(SDL_Event e) {
 			}
 			plt.capture_mouse();
 		}
+
 		state.last_mouse.x = (float)e.button.x;
 		state.last_mouse.y = (float)e.button.y;
+
 	} break;
 
 	case SDL_MOUSEBUTTONUP: {
+
+		if(e.button.button == SDL_BUTTON_LEFT) {
+			if(!IO.WantCaptureMouse && state.scene_captured) {
+				state.scene_captured = false;
+			}
+			break;
+		}
 
 		if((e.button.button == SDL_BUTTON_RIGHT && state.cam_mode == Camera_Control::orbit) ||
 		   (e.button.button == SDL_BUTTON_MIDDLE && state.cam_mode == Camera_Control::move)) {
@@ -152,7 +163,7 @@ void App::render_gui() {
 	if(state.error_shown) {
 		ImGui::SetNextWindowPosCenter();
 		ImGui::Begin("Error", &state.error_shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize);
-		ImGui::Text(state.error_msg.c_str());
+		ImGui::Text("%s", state.error_msg.c_str());
 		if(ImGui::Button("Close")) {
 			state.error_shown = false;
 		}

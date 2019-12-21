@@ -4,11 +4,10 @@ Scotty4D
     // BASE
 
     widgets
-        selecting/holding arrows
         drag -> change value
-        move
-        rotate
-        scale
+        rotate widgets
+        scale widgets
+        swap between move/rotate/scale
         fix widget scaling
 
     undo/redo

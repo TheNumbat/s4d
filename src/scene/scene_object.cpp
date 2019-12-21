@@ -36,10 +36,10 @@ Scene_Object::Scene_Object(Scene_Object&& src) :
 }
 
 Scene_Object::Scene_Object(ID id, Pose p, GL::Mesh&& m, Vec3 c) :
-	_id(id),
 	pose(p),
-	mesh(std::move(m)),
-	color(c) {
+	color(c),
+	_id(id),
+	mesh(std::move(m)) {
 	
 	opt.name.reserve(max_name_len);
 	snprintf(opt.name.data(), opt.name.capacity(), "Object %d", id);

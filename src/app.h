@@ -41,6 +41,7 @@ private:
 		bool error_shown = false;
 		std::string error_msg;
 		
+		bool scene_captured = false;
 		Camera_Control cam_mode = Camera_Control::none;
 		Vec2 mouse, last_mouse;
 	};

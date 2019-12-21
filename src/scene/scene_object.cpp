@@ -66,23 +66,18 @@ void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid, bool 
 	shader.uniform("id", _id);
 	shader.uniform("modelview", modelview);
 	shader.uniform("normal", normal);
+	shader.uniform("solid", solid);
 	
 	if(depth_only) GL::color_mask(false);
 
 	if(opt.wireframe) {
-		shader.uniform("scale", 0.0f);
-		shader.uniform("solid", solid);
-		shader.uniform("write_id", false);
 		shader.uniform("color", Vec3());
 		GL::begin_wireframe();
 		mesh.render();
 		GL::end_wireframe();
 	}
 
-	shader.uniform("scale", 0.0f);
-	shader.uniform("solid", solid);
 	shader.uniform("color", color);
-	shader.uniform("write_id", true);
 	mesh.render();
 
 	if(depth_only) GL::color_mask(true);

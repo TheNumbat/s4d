@@ -4,9 +4,9 @@ Scotty4D
     // BASE
 
     widgets
-        drag -> change value
         rotate widgets
         scale widgets
+        translate on plane widgets
         swap between move/rotate/scale
         fix widget scaling
 

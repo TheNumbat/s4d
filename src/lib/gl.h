@@ -69,7 +69,7 @@ public:
 	void render();
 	void add(Vec3 start, Vec3 end, Vec3 color);
 
-private:
+// private:
 	void create();
 	void destroy();
 	void update();
@@ -140,7 +140,7 @@ public:
 
 	GLuint get_output(int buf) const; 
 	GLuint get_depth() const; 
-	void read(int buf, float* data) const;
+	void read(int buf, unsigned char* data) const;
 	
 	void blit_to_screen(int buf, Vec2 dim) const;
 	void blit_to(int buf, const Framebuffer& fb, bool avg = true) const;

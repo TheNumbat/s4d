@@ -16,7 +16,7 @@ Scene::Scene(Vec2 window_dim, App& app) :
 	baseplane(1.0f) {
 
 	state.window_dim = window_dim;
-	id_buffer = new float[(int)state.window_dim.x * (int)state.window_dim.y * 3];
+	id_buffer = new unsigned char[(int)state.window_dim.x * (int)state.window_dim.y * 3];
 	GL::global_params();
 	create_baseplane();
 
@@ -58,9 +58,9 @@ Scene_Object::ID Scene::read_id(Vec2 pos) {
 	int y = (int)(state.window_dim.y - pos.y - 1);
 	int idx = y * (int)state.window_dim.x * 3 + x * 3;
 	
-	int a = (int)(id_buffer[idx] * 255.0f);
-	int b = (int)(id_buffer[idx + 1] * 255.0f);
-	int c = (int)(id_buffer[idx + 2] * 255.0f);
+	int a = id_buffer[idx];
+	int b = id_buffer[idx + 1];
+	int c = id_buffer[idx + 2];
 
 	return a | b << 8 | c << 16;
 }
@@ -105,6 +105,7 @@ void Scene::render() {
 
 	proj = camera.proj(), view = camera.view();
 	viewproj = proj * view;
+	iviewproj = Mat4::inverse(viewproj);
 
 	framebuffer.clear(0, {0.4f, 0.4f, 0.4f, 1.0f});
 	framebuffer.clear(1, {0.0f, 0.0f, 0.0f, 1.0f});
@@ -135,15 +136,35 @@ void Scene::render() {
 	framebuffer.blit_to_screen(0, state.window_dim);
 }
 
-void Scene::mouse_pos(Vec2 dmouse) {
+Vec3 Scene::screen_to_world(Vec2 mouse) {
 
-	
+	Vec2 t(2.0f * mouse.x / state.window_dim.x - 1.0f, 
+		   1.0f - 2.0f * mouse.y / state.window_dim.y);
+	return (iviewproj * Vec3(t.x, t.y, 0.1f));
+}
+
+Vec3 Scene::screen_to_axis(Scene_Object& obj, Vec2 mouse) {
+	Vec3 axis; axis[(int)state.axis] = 1.0f;
+	Vec3 dir = (screen_to_world(mouse) - camera.pos()).unit();
+	Line select(camera.pos(), dir);
+	Line target(obj.pose.pos, axis);
+	return target.closest(select);
+}
+
+void Scene::mouse_pos(Vec2 mouse) {
+
+	if(state.dragging) {	
+		if(state.action == Gui::Action::move) {
+			Scene_Object& obj = objs[state.id];
+			obj.pose.pos = screen_to_axis(obj, mouse) - state.offset;
+		}
+	}
 }
 
 bool Scene::select(Vec2 mouse) {
 	
 	Scene_Object::ID clicked = read_id(mouse);
-	state.selecting = true;
+	state.dragging = true;
 
 	switch(clicked) {
 	case (Scene_Object::ID)Gui::Basic::x_trans: {
@@ -183,12 +204,16 @@ bool Scene::select(Vec2 mouse) {
 		state.axis = Gui::Axis::Z;
 	} break;
 	default: {
-		state.selecting = false;
+		state.dragging = false;
 		state.id = clicked; 
 	} break;
 	}
 
-	return state.selecting;
+	if(state.dragging) {
+		Scene_Object& obj = objs[state.id];
+		state.offset = screen_to_axis(obj, mouse) - obj.pose.pos;
+	}
+	return state.dragging;
 }
 
 void Scene::add_object(Scene_Object&& obj) {
@@ -212,7 +237,7 @@ void Scene::apply_window_dim(Vec2 new_dim) {
 	state.window_dim = new_dim;
 
 	delete[] id_buffer;
-	id_buffer = new float[(int)state.window_dim.x * (int)state.window_dim.y * 3];
+	id_buffer = new unsigned char[(int)state.window_dim.x * (int)state.window_dim.y * 3];
 
 	camera.set_ar(state.window_dim);
 	framebuffer.resize(state.window_dim, samples);
@@ -285,9 +310,16 @@ void Scene::gui() {
 		}
 
 		ImGui::Checkbox("Wireframe", &obj.opt.wireframe);
-		ImGui::DragFloat3("Position", obj.pose.pos.data, 0.1f);
-		ImGui::DragFloat3("Rotation", obj.pose.euler.data);
-		ImGui::DragFloat3("Scale", obj.pose.scl.data, 0.01f);
+		
+		if(ImGui::DragFloat3("Position", obj.pose.pos.data, 0.1f) && state.id == entry.first)
+			state.action = Gui::Action::move;
+		
+		if(ImGui::DragFloat3("Rotation", obj.pose.euler.data) && state.id == entry.first)
+			state.action = Gui::Action::rotate;
+
+		if(ImGui::DragFloat3("Scale", obj.pose.scl.data, 0.01f) && state.id == entry.first)
+			state.action = Gui::Action::scale;
+		
 		if(ImGui::SmallButton("Delete")) {
 			to_delete = entry.first;
 		}

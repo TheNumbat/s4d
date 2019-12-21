@@ -35,7 +35,7 @@ private:
 
 	// Camera 
 	Camera camera;
-	Mat4 view, proj, viewproj;
+	Mat4 view, proj, viewproj, iviewproj;
 	
 	// GL data
 	static const int default_samples = 4;
@@ -49,7 +49,7 @@ private:
 	
 	// Picking
 	Scene_Object::ID read_id(Vec2 pos);
-	float* id_buffer = nullptr;
+	unsigned char* id_buffer = nullptr;
 
 	// GUI
 	struct Gui {
@@ -69,15 +69,18 @@ private:
 		Vec2 window_dim;
 		bool settings_open = false;
 		
-		bool selecting = false;
+		bool dragging = false;
 		Action action = Action::move;
 		Axis axis = Axis::X;
+		Vec3 offset;
 		Scene_Object::ID id = (Scene_Object::ID)Basic::none;
 
 		Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot, x_scale, z_scale, y_scale;
 	};
 	Gui state;
 	void render_widgets(const Scene_Object& obj);
+	Vec3 screen_to_world(Vec2 mouse);
+	Vec3 screen_to_axis(Scene_Object& obj, Vec2 mouse);
 
 	// User Objects
 	std::map<Scene_Object::ID, Scene_Object> objs;

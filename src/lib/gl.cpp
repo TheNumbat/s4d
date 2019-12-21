@@ -472,11 +472,11 @@ GLuint Framebuffer::get_depth() const {
 	return depth_tex;
 }
 
-void Framebuffer::read(int buf, float* data) const {
+void Framebuffer::read(int buf, unsigned char* data) const {
 	assert(s == 1);
 	assert(buf >= 0 && buf < (int)output_textures.size());
 	glBindTexture(GL_TEXTURE_2D, output_textures[buf]);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, data);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 }
 
 void Framebuffer::blit_to(int buf, const Framebuffer& fb, bool avg) const {

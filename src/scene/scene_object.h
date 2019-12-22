@@ -41,8 +41,6 @@ public:
 	Options opt;
 	Pose pose;
 
-	static inline const Vec3 outline_color = Vec3(242.0f / 255.0f, 153.0f / 255.0f, 41.0f / 255.0f);
-
 private:
 	static const int max_name_len = 256;
 

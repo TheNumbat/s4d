@@ -13,12 +13,16 @@ namespace Util {
 		return GL::Mesh(Detail::cone_verts(bradius, tradius, height));
 	}
 
-	GL::Mesh arrow() {
+	GL::Mesh arrow_mesh() {
 		auto base = Detail::cone_verts(0.03f, 0.03f, 0.5f);
 		auto tip = Detail::cone_verts(0.075f, 0.005f, 0.2f);
 		for(auto& v : tip) v.pos.y += 0.5f;
 		base.insert(base.end(), tip.begin(), tip.end());
 		return GL::Mesh(base);
+	}
+	
+	GL::Mesh torus_mesh(float iradius, float oradius) {
+		return GL::Mesh(Detail::torus_verts(iradius, oradius));
 	}
 
 	std::string obj_mesh(std::string obj_file, GL::Mesh& mesh) {
@@ -121,8 +125,7 @@ namespace Util {
 		// https://wiki.unity3d.com/index.php/ProceduralPrimitives
 		std::vector<GL::Mesh::Vert> cone_verts(float bradius, float tradius, float height) {
 
-			const int n_sides = 18;
-			const int n_cap = n_sides + 1;
+			const int n_sides = 18, n_cap = n_sides + 1;
 			const float _2pi = PI * 2.0f;
 
 			std::vector<Vec3> vertices(n_cap + n_cap + n_sides * 2 + 2);
@@ -216,6 +219,73 @@ namespace Util {
 				triangles[i + 2] = tri + 0;
 				tri++;
 				i += 3;
+			}
+
+			std::vector<GL::Mesh::Vert> verts;
+			for(int i : triangles) {
+				verts.push_back({vertices[i], normals[i]});
+			}
+			return verts;
+		}
+
+		std::vector<GL::Mesh::Vert> torus_verts(float iradius, float oradius) {
+
+			const int n_rad_sides = 48, n_sides = 24;
+			const float _2pi = PI * 2.0f;
+			iradius = oradius - iradius;
+			
+			std::vector<Vec3> vertices((n_rad_sides+1) * (n_sides+1));
+			for(int seg = 0; seg <= n_rad_sides; seg++) {
+				
+				int cur_seg = seg  == n_rad_sides ? 0 : seg;
+			
+				float t1 = (float)cur_seg / n_rad_sides * _2pi;
+				Vec3 r1(std::cos(t1) * oradius, 0.0f, std::sin(t1) * oradius);
+			
+				for(int side = 0; side <= n_sides; side++) {
+			
+					int cur_side = side == n_sides ? 0 : side;
+					Vec3 normale = cross(r1, {0.0f, 1.0f, 0.0f});
+					float t2 = (float)cur_side / n_sides * _2pi;
+					Vec3 r2 = Mat4::rotate(Degrees(-t1), {0.0f, 1.0f, 0.0f}) * Vec3(std::sin(t2) * iradius, std::cos(t2) * iradius, 0.0f);
+			
+					vertices[side + seg * (n_sides+1)] = r1 + r2;
+				}
+			}
+
+			std::vector<Vec3> normals(vertices.size());
+			for(int seg = 0; seg <= n_rad_sides; seg++) {
+			
+				int cur_seg = seg  == n_rad_sides ? 0 : seg;
+				float t1 = (float)cur_seg / n_rad_sides * _2pi;
+				Vec3 r1(std::cos(t1) * oradius, 0.0f, std::sin(t1) * oradius);
+			
+				for(int side = 0; side <= n_sides; side++) {
+					normals[side + seg * (n_sides+1)] = (vertices[side + seg * (n_sides+1)] - r1).unit();
+				}
+			}
+
+			int n_faces = vertices.size();
+			int n_tris = n_faces * 2;
+			int n_idx = n_tris * 3;
+			std::vector<int> triangles(n_idx);
+			
+			int i = 0;
+			for(int seg = 0; seg <= n_rad_sides; seg++) {
+				for(int side = 0; side <= n_sides - 1; side++) {
+
+					int current = side + seg * (n_sides+1);
+					int next = side + (seg < (n_rad_sides) ?(seg+1) * (n_sides+1) : 0);
+			
+					if(i < triangles.size() - 6) {
+						triangles[i++] = current;
+						triangles[i++] = next;
+						triangles[i++] = next+1;
+						triangles[i++] = current;
+						triangles[i++] = next+1;
+						triangles[i++] = current+1;
+					}
+				}
 			}
 
 			std::vector<GL::Mesh::Vert> verts;

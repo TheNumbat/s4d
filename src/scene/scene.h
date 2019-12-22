@@ -76,6 +76,14 @@ private:
 		Scene_Object::ID id = (Scene_Object::ID)Basic::none;
 
 		Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot, x_scale, z_scale, y_scale;
+
+		// NOTE(max): copied from blender
+		static inline const Vec3 outline = Vec3(242.0f / 255.0f, 153.0f / 255.0f, 41.0f / 255.0f);
+		static inline const Vec3 baseplane = Vec3(71.0f / 255.0f);
+		static inline const Vec3 background = Vec3(58.0f / 255.0f);
+		static inline const Vec3 red = Vec3(163.0f / 255.0f, 66.0f / 255.0f, 81.0f / 255.0f);
+		static inline const Vec3 green = Vec3(124.0f / 255.0f, 172.0f / 255.0f, 40.0f / 255.0f);
+		static inline const Vec3 blue = Vec3(64.0f / 255.0f, 127.0f / 255.0f, 193.0f / 255.0f);
 	};
 	Gui state;
 	void render_widgets(const Scene_Object& obj);

@@ -13,16 +13,20 @@ Scene::Scene(Vec2 window_dim, App& app) :
 	line_shader("line.vert", "line.frag"),
 	framebuffer(2, window_dim, default_samples),
 	id_resolve(1, window_dim, 1, false),
-	baseplane(1.0f) {
+	baseplane(2.0f) {
 
 	state.window_dim = window_dim;
 	id_buffer = new unsigned char[(int)state.window_dim.x * (int)state.window_dim.y * 3];
 	GL::global_params();
 	create_baseplane();
 
-	state.x_trans = Scene_Object((Scene_Object::ID)Gui::Basic::x_trans, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::arrow(), {0.6f, 0.1f, 0.1f});
-	state.y_trans = Scene_Object((Scene_Object::ID)Gui::Basic::y_trans, {}, Util::arrow(), {0.1f, 0.6f, 0.1f});
-	state.z_trans = Scene_Object((Scene_Object::ID)Gui::Basic::z_trans, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::arrow(), {0.1f, 0.1f, 0.6f});
+	state.x_trans = Scene_Object((Scene_Object::ID)Gui::Basic::x_trans, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::arrow_mesh(), Gui::red);
+	state.y_trans = Scene_Object((Scene_Object::ID)Gui::Basic::y_trans, {}, Util::arrow_mesh(), Gui::green);
+	state.z_trans = Scene_Object((Scene_Object::ID)Gui::Basic::z_trans, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::arrow_mesh(), Gui::blue);
+
+	state.x_rot = Scene_Object((Scene_Object::ID)Gui::Basic::x_rot, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::torus_mesh(0.975f, 1.0f), Gui::red);
+	state.y_rot = Scene_Object((Scene_Object::ID)Gui::Basic::y_rot, {}, Util::torus_mesh(0.975f, 1.0f), Gui::green);
+	state.z_rot = Scene_Object((Scene_Object::ID)Gui::Basic::z_rot, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::torus_mesh(0.975f, 1.0f), Gui::blue);
 }
 
 Scene::~Scene() {
@@ -34,12 +38,12 @@ void Scene::create_baseplane() {
 	const int R = 25;
 	for(int i = -R; i <= R; i++) {
 		if(i == 0) {
-			baseplane.add({-R, 0, i}, {R, 0, i}, {0.6f, 0.1f, 0.1f});
-			baseplane.add({i, 0, -R}, {i, 0, R}, {0.1f, 0.1f, 0.6f});
+			baseplane.add({-R, 0, i}, {R, 0, i}, Gui::red);
+			baseplane.add({i, 0, -R}, {i, 0, R}, Gui::blue);
 			continue;
 		}
-		baseplane.add({i, 0, -R}, {i, 0, R}, {0.5f, 0.5f, 0.5f});
-		baseplane.add({-R, 0, i}, {R, 0, i}, {0.5f, 0.5f, 0.5f});
+		baseplane.add({i, 0, -R}, {i, 0, R}, Gui::baseplane);
+		baseplane.add({-R, 0, i}, {R, 0, i}, Gui::baseplane);
 	}
 }
 
@@ -76,16 +80,16 @@ void Scene::render_widgets(const Scene_Object& obj) {
 	Vec2 min, max;
 	obj.bbox().project(mvp, min, max);
 
-	GL::Effects::outline(framebuffer, framebuffer, Scene_Object::outline_color, min, max);
+	GL::Effects::outline(framebuffer, framebuffer, Gui::outline, min, max);
 
 	framebuffer.clear_d();
 
+	// TODO(max): this only scales correctly given a constant object position...
+	float scl = (camera.pos() - obj.pose.pos).norm() / 5.0f;
+	Vec3 scale = Vec3(scl, scl, scl);
+
 	mesh_shader.bind();
 	if(state.action == Gui::Action::move) {
-		
-		// TODO(max): this only scales correctly given a constant object position...
-		float scl = (camera.pos() - obj.pose.pos).norm() / 5.0f;
-		Vec3 scale = Vec3(scl, scl, scl);
 
 		state.x_trans.pose.scl = scale;
 		state.x_trans.pose.pos = obj.pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
@@ -98,6 +102,20 @@ void Scene::render_widgets(const Scene_Object& obj) {
 		state.z_trans.pose.scl = scale;
 		state.z_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
 		state.z_trans.render(view, mesh_shader, true);
+	
+	} else if(state.action == Gui::Action::rotate) {
+
+		state.x_rot.pose.scl = scale;
+		state.x_rot.pose.pos = obj.pose.pos;
+		state.x_rot.render(view, mesh_shader, true);
+
+		state.y_rot.pose.scl = scale;
+		state.y_rot.pose.pos = obj.pose.pos;
+		state.y_rot.render(view, mesh_shader, true);
+
+		state.z_rot.pose.scl = scale;
+		state.z_rot.pose.pos = obj.pose.pos;
+		state.z_rot.render(view, mesh_shader, true);
 	}
 }
 
@@ -107,7 +125,7 @@ void Scene::render() {
 	viewproj = proj * view;
 	iviewproj = Mat4::inverse(viewproj);
 
-	framebuffer.clear(0, {0.4f, 0.4f, 0.4f, 1.0f});
+	framebuffer.clear(0, Vec4(Gui::background, 1.0f));
 	framebuffer.clear(1, {0.0f, 0.0f, 0.0f, 1.0f});
 	framebuffer.clear_d();
 	framebuffer.bind();
@@ -280,6 +298,11 @@ void Scene::gui() {
 			ImGui::CloseCurrentPopup();
 		}
 
+		if(ImGui::Button("Torus")) {
+			add_object(Scene_Object(next_id++, {}, Util::torus_mesh(0.8f, 1.0f)));
+			ImGui::CloseCurrentPopup();
+		}
+
 		ImGui::EndPopup();
 	}
 
@@ -320,8 +343,6 @@ void Scene::gui() {
 			else state.id = 0;
 		}
 
-		ImGui::Checkbox("Wireframe", &obj.opt.wireframe);
-		
 		if(ImGui::DragFloat3("Position", obj.pose.pos.data, 0.1f) && state.id == entry.first)
 			state.action = Gui::Action::move;
 		
@@ -330,10 +351,20 @@ void Scene::gui() {
 
 		if(ImGui::DragFloat3("Scale", obj.pose.scl.data, 0.01f) && state.id == entry.first)
 			state.action = Gui::Action::scale;
-		
-		if(ImGui::SmallButton("Delete")) {
-			to_delete = entry.first;
+
+		if(selected) {
+			if(ImGui::SmallButton("Move"))
+				state.action = Gui::Action::move;
+			ImGui::SameLine();
+			if(ImGui::SmallButton("Rotate"))
+				state.action = Gui::Action::rotate;
+			if(ImGui::SmallButton("Scale"))
+				state.action = Gui::Action::scale;
+			ImGui::SameLine();
+			if(ImGui::SmallButton("Delete"))
+				to_delete = entry.first;
 		}
+
 		if(i++ != objs.size() - 1) ImGui::Separator();
 
 		ImGui::PopID();

@@ -19,6 +19,9 @@ public:
 	void capture_mouse();
 	void release_mouse();
 	void set_mouse(Vec2 pos);
+	Vec2 get_mouse();
+	void grab_mouse();
+	void ungrab_mouse();
 
 private:
 	void platform_init();

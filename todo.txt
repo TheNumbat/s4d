@@ -7,7 +7,6 @@ Scotty4D
         rotate widgets
         scale widgets
         translate on plane widgets
-        swap between move/rotate/scale
         fix widget scaling
 
     undo/redo

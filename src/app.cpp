@@ -50,6 +50,7 @@ void App::event(SDL_Event e) {
 			if(!IO.WantCaptureMouse && scene.select(Vec2(e.button.x, e.button.y))) {
 				state.cam_mode = Camera_Control::none;
 				state.scene_captured = true;
+				plt.grab_mouse();
 			}
 		} else if(state.cam_mode == Camera_Control::none) {
 			if(e.button.button == SDL_BUTTON_RIGHT) {
@@ -70,6 +71,7 @@ void App::event(SDL_Event e) {
 		if(e.button.button == SDL_BUTTON_LEFT) {
 			if(!IO.WantCaptureMouse && state.scene_captured) {
 				state.scene_captured = false;
+				plt.ungrab_mouse();
 			}
 			break;
 		}

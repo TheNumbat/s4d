@@ -172,8 +172,8 @@ bool Scene::screen_to_axis(Scene_Object& obj, Vec2 mouse, Vec3& hit) {
 
 	bool ret = plane.hit(select, hit);
 	hit = target.closest(hit);
-	return ret;
-}
+	return ret && hit.valid();
+ }
 
 void Scene::mouse_pos(Vec2 mouse) {
 

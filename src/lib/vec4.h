@@ -157,6 +157,10 @@ struct Vec4 {
 	Vec4 operator-() const {
 		return Vec4(-x, -y, -z, -w);
 	}
+	bool valid() const {
+		return !(std::isinf(x) || std::isinf(y) || std::isinf(z) || std::isinf(w) ||
+				 std::isnan(x) || std::isnan(y) || std::isnan(z) || std::isnan(w));
+	}
 
 	/// Modify vec to have unit length
 	Vec4 normalize() {

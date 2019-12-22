@@ -124,6 +124,10 @@ struct Vec2 {
 	Vec2 operator-() const {
 		return Vec2(-x, -y);
 	}
+	bool valid() const {
+		return !(std::isinf(x) || std::isinf(y) || 
+				 std::isnan(x) || std::isnan(y));
+	}
 
 	/// Modify vec to have unit length
 	Vec2 normalize() {

@@ -123,6 +123,20 @@ Vec2 Platform::window_dim() {
 	return Vec2((float)w, (float)h);
 }
 
+void Platform::grab_mouse() {
+	SDL_SetWindowGrab(window, SDL_TRUE);
+}
+
+void Platform::ungrab_mouse() {
+	SDL_SetWindowGrab(window, SDL_FALSE);
+}
+
+Vec2 Platform::get_mouse() {
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+	return Vec2(x, y);
+}
+
 void Platform::capture_mouse() {
 	SDL_CaptureMouse(SDL_TRUE);
 	SDL_SetRelativeMouseMode(SDL_TRUE);

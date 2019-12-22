@@ -137,6 +137,10 @@ struct Vec3 {
 	Vec3 operator-() const {
 		return Vec3(-x, -y, -z);
 	}
+	bool valid() const {
+		return !(std::isinf(x) || std::isinf(y) || std::isinf(z) ||
+				 std::isnan(x) || std::isnan(y) || std::isnan(z));
+	}
 
 	/// Modify vec to have unit length
 	Vec3 normalize() {

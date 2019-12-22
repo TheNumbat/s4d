@@ -80,7 +80,7 @@ private:
 	Gui state;
 	void render_widgets(const Scene_Object& obj);
 	Vec3 screen_to_world(Vec2 mouse);
-	Vec3 screen_to_axis(Scene_Object& obj, Vec2 mouse);
+	bool screen_to_axis(Scene_Object& obj, Vec2 mouse, Vec3& hit);
 
 	// User Objects
 	std::map<Scene_Object::ID, Scene_Object> objs;

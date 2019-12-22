@@ -25,13 +25,26 @@ struct Line {
 		return *this;
 	}
 
-    Vec3 closest(Line other) const {
+	Vec3 at(float t) const {
+		return point + t * dir;
+	}
+	
+	Vec3 closest(Vec3 pt) const {
+		Vec3 p = pt - point;
+		float t = dot(p, dir);
+		return at(t);
+	}
+
+    bool closest(Line other, Vec3& pt) const {
         Vec3 p0 = point - other.point;
         float a = dot(dir, other.dir);
         float b = dot(dir, p0);
         float c = dot(other.dir, p0);
-        float t = (a*c - b) / (1.0f - a*a);
-        return point + t * dir;
+        float t0 = (a*c - b) / (1.0f - a*a);
+		float t1 = (c - a*b) / (1.0f - a*a);
+		pt = at(t0);
+		return t1 >= 0.0f;
+        
     }
 
     Vec3 point, dir;

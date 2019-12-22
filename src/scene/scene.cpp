@@ -143,20 +143,29 @@ Vec3 Scene::screen_to_world(Vec2 mouse) {
 	return (iviewproj * Vec3(t.x, t.y, 0.1f));
 }
 
-Vec3 Scene::screen_to_axis(Scene_Object& obj, Vec2 mouse) {
+bool Scene::screen_to_axis(Scene_Object& obj, Vec2 mouse, Vec3& hit) {
+	
 	Vec3 axis; axis[(int)state.axis] = 1.0f;
 	Vec3 dir = (screen_to_world(mouse) - camera.pos()).unit();
+	
 	Line select(camera.pos(), dir);
 	Line target(obj.pose.pos, axis);
-	return target.closest(select);
+	Plane plane(obj.pose.pos, -camera.front().unit());
+
+	bool ret = plane.hit(select, hit);
+	hit = target.closest(hit);
+	return ret;
 }
 
 void Scene::mouse_pos(Vec2 mouse) {
 
 	if(state.dragging) {	
+		Scene_Object& obj = objs[state.id];
+
 		if(state.action == Gui::Action::move) {
-			Scene_Object& obj = objs[state.id];
-			obj.pose.pos = screen_to_axis(obj, mouse) - state.offset;
+			Vec3 hit;
+			if(screen_to_axis(obj, mouse, hit))
+				obj.pose.pos = hit - state.offset;
 		}
 	}
 }
@@ -211,7 +220,9 @@ bool Scene::select(Vec2 mouse) {
 
 	if(state.dragging) {
 		Scene_Object& obj = objs[state.id];
-		state.offset = screen_to_axis(obj, mouse) - obj.pose.pos;
+		Vec3 hit;
+		if(screen_to_axis(obj, mouse, hit))
+			state.offset = hit - obj.pose.pos;
 	}
 	return state.dragging;
 }

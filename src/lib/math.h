@@ -10,6 +10,7 @@
 #include "mat4.h"
 #include "bbox.h"
 #include "line.h"
+#include "plane.h"
 
 #define PI 3.14159265358979323846264338327950288f
 #define Radians(v) (v * (PI / 180.0f)) 

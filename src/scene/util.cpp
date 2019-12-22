@@ -9,20 +9,32 @@ namespace Util {
 		return cone_mesh(radius, radius, height);
 	}
 
-	GL::Mesh cone_mesh(float bradius, float tradius, float height) {
-		return GL::Mesh(Detail::cone_verts(bradius, tradius, height));
+	GL::Mesh arrow_mesh() {
+		auto base = Detail::cone_verts(0.03f, 0.03f, 0.7f);
+		auto tip = Detail::cone_verts(0.075f, 0.005f, 0.2f);
+		for(auto& v : tip) v.pos.y += 0.7f;
+		base.insert(base.end(), tip.begin(), tip.end());
+		return GL::Mesh(base);
 	}
 
-	GL::Mesh arrow_mesh() {
-		auto base = Detail::cone_verts(0.03f, 0.03f, 0.5f);
-		auto tip = Detail::cone_verts(0.075f, 0.005f, 0.2f);
-		for(auto& v : tip) v.pos.y += 0.5f;
+	GL::Mesh scale_mesh() {
+		auto base = Detail::cone_verts(0.03f, 0.03f, 0.7f);
+		auto tip = Detail::cube_verts(0.1f);
+		for(auto& v : tip) v.pos.y += 0.7f;
 		base.insert(base.end(), tip.begin(), tip.end());
 		return GL::Mesh(base);
 	}
 	
+	GL::Mesh cone_mesh(float bradius, float tradius, float height) {
+		return GL::Mesh(Detail::cone_verts(bradius, tradius, height));
+	}
+
 	GL::Mesh torus_mesh(float iradius, float oradius) {
 		return GL::Mesh(Detail::torus_verts(iradius, oradius));
+	}
+
+	GL::Mesh cube_mesh(float r) {
+		return GL::Mesh(Detail::cube_verts(r));
 	}
 
 	std::string obj_mesh(std::string obj_file, GL::Mesh& mesh) {
@@ -76,51 +88,48 @@ namespace Util {
 		return {};
 	}
 
-	GL::Mesh cube_mesh(float r) {
-
-		static const std::vector<GL::Mesh::Vert> verts = {
-			{{-r,-r,-r},{-1.0f,0.0f,0.0f}},
-			{{-r,-r,r},{-1.0f,0.0f,0.0f}},
-			{{-r,r,r},{-1.0f,0.0f,0.0f}}, // Left Side
-			{{-r,-r,-r},{-1.0f,0.0f,0.0f}},
-			{{-r,r,r},{-1.0f,0.0f,0.0f}},
-			{{-r,r,-r},{-1.0f,0.0f,0.0f}}, // Left Side
-			{{r,r,-r},{0.0f,0.0f,-1.0f}},
-			{{-r,-r,-r},{0.0f,0.0f,-1.0f}},
-			{{-r,r,-r},{0.0f,0.0f,-1.0f}}, // Back Side
-			{{r,-r,r},{0.0f,-1.0f,0.0f}},
-			{{-r,-r,-r},{0.0f,-1.0f,0.0f}},
-			{{r,-r,-r},{0.0f,-1.0f,0.0f}}, // Bottom Side
-			{{r,r,-r},{0.0f,0.0f,-1.0f}},
-			{{r,-r,-r},{0.0f,0.0f,-1.0f}},
-			{{-r,-r,-r},{0.0f,0.0f,-1.0f}}, // Back Side
-			{{r,-r,r},{0.0f,-1.0f,0.0f}},
-			{{-r,-r,r},{0.0f,-1.0f,0.0f}},
-			{{-r,-r,-r},{0.0f,-1.0f,0.0f}}, // Bottom Side
-			{{-r,r,r},{0.0f,0.0f,1.0f}},
-			{{-r,-r,r},{0.0f,0.0f,1.0f}},
-			{{r,-r,r},{0.0f,0.0f,1.0f}}, // Front Side
-			{{r,r,r},{1.0f,0.0f,0.0f}},
-			{{r,-r,-r},{1.0f,0.0f,0.0f}},
-			{{r,r,-r},{1.0f,0.0f,0.0f}}, // Right Side
-			{{r,-r,-r},{1.0f,0.0f,0.0f}},
-			{{r,r,r},{1.0f,0.0f,0.0f}},
-			{{r,-r,r},{1.0f,0.0f,0.0f}}, // Right Side
-			{{r,r,r},{0.0f,1.0f,0.0f}},
-			{{r,r,-r},{0.0f,1.0f,0.0f}},
-			{{-r,r,-r},{0.0f,1.0f,0.0f}}, // Top Side
-			{{r,r,r},{0.0f,1.0f,0.0f}},
-			{{-r,r,-r},{0.0f,1.0f,0.0f}},
-			{{-r,r,r},{0.0f,1.0f,0.0f}}, // Top Side
-			{{r,r,r},{0.0f,0.0f,1.0f}},
-			{{-r,r,r},{0.0f,0.0f,1.0f}},
-			{{r,-r,r},{0.0f,0.0f,1.0f}}   // Front Side
-		};
-
-		return GL::Mesh(verts);
-	}
-
 	namespace Detail {
+
+		std::vector<GL::Mesh::Vert> cube_verts(float r) {
+			return {
+				{{-r,-r,-r},{-1.0f,0.0f,0.0f}},
+				{{-r,-r,r},{-1.0f,0.0f,0.0f}},
+				{{-r,r,r},{-1.0f,0.0f,0.0f}}, // Left Side
+				{{-r,-r,-r},{-1.0f,0.0f,0.0f}},
+				{{-r,r,r},{-1.0f,0.0f,0.0f}},
+				{{-r,r,-r},{-1.0f,0.0f,0.0f}}, // Left Side
+				{{r,r,-r},{0.0f,0.0f,-1.0f}},
+				{{-r,-r,-r},{0.0f,0.0f,-1.0f}},
+				{{-r,r,-r},{0.0f,0.0f,-1.0f}}, // Back Side
+				{{r,-r,r},{0.0f,-1.0f,0.0f}},
+				{{-r,-r,-r},{0.0f,-1.0f,0.0f}},
+				{{r,-r,-r},{0.0f,-1.0f,0.0f}}, // Bottom Side
+				{{r,r,-r},{0.0f,0.0f,-1.0f}},
+				{{r,-r,-r},{0.0f,0.0f,-1.0f}},
+				{{-r,-r,-r},{0.0f,0.0f,-1.0f}}, // Back Side
+				{{r,-r,r},{0.0f,-1.0f,0.0f}},
+				{{-r,-r,r},{0.0f,-1.0f,0.0f}},
+				{{-r,-r,-r},{0.0f,-1.0f,0.0f}}, // Bottom Side
+				{{-r,r,r},{0.0f,0.0f,1.0f}},
+				{{-r,-r,r},{0.0f,0.0f,1.0f}},
+				{{r,-r,r},{0.0f,0.0f,1.0f}}, // Front Side
+				{{r,r,r},{1.0f,0.0f,0.0f}},
+				{{r,-r,-r},{1.0f,0.0f,0.0f}},
+				{{r,r,-r},{1.0f,0.0f,0.0f}}, // Right Side
+				{{r,-r,-r},{1.0f,0.0f,0.0f}},
+				{{r,r,r},{1.0f,0.0f,0.0f}},
+				{{r,-r,r},{1.0f,0.0f,0.0f}}, // Right Side
+				{{r,r,r},{0.0f,1.0f,0.0f}},
+				{{r,r,-r},{0.0f,1.0f,0.0f}},
+				{{-r,r,-r},{0.0f,1.0f,0.0f}}, // Top Side
+				{{r,r,r},{0.0f,1.0f,0.0f}},
+				{{-r,r,-r},{0.0f,1.0f,0.0f}},
+				{{-r,r,r},{0.0f,1.0f,0.0f}}, // Top Side
+				{{r,r,r},{0.0f,0.0f,1.0f}},
+				{{-r,r,r},{0.0f,0.0f,1.0f}},
+				{{r,-r,r},{0.0f,0.0f,1.0f}}   // Front Side
+			};
+		}
 
 		// https://wiki.unity3d.com/index.php/ProceduralPrimitives
 		std::vector<GL::Mesh::Vert> cone_verts(float bradius, float tradius, float height) {

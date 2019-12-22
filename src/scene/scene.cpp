@@ -27,6 +27,10 @@ Scene::Scene(Vec2 window_dim, App& app) :
 	state.x_rot = Scene_Object((Scene_Object::ID)Gui::Basic::x_rot, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::torus_mesh(0.975f, 1.0f), Gui::red);
 	state.y_rot = Scene_Object((Scene_Object::ID)Gui::Basic::y_rot, {}, Util::torus_mesh(0.975f, 1.0f), Gui::green);
 	state.z_rot = Scene_Object((Scene_Object::ID)Gui::Basic::z_rot, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::torus_mesh(0.975f, 1.0f), Gui::blue);
+
+	state.x_scale = Scene_Object((Scene_Object::ID)Gui::Basic::x_scale, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::scale_mesh(), Gui::red);
+	state.y_scale = Scene_Object((Scene_Object::ID)Gui::Basic::y_scale, {}, Util::scale_mesh(), Gui::green);
+	state.z_scale = Scene_Object((Scene_Object::ID)Gui::Basic::z_scale, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::scale_mesh(), Gui::blue);
 }
 
 Scene::~Scene() {
@@ -116,6 +120,20 @@ void Scene::render_widgets(const Scene_Object& obj) {
 		state.z_rot.pose.scl = scale;
 		state.z_rot.pose.pos = obj.pose.pos;
 		state.z_rot.render(view, mesh_shader, true);
+
+	} else if(state.action == Gui::Action::scale) {
+
+		state.x_scale.pose.scl = scale;
+		state.x_scale.pose.pos = obj.pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
+		state.x_scale.render(view, mesh_shader, true);
+
+		state.y_scale.pose.scl = scale;
+		state.y_scale.pose.pos = obj.pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
+		state.y_scale.render(view, mesh_shader, true);
+
+		state.z_scale.pose.scl = scale;
+		state.z_scale.pose.pos = obj.pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
+		state.z_scale.render(view, mesh_shader, true);
 	}
 }
 
@@ -184,6 +202,10 @@ void Scene::mouse_pos(Vec2 mouse) {
 			Vec3 hit;
 			if(screen_to_axis(obj, mouse, hit))
 				obj.pose.pos = hit - state.offset;
+		} else if(state.action == Gui::Action::rotate) {
+
+		} else if(state.action == Gui::Action::scale) {
+
 		}
 	}
 }

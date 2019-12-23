@@ -9,6 +9,15 @@ Mat4 Pose::transform() const {
 		   Mat4::scale(scale);
 }
 
+void Pose::clamp_euler() {
+	while(euler.x < 0) euler.x += 360.0f;
+	while(euler.x >= 360.0f) euler.x -= 360.0f;
+	while(euler.y < 0) euler.y += 360.0f;
+	while(euler.y >= 360.0f) euler.y -= 360.0f;
+	while(euler.z < 0) euler.z += 360.0f;
+	while(euler.z >= 360.0f) euler.z -= 360.0f;
+}
+
 Pose Pose::rotated(Vec3 angles) {
 	return {{}, angles, {1.0f, 1.0f, 1.0f}};
 }

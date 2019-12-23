@@ -388,6 +388,8 @@ void Scene::gui() {
 		
 		if(ImGui::DragFloat3("Rotation", obj.pose.euler.data) && selected)
 			state.action = Gui::Action::rotate;
+		
+		obj.pose.clamp_euler();
 
 		if(state.dragging) {
 			Vec3 fake_scale = obj.pose.scale * state.scale;

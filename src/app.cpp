@@ -33,7 +33,7 @@ void App::event(SDL_Event e) {
 		float dy = (e.motion.y - state.mouse.y);
 		
 		if(state.scene_captured) {
-			scene.mouse_pos(Vec2(e.motion.x, e.motion.y));
+			scene.drag(Vec2(e.motion.x, e.motion.y));
 		} else if(state.cam_mode == Camera_Control::orbit) {
 			scene.camera_orbit(Vec2(dx, dy));
 		} else if(state.cam_mode == Camera_Control::move) {
@@ -70,6 +70,7 @@ void App::event(SDL_Event e) {
 
 		if(e.button.button == SDL_BUTTON_LEFT) {
 			if(!IO.WantCaptureMouse && state.scene_captured) {
+				scene.end_drag(state.last_mouse);
 				state.scene_captured = false;
 				plt.ungrab_mouse();
 			}

@@ -7,13 +7,13 @@
 struct Pose {
 	Vec3 pos;
 	Vec3 euler;
-	Vec3 scl = {1.0f, 1.0f, 1.0f};
+	Vec3 scale = {1.0f, 1.0f, 1.0f};
 	
 	Mat4 transform() const;
 
-	static Pose rotate(Vec3 angles);
-	static Pose move(Vec3 t);
-	static Pose scale(Vec3 s);
+	static Pose rotated(Vec3 angles);
+	static Pose moved(Vec3 t);
+	static Pose scaled(Vec3 s);
 };
 
 class Scene_Object {

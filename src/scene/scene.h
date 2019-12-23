@@ -24,8 +24,10 @@ public:
 	void camera_orbit(Vec2 dmouse);
 	void camera_move(Vec2 dmouse);
 	void camera_radius(float dmouse);
-	void mouse_pos(Vec2 mouse);
+	
 	bool select(Vec2 mouse);
+	void drag(Vec2 mouse);
+	void end_drag(Vec2 mouse);
 
 	void reload_shaders();
 	void show_settings();
@@ -72,7 +74,7 @@ private:
 		bool dragging = false;
 		Action action = Action::move;
 		Axis axis = Axis::X;
-		Vec3 offset;
+		Vec3 offset, scale = {1.0f};
 		Scene_Object::ID id = (Scene_Object::ID)Basic::none;
 
 		Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot, x_scale, z_scale, y_scale;
@@ -86,7 +88,7 @@ private:
 		static inline const Vec3 blue = Vec3(64.0f / 255.0f, 127.0f / 255.0f, 193.0f / 255.0f);
 	};
 	Gui state;
-	void render_widgets(const Scene_Object& obj);
+	void render_selected(Scene_Object& obj);
 	Vec3 screen_to_world(Vec2 mouse);
 	bool screen_to_axis(Scene_Object& obj, Vec2 mouse, Vec3& hit);
 

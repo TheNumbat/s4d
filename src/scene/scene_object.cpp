@@ -6,18 +6,18 @@ Mat4 Pose::transform() const {
 		   Mat4::rotate(euler.y, {0.0f, 1.0f, 0.0f}) * 
 		   Mat4::rotate(euler.z, {0.0f, 0.0f, 1.0f}) * 
 		   Mat4::rotate(euler.x, {1.0f, 0.0f, 0.0f}) * 
-		   Mat4::scale(scl);
+		   Mat4::scale(scale);
 }
 
-Pose Pose::rotate(Vec3 angles) {
+Pose Pose::rotated(Vec3 angles) {
 	return {{}, angles, {1.0f, 1.0f, 1.0f}};
 }
 
-Pose Pose::move(Vec3 t) {
+Pose Pose::moved(Vec3 t) {
 	return {t, {}, {1.0f, 1.0f, 1.0f}};
 }
 
-Pose Pose::scale(Vec3 s) {
+Pose Pose::scaled(Vec3 s) {
 	return {{}, {}, s};
 }
 

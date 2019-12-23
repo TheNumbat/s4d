@@ -8,9 +8,8 @@ Scotty4D
 
     widgets
         rotate widget
-        scale widget
         translate on plane widget
-        fix widget scaling
+        fix widget constant screen sizes
 
     undo/redo
     saving & loading

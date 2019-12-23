@@ -20,17 +20,17 @@ Scene::Scene(Vec2 window_dim, App& app) :
 	GL::global_params();
 	create_baseplane();
 
-	state.x_trans = Scene_Object((Scene_Object::ID)Gui::Basic::x_trans, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::arrow_mesh(), Gui::red);
+	state.x_trans = Scene_Object((Scene_Object::ID)Gui::Basic::x_trans, Pose::rotated({0.0f, 0.0f, -90.0f}), Util::arrow_mesh(), Gui::red);
 	state.y_trans = Scene_Object((Scene_Object::ID)Gui::Basic::y_trans, {}, Util::arrow_mesh(), Gui::green);
-	state.z_trans = Scene_Object((Scene_Object::ID)Gui::Basic::z_trans, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::arrow_mesh(), Gui::blue);
+	state.z_trans = Scene_Object((Scene_Object::ID)Gui::Basic::z_trans, Pose::rotated({90.0f, 0.0f, 0.0f}), Util::arrow_mesh(), Gui::blue);
 
-	state.x_rot = Scene_Object((Scene_Object::ID)Gui::Basic::x_rot, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::torus_mesh(0.975f, 1.0f), Gui::red);
+	state.x_rot = Scene_Object((Scene_Object::ID)Gui::Basic::x_rot, Pose::rotated({0.0f, 0.0f, -90.0f}), Util::torus_mesh(0.975f, 1.0f), Gui::red);
 	state.y_rot = Scene_Object((Scene_Object::ID)Gui::Basic::y_rot, {}, Util::torus_mesh(0.975f, 1.0f), Gui::green);
-	state.z_rot = Scene_Object((Scene_Object::ID)Gui::Basic::z_rot, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::torus_mesh(0.975f, 1.0f), Gui::blue);
+	state.z_rot = Scene_Object((Scene_Object::ID)Gui::Basic::z_rot, Pose::rotated({90.0f, 0.0f, 0.0f}), Util::torus_mesh(0.975f, 1.0f), Gui::blue);
 
-	state.x_scale = Scene_Object((Scene_Object::ID)Gui::Basic::x_scale, Pose::rotate({0.0f, 0.0f, -90.0f}), Util::scale_mesh(), Gui::red);
+	state.x_scale = Scene_Object((Scene_Object::ID)Gui::Basic::x_scale, Pose::rotated({0.0f, 0.0f, -90.0f}), Util::scale_mesh(), Gui::red);
 	state.y_scale = Scene_Object((Scene_Object::ID)Gui::Basic::y_scale, {}, Util::scale_mesh(), Gui::green);
-	state.z_scale = Scene_Object((Scene_Object::ID)Gui::Basic::z_scale, Pose::rotate({90.0f, 0.0f, 0.0f}), Util::scale_mesh(), Gui::blue);
+	state.z_scale = Scene_Object((Scene_Object::ID)Gui::Basic::z_scale, Pose::rotated({90.0f, 0.0f, 0.0f}), Util::scale_mesh(), Gui::blue);
 }
 
 Scene::~Scene() {
@@ -73,11 +73,15 @@ Scene_Object::ID Scene::read_id(Vec2 pos) {
 	return a | b << 8 | c << 16;
 }
 
-void Scene::render_widgets(const Scene_Object& obj) {
+void Scene::render_selected(Scene_Object& obj) {
 
-	framebuffer.clear_d();
+	Vec3 prev_scale = obj.pose.scale;
+	obj.pose.scale *= state.scale;
 
 	mesh_shader.bind();
+	obj.render(view, mesh_shader);
+
+	framebuffer.clear_d();
 	obj.render(view, mesh_shader, false, true);
 	
 	Vec2 min, max;
@@ -94,46 +98,48 @@ void Scene::render_widgets(const Scene_Object& obj) {
 	mesh_shader.bind();
 	if(state.action == Gui::Action::move) {
 
-		state.x_trans.pose.scl = scale;
+		state.x_trans.pose.scale = scale;
 		state.x_trans.pose.pos = obj.pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
 		state.x_trans.render(view, mesh_shader, true);
 
-		state.y_trans.pose.scl = scale;
+		state.y_trans.pose.scale = scale;
 		state.y_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
 		state.y_trans.render(view, mesh_shader, true);
 
-		state.z_trans.pose.scl = scale;
+		state.z_trans.pose.scale = scale;
 		state.z_trans.pose.pos = obj.pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
 		state.z_trans.render(view, mesh_shader, true);
 	
 	} else if(state.action == Gui::Action::rotate) {
 
-		state.x_rot.pose.scl = scale;
+		state.x_rot.pose.scale = scale;
 		state.x_rot.pose.pos = obj.pose.pos;
 		state.x_rot.render(view, mesh_shader, true);
 
-		state.y_rot.pose.scl = scale;
+		state.y_rot.pose.scale = scale;
 		state.y_rot.pose.pos = obj.pose.pos;
 		state.y_rot.render(view, mesh_shader, true);
 
-		state.z_rot.pose.scl = scale;
+		state.z_rot.pose.scale = scale;
 		state.z_rot.pose.pos = obj.pose.pos;
 		state.z_rot.render(view, mesh_shader, true);
 
 	} else if(state.action == Gui::Action::scale) {
 
-		state.x_scale.pose.scl = scale;
+		state.x_scale.pose.scale = scale;
 		state.x_scale.pose.pos = obj.pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
 		state.x_scale.render(view, mesh_shader, true);
 
-		state.y_scale.pose.scl = scale;
+		state.y_scale.pose.scale = scale;
 		state.y_scale.pose.pos = obj.pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
 		state.y_scale.render(view, mesh_shader, true);
 
-		state.z_scale.pose.scl = scale;
+		state.z_scale.pose.scale = scale;
 		state.z_scale.pose.pos = obj.pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
 		state.z_scale.render(view, mesh_shader, true);
 	}
+
+	obj.pose.scale = prev_scale;
 }
 
 void Scene::render() {
@@ -151,7 +157,8 @@ void Scene::render() {
 		mesh_shader.uniform("proj", proj);
 
 		for(auto& obj : objs) {
-			obj.second.render(view, mesh_shader);
+			if(obj.first != state.id) 
+				obj.second.render(view, mesh_shader);
 		}
 	}
 	{
@@ -162,7 +169,7 @@ void Scene::render() {
 
 	auto selected = objs.find(state.id);
 	if(selected != objs.end()) {
-		render_widgets(selected->second);
+		render_selected(selected->second);
 	}
 
 	framebuffer.blit_to(1, id_resolve, false);
@@ -192,22 +199,32 @@ bool Scene::screen_to_axis(Scene_Object& obj, Vec2 mouse, Vec3& hit) {
 	return ret && hit.valid();
  }
 
-void Scene::mouse_pos(Vec2 mouse) {
+void Scene::end_drag(Vec2 mouse) {
 
-	if(state.dragging) {	
-		Scene_Object& obj = objs[state.id];
+	if(!state.dragging) return;
 
-		if(state.action == Gui::Action::move) {
-			Vec3 hit;
-			if(screen_to_axis(obj, mouse, hit))
-				obj.pose.pos = hit - state.offset;
-		} else if(state.action == Gui::Action::rotate) {
+	Scene_Object& obj = objs[state.id];
 
-		} else if(state.action == Gui::Action::scale) {
-			Vec3 hit;
-			if(screen_to_axis(obj, mouse, hit))
-				obj.pose.scl[(int)state.axis] = hit.norm() / state.offset.norm();
-		}
+	if(state.action == Gui::Action::scale) {
+		obj.pose.scale *= state.scale; 
+		state.scale = {1.0f};
+	}
+}
+
+void Scene::drag(Vec2 mouse) {
+
+	if(!state.dragging) return;
+	
+	Scene_Object& obj = objs[state.id];
+	Vec3 pos = obj.pose.pos, hit;
+	if(!screen_to_axis(obj, mouse, hit)) return;
+
+	if(state.action == Gui::Action::move) {
+		obj.pose.pos = hit - state.offset;
+	} else if(state.action == Gui::Action::rotate) {
+
+	} else if(state.action == Gui::Action::scale) {
+		state.scale[(int)state.axis] = (hit - pos).norm() / state.offset.norm();
 	}
 }
 
@@ -366,14 +383,19 @@ void Scene::gui() {
 			else state.id = 0;
 		}
 
-		if(ImGui::DragFloat3("Position", obj.pose.pos.data, 0.1f) && state.id == entry.first)
+		if(ImGui::DragFloat3("Position", obj.pose.pos.data, 0.1f) && selected)
 			state.action = Gui::Action::move;
 		
-		if(ImGui::DragFloat3("Rotation", obj.pose.euler.data) && state.id == entry.first)
+		if(ImGui::DragFloat3("Rotation", obj.pose.euler.data) && selected)
 			state.action = Gui::Action::rotate;
 
-		if(ImGui::DragFloat3("Scale", obj.pose.scl.data, 0.01f) && state.id == entry.first)
-			state.action = Gui::Action::scale;
+		if(state.dragging) {
+			Vec3 fake_scale = obj.pose.scale * state.scale;
+			ImGui::DragFloat3("Scale", fake_scale.data, 0.01f);
+		} else {
+			if(ImGui::DragFloat3("Scale", obj.pose.scale.data, 0.01f) && selected)
+				state.action = Gui::Action::scale;
+		}
 
 		if(selected) {
 			if(ImGui::SmallButton("Move"))

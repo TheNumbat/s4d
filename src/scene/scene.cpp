@@ -80,9 +80,8 @@ void Scene::render_widgets(const Scene_Object& obj) {
 	mesh_shader.bind();
 	obj.render(view, mesh_shader, false, true);
 	
-	Mat4 mvp = viewproj * obj.pose.transform();
 	Vec2 min, max;
-	obj.bbox().project(mvp, min, max);
+	obj.bbox().screen_rect(viewproj, min, max);
 
 	GL::Effects::outline(framebuffer, framebuffer, Gui::outline, min, max);
 
@@ -205,7 +204,9 @@ void Scene::mouse_pos(Vec2 mouse) {
 		} else if(state.action == Gui::Action::rotate) {
 
 		} else if(state.action == Gui::Action::scale) {
-
+			Vec3 hit;
+			if(screen_to_axis(obj, mouse, hit))
+				obj.pose.scl[(int)state.axis] = hit.norm() / state.offset.norm();
 		}
 	}
 }

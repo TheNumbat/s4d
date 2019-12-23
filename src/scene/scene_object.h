@@ -32,7 +32,7 @@ public:
 	void render(Mat4 view, const GL::Shader& shader, bool solid = false, bool depth_only = false) const;
 
 	ID id() const {return _id;}
-	BBox bbox() const {return mesh.bbox();}
+	BBox bbox() const;
 	
 	struct Options {
 		std::string name;

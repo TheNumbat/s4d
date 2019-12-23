@@ -54,14 +54,29 @@ struct BBox {
         return ret;
     }
 
-    void project(Mat4 mvp, Vec2& min_out, Vec2& max_out) const {
+    void screen_rect(Mat4 transform, Vec2& min_out, Vec2& max_out) const {
+
         min_out = Vec2(FLT_MAX);
         max_out = Vec2(-FLT_MAX);
         auto c = corners();
+        bool partially_behind = false, all_behind = true;
         for(auto& v : c) {
-            Vec3 p = mvp * v;
+            Vec3 p = transform * v;
+            if(p.z < 0) {
+                partially_behind = true;
+            } else {
+                all_behind = false;
+            }
             min_out = hmin(min_out, Vec2(p.x, p.y));
             max_out = hmax(max_out, Vec2(p.x, p.y));
+        }
+
+        if(partially_behind && !all_behind) {
+            min_out = Vec2(-1.0f, -1.0f);
+            max_out = Vec2(1.0f, 1.0f);
+        } else if(all_behind) {
+            min_out = Vec2(0.0f, 0.0f);
+            max_out = Vec2(0.0f, 0.0f);
         }
     }
 

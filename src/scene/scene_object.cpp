@@ -58,6 +58,15 @@ void Scene_Object::operator=(Scene_Object&& src) {
 	pose = src.pose; src.pose = {};
 }
 
+BBox Scene_Object::bbox() const {
+
+	Mat4 t = pose.transform();
+	BBox ret;
+	std::vector<Vec3> c = mesh.bbox().corners();
+	for(auto& v : c) ret.enclose(t * v);
+	return ret;
+}
+
 void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid, bool depth_only) const {
 
 	Mat4 modelview = view * pose.transform();

@@ -69,7 +69,7 @@ public:
 	void render();
 	void add(Vec3 start, Vec3 end, Vec3 color);
 
-// private:
+private:
 	void create();
 	void destroy();
 	void update();

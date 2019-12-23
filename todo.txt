@@ -1,12 +1,15 @@
 
 Scotty4D
 
+    hacks:
+        for outlining, ignore the screen space bounding box for objects intersecting the near plane
+
     // BASE
 
     widgets
-        rotate widgets
-        scale widgets
-        translate on plane widgets
+        rotate widget
+        scale widget
+        translate on plane widget
         fix widget scaling
 
     undo/redo

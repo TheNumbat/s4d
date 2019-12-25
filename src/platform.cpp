@@ -32,10 +32,10 @@ void Platform::platform_init() {
 	}
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 	gl_context = SDL_GL_CreateContext(window);
 	if(!gl_context) {
-		die("Failed to create OpenGL 4.3 context: %s", SDL_GetError());
+		die("Failed to create OpenGL 4.5 context: %s", SDL_GetError());
 	}
 
 	SDL_GL_MakeCurrent(window, gl_context);

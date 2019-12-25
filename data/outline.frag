@@ -9,21 +9,18 @@ uniform vec2 i_screen_size;
 
 void main() {
 
-	ivec2 coord = ivec2(gl_FragCoord.xy);
+    ivec2 coord = ivec2(gl_FragCoord.xy);
+	float o = texelFetch(depth, coord, gl_SampleID).r;
 
-    float gx = 0.0f, gy = 0.0f;
+	float diff = 0.0f;
     for (int i = -1; i <= 1; i++) {
         for (int j = -1; j <= 1; j++) {
-			float dp = texture(depth, (coord + vec2(i,j)) * i_screen_size).r;
-			int ds = i*i + j*j;
-			gx += (i / ds) * dp;
-			gy += (j / ds) * dp;
+			float d = texture(depth, (coord + ivec2(i,j)) * i_screen_size).r;
+			diff = max(diff, abs(o - d));
     	}
 	}
 
-	float g = sqrt(gx * gx + gy * gy);
-	float a = g > 0.5f ? 1.0f : 0.0f;
-
+	float a = diff > 0.1f ? 1.0f : 0.0f;
 	out_color = vec4(color * a, a);
 }
 

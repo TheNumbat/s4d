@@ -1,6 +1,8 @@
 
 Scotty4D
 
+    bugs:
+        laptop dgpu does outlining wrong???
     hacks:
         for outlining, ignore the screen space bounding box for objects intersecting the near plane
 

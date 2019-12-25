@@ -87,7 +87,9 @@ void Scene::render_selected(Scene_Object& obj) {
 	Vec2 min, max;
 	obj.bbox().screen_rect(viewproj, min, max);
 
-	GL::Effects::outline(framebuffer, framebuffer, Gui::outline, min - Vec2(3.0f), max + Vec2(3.0f));
+	GL::Effects::outline(framebuffer, framebuffer, Gui::outline, 
+						 min - Vec2(3.0f / state.window_dim.x), 
+						 max + Vec2(3.0f / state.window_dim.y));
 
 	framebuffer.clear_d();
 
@@ -429,7 +431,8 @@ void Scene::gui() {
 	ImGui::End();
 
 	if(state.settings_open) {
-		ImGui::Begin("Display Settings", &state.settings_open);
+		ImGui::Begin("Display Settings", &state.settings_open, 
+			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
 		
 		ImGui::InputInt("Multisampling", &samples);
 		if(samples < 1) samples = 1;
@@ -438,6 +441,12 @@ void Scene::gui() {
 		if(ImGui::Button("Apply")) {
 			framebuffer.resize(state.window_dim, samples);
 		}
+
+		ImGui::Separator();
+		ImGui::Text("%s", glGetString(GL_VERSION));
+		ImGui::Text("%s", glGetString(GL_RENDERER));
+		ImGui::Text("%s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+
 		ImGui::End();
 	}
 }

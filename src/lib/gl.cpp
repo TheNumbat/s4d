@@ -19,7 +19,6 @@ static void check_leaked_handles();
 void setup() {
 	setup_debug_proc();
 	Effects::init();
-	info("%s", glGetString(GL_RENDERER));
 }
 
 void shutdown() {
@@ -564,7 +563,6 @@ void Effects::outline(const Framebuffer& from, const Framebuffer& to, Vec3 color
 		outline_shader_ms.bind();
 		outline_shader_ms.uniform("depth", 0);
 		outline_shader_ms.uniform("color", color);
-		outline_shader_ms.uniform("samples", from.s);
 		outline_shader_ms.uniform("bounds", 4, quad);
 	} else {
 		glBindTexture(GL_TEXTURE_2D, from.get_depth());

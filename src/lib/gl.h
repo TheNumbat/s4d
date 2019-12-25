@@ -68,6 +68,7 @@ public:
 	/// Assumes proper shader is already bound
 	void render();
 	void add(Vec3 start, Vec3 end, Vec3 color);
+	void pop();
 
 private:
 	void create();

@@ -13,10 +13,10 @@ Scene::Scene(Vec2 window_dim, App& app) :
 	line_shader("line.vert", "line.frag"),
 	framebuffer(2, window_dim, default_samples),
 	id_resolve(1, window_dim, 1, false),
-	baseplane(2.0f) {
+	baseplane(1.0f) {
 
 	state.window_dim = window_dim;
-	id_buffer = new unsigned char[(int)state.window_dim.x * (int)state.window_dim.y * 3];
+	id_buffer = new unsigned char[(int)state.window_dim.x * (int)state.window_dim.y * 4];
 	GL::global_params();
 	create_baseplane();
 
@@ -64,7 +64,7 @@ Scene_Object::ID Scene::read_id(Vec2 pos) {
 	
 	int x = (int)pos.x;
 	int y = (int)(state.window_dim.y - pos.y - 1);
-	int idx = y * (int)state.window_dim.x * 3 + x * 3;
+	int idx = y * (int)state.window_dim.x * 4 + x * 4;
 	
 	int a = id_buffer[idx];
 	int b = id_buffer[idx + 1];
@@ -87,7 +87,7 @@ void Scene::render_selected(Scene_Object& obj) {
 	Vec2 min, max;
 	obj.bbox().screen_rect(viewproj, min, max);
 
-	GL::Effects::outline(framebuffer, framebuffer, Gui::outline, min, max);
+	GL::Effects::outline(framebuffer, framebuffer, Gui::outline, min - Vec2(3.0f), max + Vec2(3.0f));
 
 	framebuffer.clear_d();
 
@@ -216,13 +216,20 @@ void Scene::drag(Vec2 mouse) {
 	if(!state.dragging) return;
 	
 	Scene_Object& obj = objs[state.id];
-	Vec3 pos = obj.pose.pos, hit;
+	Vec3 pos = obj.pose.pos;
+	
+	if(state.action == Gui::Action::rotate) {
+		Vec3 world = screen_to_world(mouse);
+		Vec3 cam = camera.pos();
+		Line look(cam, (world - cam).unit());
+		return;
+	}
+
+	Vec3 hit;
 	if(!screen_to_axis(obj, mouse, hit)) return;
 
 	if(state.action == Gui::Action::move) {
 		obj.pose.pos = hit - state.offset;
-	} else if(state.action == Gui::Action::rotate) {
-
 	} else if(state.action == Gui::Action::scale) {
 		state.scale[(int)state.axis] = (hit - pos).norm() / state.offset.norm();
 	}
@@ -306,7 +313,7 @@ void Scene::apply_window_dim(Vec2 new_dim) {
 	state.window_dim = new_dim;
 
 	delete[] id_buffer;
-	id_buffer = new unsigned char[(int)state.window_dim.x * (int)state.window_dim.y * 3];
+	id_buffer = new unsigned char[(int)state.window_dim.x * (int)state.window_dim.y * 4]();
 
 	camera.set_ar(state.window_dim);
 	framebuffer.resize(state.window_dim, samples);

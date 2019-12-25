@@ -5,7 +5,6 @@ Scotty4D
         for outlining, ignore the screen space bounding box for objects intersecting the near plane
 
     // BASE
-
     widgets
         rotate widget
         translate on plane widget

@@ -4,6 +4,13 @@
 
 #include <fstream>
 
+#ifdef _WIN32
+extern "C" {
+	__declspec(dllexport) bool NvOptimusEnablement = true;
+	__declspec(dllexport) bool AmdPowerXpressRequestHighPerformance = true;
+}
+#endif
+
 namespace GL {
 
 static void setup_debug_proc();
@@ -12,6 +19,7 @@ static void check_leaked_handles();
 void setup() {
 	setup_debug_proc();
 	Effects::init();
+	info("%s", glGetString(GL_RENDERER));
 }
 
 void shutdown() {
@@ -184,6 +192,12 @@ void Lines::render() {
 	glBindVertexArray(vao);
 	glDrawArrays(GL_LINES, 0, vertices.size());
 	glBindVertexArray(0);
+}
+
+void Lines::pop() {
+	vertices.pop_back();
+	vertices.pop_back();
+	dirty = true;
 }
 
 void Lines::add(Vec3 start, Vec3 end, Vec3 color) {
@@ -476,7 +490,7 @@ void Framebuffer::read(int buf, unsigned char* data) const {
 	assert(s == 1);
 	assert(buf >= 0 && buf < (int)output_textures.size());
 	glBindTexture(GL_TEXTURE_2D, output_textures[buf]);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
 void Framebuffer::blit_to(int buf, const Framebuffer& fb, bool avg) const {

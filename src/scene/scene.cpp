@@ -78,8 +78,8 @@ void Scene::render_selected(Scene_Object& obj) {
 	Vec3 prev_scale = obj.pose.scale;
 	Vec3 prev_rot = obj.pose.euler;
 	if(state.dragging) {
-		if(state.action == Gui::Action::scale) obj.pose.scale *= state.end;
-		if(state.action == Gui::Action::rotate) obj.pose.euler += state.end;
+		if(state.action == Gui::Action::scale) obj.pose.scale *= model_end(obj);
+		if(state.action == Gui::Action::rotate) obj.pose.euler += model_end(obj);
 	}
 
 	mesh_shader.bind();
@@ -188,6 +188,13 @@ void Scene::render() {
 	framebuffer.blit_to_screen(0, state.window_dim);
 }
 
+Vec3 Scene::model_end(Scene_Object& obj) {
+	Vec3 axis = state.action == Gui::Action::rotate ? Vec3(0.0f) : Vec3(1.0f);
+	axis[(int)state.axis] = state.end;
+	// TODO(max): this
+	return axis;
+}
+
 Vec3 Scene::screen_to_world(Vec2 mouse) {
 
 	Vec2 t(2.0f * mouse.x / state.window_dim.x - 1.0f, 
@@ -225,9 +232,9 @@ void Scene::end_drag(Vec2 mouse) {
 	Scene_Object& obj = objs[state.id];
 
 	if(state.action == Gui::Action::scale) {
-		obj.pose.scale *= state.end; 
+		obj.pose.scale *= model_end(obj);
 	} else if(state.action == Gui::Action::rotate) {
-		obj.pose.euler += state.end; 
+		obj.pose.euler += model_end(obj); 
 	}
 
 	state.dragging = false;
@@ -245,7 +252,7 @@ void Scene::drag(Vec2 mouse) {
 		if(!screen_to_plane(obj, mouse, hit)) return;
 		Vec3 ang = (hit - pos).unit();
 		float sgn = sign(cross(state.start, ang)[(int)state.axis]);
-		state.end[(int)state.axis] = sgn * Degrees(std::acos(dot(state.start, ang)));
+		state.end = sgn * Degrees(std::acos(dot(state.start, ang)));
 		return;
 	}
 
@@ -255,7 +262,7 @@ void Scene::drag(Vec2 mouse) {
 	if(state.action == Gui::Action::move) {
 		obj.pose.pos = hit - state.start;
 	} else if(state.action == Gui::Action::scale) {
-		state.end[(int)state.axis] = (hit - pos).norm() / state.start.norm();
+		state.end = (hit - pos).norm() / state.start.norm();
 	}
 }
 
@@ -312,10 +319,10 @@ bool Scene::select(Vec2 mouse) {
 		Vec3 hit;
 		if(state.action == Gui::Action::rotate && screen_to_plane(obj, mouse, hit)) {
 			state.start = (hit - obj.pose.pos).unit();
-			state.end = {0.0f};
+			state.end = 0.0f;
 		} else if(screen_to_axis(obj, mouse, hit)) {
 			state.start = hit - obj.pose.pos;
-			state.end = {1.0f};
+			state.end = 1.0f;
 		}
 	}
 	return state.dragging;

@@ -164,6 +164,7 @@ struct Vec3 {
 	}
 
 	Vec3 range(float min, float max) const {
+		if(!valid()) return {};
 		Vec3 r = *this;
 		float range = max - min;
 		while(r.x < min) r.x += range;

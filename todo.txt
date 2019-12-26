@@ -7,8 +7,8 @@ Scotty4D
     // BASE
     widgets
         fix widget reprojection into model space for intuitive scale/rotate
-        translate on plane widget
         fix widget constant screen sizes
+        translate on plane widget
 
     undo/redo
     saving & loading

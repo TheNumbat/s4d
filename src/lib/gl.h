@@ -12,6 +12,7 @@ namespace GL {
 
 void setup();
 void shutdown();
+void flush();
 
 void global_params();
 void clear_screen(Vec4 col);

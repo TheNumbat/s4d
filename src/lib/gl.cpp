@@ -6,7 +6,7 @@
 
 #ifdef _WIN32
 extern "C" {
-	// __declspec(dllexport) bool NvOptimusEnablement = true;
+	__declspec(dllexport) bool NvOptimusEnablement = true;
 	__declspec(dllexport) bool AmdPowerXpressRequestHighPerformance = true;
 }
 #endif
@@ -26,6 +26,10 @@ void shutdown() {
 	check_leaked_handles();
 }
 
+void flush() {
+	glFlush();
+}
+
 void color_mask(bool enable) {
 	glColorMask(enable, enable, enable, enable);
 }
@@ -36,7 +40,7 @@ void global_params() {
 	glPolygonOffset(1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_GREATER);
-	glClearDepth(0.0);
+	glClearDepthf(0.0f);
 	glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);

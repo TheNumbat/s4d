@@ -6,7 +6,6 @@ out vec4 out_color;
 uniform sampler2D depth;
 uniform vec3 color;
 uniform vec2 i_screen_size;
-uniform float n;
 
 void main() {
 

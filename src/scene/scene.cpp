@@ -84,13 +84,16 @@ void Scene::render_selected(Scene_Object& obj) {
 	framebuffer.clear_d();
 	obj.render(view, mesh_shader, false, true);
 	
+	// NOTE(max): NVIDIA driver synchronization bug
+	GL::flush();
+
 	Vec2 min, max;
 	obj.bbox().screen_rect(viewproj, min, max);
 
 	GL::Effects::outline(framebuffer, framebuffer, Gui::outline, 
 						 min - Vec2(3.0f / state.window_dim.x), 
 						 max + Vec2(3.0f / state.window_dim.y));
-
+	
 	framebuffer.clear_d();
 
 	// TODO(max): this only scales correctly given a constant object position...

@@ -173,5 +173,3 @@ void App::render_gui() {
 		ImGui::End();
 	}
 }
-
-

@@ -13,7 +13,20 @@ Mat4 Pose::transform_rotate() const {
 		   Mat4::rotate(euler.x, {1.0f, 0.0f, 0.0f});
 }
 
+Vec3 Pose::internal_axis(Vec3 axis) const {
+	return Mat4::transpose(transform_rotate()).rotate(axis).unit();
+}
+
+Vec3 Pose::external_axis(Vec3 axis) const {
+	return transform_rotate().rotate(axis).unit();
+}
+
+bool Pose::valid() const {
+	return pos.valid() && euler.valid() && scale.valid();
+}
+
 void Pose::clamp_euler() {
+	if(!valid()) return;
 	while(euler.x < 0) euler.x += 360.0f;
 	while(euler.x >= 360.0f) euler.x -= 360.0f;
 	while(euler.y < 0) euler.y += 360.0f;

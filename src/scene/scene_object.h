@@ -12,6 +12,9 @@ struct Pose {
 	Mat4 transform() const;
 	Mat4 transform_rotate() const;
 	void clamp_euler();
+	Vec3 internal_axis(Vec3 axis) const;
+	Vec3 external_axis(Vec3 axis) const;
+	bool valid() const;
 
 	static Pose rotated(Vec3 angles);
 	static Pose moved(Vec3 t);

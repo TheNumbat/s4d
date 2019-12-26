@@ -34,6 +34,9 @@ T lerp(T start, T end, T t) {
 	return start + (end - start) * t;
 }
 
+inline float sign(float x) {
+	return x > 0.0f ? 1.0f : x < 0.0f ? -1.0f : 0.0f;
+}
 inline float frac(float x) {
 	return x - (long long)x;
 }

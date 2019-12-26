@@ -76,7 +76,11 @@ Scene_Object::ID Scene::read_id(Vec2 pos) {
 void Scene::render_selected(Scene_Object& obj) {
 
 	Vec3 prev_scale = obj.pose.scale;
-	obj.pose.scale *= state.scale;
+	Vec3 prev_rot = obj.pose.euler;
+	if(state.dragging) {
+		if(state.action == Gui::Action::scale) obj.pose.scale *= state.end;
+		if(state.action == Gui::Action::rotate) obj.pose.euler += state.end;
+	}
 
 	mesh_shader.bind();
 	obj.render(view, mesh_shader);
@@ -145,6 +149,7 @@ void Scene::render_selected(Scene_Object& obj) {
 	}
 
 	obj.pose.scale = prev_scale;
+	obj.pose.euler = prev_rot;
 }
 
 void Scene::render() {
@@ -204,6 +209,15 @@ bool Scene::screen_to_axis(Scene_Object& obj, Vec2 mouse, Vec3& hit) {
 	return ret && hit.valid();
  }
 
+bool Scene::screen_to_plane(Scene_Object& obj, Vec2 mouse, Vec3& hit) {
+	Vec3 world = screen_to_world(mouse);
+	Vec3 cam = camera.pos();
+	Line look(cam, (world - cam).unit());
+	Vec3 axis; axis[(int)state.axis] = 1.0f;
+	Plane p(obj.pose.pos, axis);
+	return p.hit(look, hit);
+}
+
 void Scene::end_drag(Vec2 mouse) {
 
 	if(!state.dragging) return;
@@ -211,9 +225,12 @@ void Scene::end_drag(Vec2 mouse) {
 	Scene_Object& obj = objs[state.id];
 
 	if(state.action == Gui::Action::scale) {
-		obj.pose.scale *= state.scale; 
-		state.scale = {1.0f};
+		obj.pose.scale *= state.end; 
+	} else if(state.action == Gui::Action::rotate) {
+		obj.pose.euler += state.end; 
 	}
+
+	state.dragging = false;
 }
 
 void Scene::drag(Vec2 mouse) {
@@ -224,9 +241,11 @@ void Scene::drag(Vec2 mouse) {
 	Vec3 pos = obj.pose.pos;
 	
 	if(state.action == Gui::Action::rotate) {
-		Vec3 world = screen_to_world(mouse);
-		Vec3 cam = camera.pos();
-		Line look(cam, (world - cam).unit());
+		Vec3 hit;
+		if(!screen_to_plane(obj, mouse, hit)) return;
+		Vec3 ang = (hit - pos).unit();
+		float sgn = sign(cross(state.start, ang)[(int)state.axis]);
+		state.end[(int)state.axis] = sgn * Degrees(std::acos(dot(state.start, ang)));
 		return;
 	}
 
@@ -234,9 +253,9 @@ void Scene::drag(Vec2 mouse) {
 	if(!screen_to_axis(obj, mouse, hit)) return;
 
 	if(state.action == Gui::Action::move) {
-		obj.pose.pos = hit - state.offset;
+		obj.pose.pos = hit - state.start;
 	} else if(state.action == Gui::Action::scale) {
-		state.scale[(int)state.axis] = (hit - pos).norm() / state.offset.norm();
+		state.end[(int)state.axis] = (hit - pos).norm() / state.start.norm();
 	}
 }
 
@@ -291,8 +310,13 @@ bool Scene::select(Vec2 mouse) {
 	if(state.dragging) {
 		Scene_Object& obj = objs[state.id];
 		Vec3 hit;
-		if(screen_to_axis(obj, mouse, hit))
-			state.offset = hit - obj.pose.pos;
+		if(state.action == Gui::Action::rotate && screen_to_plane(obj, mouse, hit)) {
+			state.start = (hit - obj.pose.pos).unit();
+			state.end = {0.0f};
+		} else if(screen_to_axis(obj, mouse, hit)) {
+			state.start = hit - obj.pose.pos;
+			state.end = {1.0f};
+		}
 	}
 	return state.dragging;
 }
@@ -398,13 +422,18 @@ void Scene::gui() {
 		if(ImGui::DragFloat3("Position", obj.pose.pos.data, 0.1f) && selected)
 			state.action = Gui::Action::move;
 		
-		if(ImGui::DragFloat3("Rotation", obj.pose.euler.data) && selected)
-			state.action = Gui::Action::rotate;
+		if(state.dragging && state.action == Gui::Action::rotate) {
+			Vec3 fake_rot = obj.pose.euler + state.end;
+			ImGui::DragFloat3("Rotation", fake_rot.range(0.0f, 360.0f).data);
+		} else {
+			if(ImGui::DragFloat3("Rotation", obj.pose.euler.data) && selected)
+				state.action = Gui::Action::rotate;
+		}
 		
 		obj.pose.clamp_euler();
 
-		if(state.dragging) {
-			Vec3 fake_scale = obj.pose.scale * state.scale;
+		if(state.dragging && state.action == Gui::Action::scale) {
+			Vec3 fake_scale = obj.pose.scale * state.end;
 			ImGui::DragFloat3("Scale", fake_scale.data, 0.01f);
 		} else {
 			if(ImGui::DragFloat3("Scale", obj.pose.scale.data, 0.01f) && selected)

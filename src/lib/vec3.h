@@ -163,6 +163,18 @@ struct Vec3 {
 		return std::sqrt(norm_squared());
 	}
 
+	Vec3 range(float min, float max) const {
+		Vec3 r = *this;
+		float range = max - min;
+		while(r.x < min) r.x += range;
+		while(r.x >= max) r.x -= range;
+		while(r.y < min) r.y += range;
+		while(r.y >= max) r.y -= range;
+		while(r.z < min) r.z += range;
+		while(r.z >= max) r.z -= range;
+		return r;
+	}
+
 	union {
 		struct {
 			float x;

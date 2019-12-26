@@ -74,7 +74,7 @@ private:
 		bool dragging = false;
 		Action action = Action::move;
 		Axis axis = Axis::X;
-		Vec3 offset, scale = {1.0f};
+		Vec3 start, end;
 		Scene_Object::ID id = (Scene_Object::ID)Basic::none;
 
 		Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot, x_scale, z_scale, y_scale;
@@ -91,6 +91,7 @@ private:
 	void render_selected(Scene_Object& obj);
 	Vec3 screen_to_world(Vec2 mouse);
 	bool screen_to_axis(Scene_Object& obj, Vec2 mouse, Vec3& hit);
+	bool screen_to_plane(Scene_Object& obj, Vec2 mouse, Vec3& hit);
 
 	// User Objects
 	std::map<Scene_Object::ID, Scene_Object> objs;

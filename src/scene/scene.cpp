@@ -430,7 +430,8 @@ void Scene::gui() {
 			state.action = Gui::Action::move;
 		
 		if(state.dragging && state.action == Gui::Action::rotate) {
-			Vec3 fake_rot = obj.pose.euler + state.end;
+			Vec3 fake_rot = obj.pose.euler;
+			fake_rot[(int)state.axis] += state.end;
 			ImGui::DragFloat3("Rotation", fake_rot.range(0.0f, 360.0f).data);
 		} else {
 			if(ImGui::DragFloat3("Rotation", obj.pose.euler.data) && selected)

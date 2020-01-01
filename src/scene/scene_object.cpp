@@ -3,22 +3,14 @@
 
 Mat4 Pose::transform() const {
 	return Mat4::translate(pos) * 
-		   transform_rotate() *
+		   rotation() *
 		   Mat4::scale(scale);
 }
 
-Mat4 Pose::transform_rotate() const {
+Mat4 Pose::rotation() const {
 	return Mat4::rotate(euler.z, {0.0f, 0.0f, 1.0f}) *
 		   Mat4::rotate(euler.y, {0.0f, 1.0f, 0.0f}) *  
 		   Mat4::rotate(euler.x, {1.0f, 0.0f, 0.0f});
-}
-
-Vec3 Pose::internal_axis(Vec3 axis) const {
-	return Mat4::transpose(transform_rotate()).rotate(axis).unit();
-}
-
-Vec3 Pose::external_axis(Vec3 axis) const {
-	return transform_rotate().rotate(axis).unit();
 }
 
 bool Pose::valid() const {
@@ -107,9 +99,9 @@ void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid, bool 
 
 	if(opt.wireframe) {
 		shader.uniform("color", Vec3());
-		GL::begin_wireframe();
+		GL::enable(GL::Opt::wireframe);
 		mesh.render();
-		GL::end_wireframe();
+		GL::disable(GL::Opt::wireframe);
 	}
 
 	shader.uniform("color", color);

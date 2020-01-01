@@ -52,22 +52,34 @@ void clear_screen(Vec4 col) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void begin_wireframe() {
-	glEnable(GL_POLYGON_OFFSET_LINE);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+void enable(Opt opt) {
+	switch(opt) {
+	case Opt::wireframe: {
+		glEnable(GL_POLYGON_OFFSET_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	} break;
+	case Opt::offset: {
+		glEnable(GL_POLYGON_OFFSET_FILL);
+	} break;
+	case Opt::culling: {
+		glEnable(GL_CULL_FACE);
+	} break;
+	}
 }
 
-void end_wireframe() {
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDisable(GL_POLYGON_OFFSET_LINE);
-}
-
-void begin_offset() {
-	glEnable(GL_POLYGON_OFFSET_FILL);
-}
-
-void end_offset() {
-	glDisable(GL_POLYGON_OFFSET_FILL);
+void disable(Opt opt) {
+	switch(opt) {
+	case Opt::wireframe: {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDisable(GL_POLYGON_OFFSET_LINE);
+	} break;
+	case Opt::offset: {
+		glDisable(GL_POLYGON_OFFSET_FILL);
+	} break;
+	case Opt::culling: {
+		glDisable(GL_CULL_FACE);
+	} break;
+	}
 }
 
 void viewport(Vec2 dim) {

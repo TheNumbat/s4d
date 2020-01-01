@@ -10,10 +10,8 @@ struct Pose {
 	Vec3 scale = {1.0f, 1.0f, 1.0f};
 	
 	Mat4 transform() const;
-	Mat4 transform_rotate() const;
+	Mat4 rotation() const;
 	void clamp_euler();
-	Vec3 internal_axis(Vec3 axis) const;
-	Vec3 external_axis(Vec3 axis) const;
 	bool valid() const;
 
 	static Pose rotated(Vec3 angles);

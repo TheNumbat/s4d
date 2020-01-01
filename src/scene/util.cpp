@@ -37,6 +37,10 @@ namespace Util {
 		return GL::Mesh(Detail::cube_verts(r));
 	}
 
+	GL::Mesh square_mesh(float r) {
+		return GL::Mesh(Detail::square_verts(r));
+	}
+
 	std::string obj_mesh(std::string obj_file, GL::Mesh& mesh) {
 
 		tinyobj::attrib_t attrib;
@@ -89,6 +93,17 @@ namespace Util {
 	}
 
 	namespace Detail {
+
+		std::vector<GL::Mesh::Vert> square_verts(float r) {
+			return {
+				{{-r, 0.0f, -r}, {0.0f, 1.0f, 0.0f}},
+				{{-r, 0.0f, r}, {0.0f, 1.0f, 0.0f}},
+				{{r, 0.0f, -r}, {0.0f, 1.0f, 0.0f}},
+				{{r, 0.0f, -r}, {0.0f, 1.0f, 0.0f}},
+				{{-r, 0.0f, r}, {0.0f, 1.0f, 0.0f}},
+				{{r, 0.0f, r}, {0.0f, 1.0f, 0.0f}}
+			};
+		}
 
 		std::vector<GL::Mesh::Vert> cube_verts(float r) {
 			return {
@@ -254,7 +269,6 @@ namespace Util {
 				for(int side = 0; side <= n_sides; side++) {
 			
 					int cur_side = side == n_sides ? 0 : side;
-					Vec3 normale = cross(r1, {0.0f, 1.0f, 0.0f});
 					float t2 = (float)cur_side / n_sides * _2pi;
 					Vec3 r2 = Mat4::rotate(Degrees(-t1), {0.0f, 1.0f, 0.0f}) * Vec3(std::sin(t2) * iradius, std::cos(t2) * iradius, 0.0f);
 			

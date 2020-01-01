@@ -33,7 +33,7 @@ struct Plane {
         Vec3 n = p.xyz();
         float t = (p.w - dot(line.point, n)) / dot(line.dir, n);
         pt = line.at(t);
-        return t >= 0;
+        return t >= 0.0f;
     }
 
     Vec4 p;

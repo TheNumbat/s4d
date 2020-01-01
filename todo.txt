@@ -1,14 +1,13 @@
 
 Scotty4D
 
-    hacks:
-        for outlining, ignore the screen space bounding box for objects intersecting the near plane
+    Not sure about:
+        real screen space bounding box for objects intersecting the near plane
+        more intuitive scale/rotate axis reprojection
+        rendering widgets at constant screen sizes
+        best way to project for axis move
 
     // BASE
-    widgets
-        fix widget reprojection into model space for intuitive scale/rotate
-        fix widget constant screen sizes
-        translate on plane widget
 
     undo/redo
     saving & loading
@@ -21,7 +20,6 @@ Scotty4D
         mesh preview | render to texture at default pos and keep
         scene graph?
         changing the origin of a mesh
-        sample rate shading the depth outline is rather slow
 
     // MESHEDIT
 

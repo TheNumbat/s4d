@@ -64,6 +64,7 @@ private:
 		enum class Basic : Scene_Object::ID {
 			none,
 			x_trans, y_trans, z_trans,
+			xy_trans, yz_trans, xz_trans,
 			x_rot, y_rot, z_rot,
 			x_scale, y_scale, z_scale,
 			count
@@ -71,14 +72,14 @@ private:
 		Vec2 window_dim;
 		bool settings_open = false;
 		
-		bool dragging = false;
-		Vec3 start;
-		float end;
+		bool dragging = false, plane = false;
+		Vec3 drag_start;
+		float drag_end = 0.0f;
 		Axis axis = Axis::X;
 		Action action = Action::move;
-		Scene_Object::ID id = (Scene_Object::ID)Basic::none;
+		Scene_Object::ID drag_id = (Scene_Object::ID)Basic::none;
 
-		Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot, x_scale, z_scale, y_scale;
+		Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot, x_scale, z_scale, y_scale, xy_trans, yz_trans, xz_trans;
 
 		// NOTE(max): copied from blender
 		static inline const Vec3 outline = Vec3(242.0f / 255.0f, 153.0f / 255.0f, 41.0f / 255.0f);
@@ -90,7 +91,7 @@ private:
 		
 	};
 	Gui state;
-	Vec3 model_end(Scene_Object& obj);
+	Vec3 apply_action(Scene_Object& obj);
 	void render_selected(Scene_Object& obj);
 	Vec3 screen_to_world(Vec2 mouse);
 	bool screen_to_axis(Scene_Object& obj, Vec2 mouse, Vec3& hit);

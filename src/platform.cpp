@@ -90,7 +90,6 @@ void Platform::loop(App& app) {
 	while(running) {
 	
 		begin_frame();
-		ImGuiIO& io = ImGui::GetIO();
 
 		SDL_Event e;
 		while(SDL_PollEvent(&e)) {

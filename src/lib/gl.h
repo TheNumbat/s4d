@@ -18,10 +18,14 @@ void global_params();
 void clear_screen(Vec4 col);
 void viewport(Vec2 dim);
 
-void begin_offset();
-void end_offset();
-void begin_wireframe();
-void end_wireframe();
+enum class Opt {
+	wireframe,
+	offset,
+	culling
+};
+
+void enable(Opt opt);
+void disable(Opt opt);
 
 void color_mask(bool enable);
 

@@ -7,13 +7,6 @@
 #include "log.h"
 #include "vec4.h"
 
-#ifndef PI
-#define PI 3.14159265358979323846264338327950288f
-#endif
-#ifndef Radians
-#define Radians(v) (v * (PI / 180.0f)) 
-#endif
-
 struct Mat4 {
 
 	/// Identity matrix
@@ -282,8 +275,8 @@ inline Mat4 Mat4::translate(Vec3 t) {
 
 inline Mat4 Mat4::rotate(float t, Vec3 axis) {
 	Mat4 ret;
-	float c = cosf(Radians(t));
-	float s = sinf(Radians(t));
+	float c = std::cos(Radians(t));
+	float s = std::sin(Radians(t));
 	axis.normalize();
 	Vec3 temp = axis * (1.0f - c);
 	ret[0][0] = c + temp[0] * axis[0];

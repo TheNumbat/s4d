@@ -3,9 +3,10 @@ Scotty4D
 
     Not sure about:
         real screen space bounding box for objects intersecting the near plane
-        more intuitive scale/rotate axis reprojection
         rendering widgets at constant screen sizes
         best way to project for axis move
+        more intuitive scale/rotate axis reprojection
+            rotate idea | [euler : quat] * [delta : quat] -> back to euler
 
     // BASE
 

@@ -7,8 +7,6 @@
 #include "vec2.h"
 #include "vec3.h"
 #include "vec4.h"
-#include "mat4.h"
-#include "bbox.h"
 #include "line.h"
 #include "plane.h"
 
@@ -28,6 +26,10 @@ inline Vec3 clamp(Vec3 v, Vec3 min, Vec3 max) {
 inline Vec4 clamp(Vec4 v, Vec4 min, Vec4 max) {
 	return Vec4(clamp(v.x, min.x, max.x), clamp(v.y, min.y, max.y), clamp(v.z, min.z, max.z), clamp(v.w, min.w, max.w));
 }
+
+#include "bbox.h"
+#include "mat4.h"
+#include "quat.h"
 
 template<typename T>
 T lerp(T start, T end, T t) {

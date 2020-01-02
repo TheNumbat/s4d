@@ -83,13 +83,6 @@ struct Quat {
 		return data[idx];
 	}
 
-	Vec3 complex() const {
-		return Vec3(x,y,z);
-	}
-	float real() const {
-		return w;
-	}
-
 	Quat conjugate() const {
 		return Quat(-x, -y, -z, w);
 	}
@@ -115,27 +108,8 @@ struct Quat {
 					w*r.w - x*r.x - y*r.y - z*r.z);
 	}
 
-	Vec4 vec() const {
-		return Vec4(x,y,z,w);
-	}
-
 	Vec3 to_euler() const {
-		Vec3 euler;
-		const static float PI2 = PI * 0.5f;
-		float sqw = w*w, sqx = x*x, sqy = y*y, sqz = z*z;
-
-		euler[1] = std::asin(2.0 * (w*y - x*z));
-		if (PI2 - std::abs(euler[1]) > FLT_EPSILON) {
-			euler[2] = std::atan2(2.0 * (x*y + w*z), sqx - sqy - sqz + sqw);
-			euler[0] = std::atan2(2.0 * (w*x + y*z), sqw - sqx - sqy + sqz);
-		} else {
-			euler[2] = std::atan2(2*y*z - 2*x*w, 2*x*z + 2*y*w);
-			euler[0] = 0.0;
-			if (euler[1] < 0) {
-				euler[2] = PI - euler[2];
-			}
-		}
-		return euler;
+		return to_mat().to_euler();
 	}
 	Mat4 to_mat() const {
 		return {
@@ -147,7 +121,7 @@ struct Quat {
 	}
 
 	Vec3 rotate(Vec3 v) const {
-		return (((*this) * Quat(v, 0)) * conjugate()).complex();
+		return (((*this) * Quat(v, 0)) * conjugate()).complex;
 	}
 
 	Quat slerp(Quat q, float t) {
@@ -168,12 +142,21 @@ struct Quat {
 					w*st0 + q.w*st1);
 	}
 
+	bool valid() const {
+		return !(std::isinf(x) || std::isinf(y) || std::isinf(z) || std::isinf(w) ||
+				 std::isnan(x) || std::isnan(y) || std::isnan(z) || std::isnan(w));
+	}
+
 	union {
 		struct {
 			float x;
 			float y;
 			float z;
 			float w;
+		};
+		struct {
+			Vec3 complex;
+			float real;
 		};
 		float data[4] = {};
 	};

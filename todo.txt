@@ -1,12 +1,11 @@
 
 Scotty4D
 
-    Not sure about:
+    WIP:
+        1) best way to project for axis scale
+        2) rendering widgets at constant screen sizes
+        3) outline still has some rare precision issues
         real screen space bounding box for objects intersecting the near plane
-        rendering widgets at constant screen sizes
-        best way to project for axis move
-        more intuitive scale/rotate axis reprojection
-            rotate idea | [euler : quat] * [delta : quat] -> back to euler
 
     // BASE
 

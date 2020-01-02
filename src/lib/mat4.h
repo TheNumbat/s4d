@@ -170,6 +170,30 @@ struct Mat4 {
 		return operator*(Vec4(v, 0.0f)).xyz();
 	}
 
+	/// Converts rotation (orthonormal 3x3) matrix to equivalent Euler angles
+	Vec3 to_euler() const {
+		Vec3 eul1, eul2;
+  		float cy = std::hypotf(cols[0][0], cols[0][1]);
+		if (cy > 16.0f * FLT_EPSILON) {
+			eul1[0] = std::atan2(cols[1][2], cols[2][2]);
+			eul1[1] = std::atan2(-cols[0][2], cy);
+			eul1[2] = std::atan2(cols[0][1], cols[0][0]);
+
+			eul2[0] = std::atan2(-cols[1][2], -cols[2][2]);
+			eul2[1] = std::atan2(-cols[0][2], -cy);
+			eul2[2] = std::atan2(-cols[0][1], -cols[0][0]);
+		} else {
+			eul1[0] = std::atan2(-cols[2][1], cols[1][1]);
+			eul1[1] = std::atan2(-cols[0][2], cy);
+			eul1[2] = 0;
+			eul2 = eul1;
+		}
+		float d1 = std::abs(eul1[0]) + std::abs(eul1[1]) + std::abs(eul1[2]);
+		float d2 = std::abs(eul2[0]) + std::abs(eul2[1]) + std::abs(eul2[2]);
+		if (d1 > d2) return Degrees(eul2);
+		else return Degrees(eul1);
+	}
+
 	/// Returns matrix transpose
 	Mat4 T() const {
 		return transpose(*this);

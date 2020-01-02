@@ -83,7 +83,7 @@ void Scene::render_selected(Scene_Object& obj) {
 	Vec3 prev_rot = obj.pose.euler;
 	if(state.dragging) {
 		if(state.action == Gui::Action::scale) obj.pose.scale *= apply_action(obj);
-		if(state.action == Gui::Action::rotate) obj.pose.euler += apply_action(obj);
+		if(state.action == Gui::Action::rotate) obj.pose.euler = apply_action(obj);
 	}
 
 	mesh_shader.bind();
@@ -209,9 +209,20 @@ void Scene::render() {
 Vec3 Scene::apply_action(Scene_Object& obj) {
 
 	Vec3 result;
-	if(state.action == Gui::Action::move || state.action == Gui::Action::rotate) {
+	if(state.action == Gui::Action::move) {
+		
 		result[(int)state.axis] = state.drag_end;
+
+	} else if(state.action == Gui::Action::rotate) {
+		
+		Vec3 axis;
+		axis[(int)state.axis] = 1.0f;
+		Quat rot = Quat::axis_angle(axis, state.drag_end);
+		Quat combined = rot * obj.pose.rotation_quat();
+		result = combined.to_euler();
+
 	} else {
+
 		result = Vec3(1.0f);
 		result[(int)state.axis] = state.drag_end;
 	}
@@ -258,7 +269,7 @@ void Scene::end_drag(Vec2 mouse) {
 	if(state.action == Gui::Action::scale) {
 		obj.pose.scale *= apply_action(obj);
 	} else if(state.action == Gui::Action::rotate) {
-		obj.pose.euler += apply_action(obj); 
+		obj.pose.euler = apply_action(obj); 
 	}
 
 	state.dragging = false;
@@ -475,16 +486,15 @@ void Scene::gui() {
 		if(ImGui::DragFloat3("Position", obj.pose.pos.data, 0.1f) && selected)
 			state.action = Gui::Action::move;
 		
+		obj.pose.clamp_euler();
 		if(state.dragging && state.action == Gui::Action::rotate) {
-			Vec3 fake_rot = obj.pose.euler + apply_action(obj);
+			Vec3 fake_rot = apply_action(obj);
 			ImGui::DragFloat3("Rotation", fake_rot.range(0.0f, 360.0f).data);
 		} else {
 			if(ImGui::DragFloat3("Rotation", obj.pose.euler.data) && selected)
 				state.action = Gui::Action::rotate;
 		}
 		
-		obj.pose.clamp_euler();
-
 		if(state.dragging && state.action == Gui::Action::scale) {
 			Vec3 fake_scale = obj.pose.scale * apply_action(obj);
 			ImGui::DragFloat3("Scale", fake_scale.data, 0.01f);

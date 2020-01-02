@@ -3,14 +3,18 @@
 
 Mat4 Pose::transform() const {
 	return Mat4::translate(pos) * 
-		   rotation() *
+		   rotation_mat() *
 		   Mat4::scale(scale);
 }
 
-Mat4 Pose::rotation() const {
+Mat4 Pose::rotation_mat() const {
 	return Mat4::rotate(euler.z, {0.0f, 0.0f, 1.0f}) *
 		   Mat4::rotate(euler.y, {0.0f, 1.0f, 0.0f}) *  
 		   Mat4::rotate(euler.x, {1.0f, 0.0f, 0.0f});
+}
+
+Quat Pose::rotation_quat() const {
+	return Quat::euler(euler);
 }
 
 bool Pose::valid() const {

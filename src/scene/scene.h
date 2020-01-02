@@ -55,6 +55,9 @@ private:
 
 	// GUI
 	struct Gui {
+		Gui();
+		void render_widgets(Mat4 view, GL::Shader& shader, Vec3 pos, float scale);
+
 		enum class Axis {
 			X, Y, Z
 		};

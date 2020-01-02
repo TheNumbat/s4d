@@ -118,12 +118,15 @@ struct Vec2 {
 		return x != v.x || y != v.y;
 	}
 
+	/// Absolute value
 	Vec2 abs() const {
 		return Vec2(std::abs(x), std::abs(y));
 	}
+	/// Negation
 	Vec2 operator-() const {
 		return Vec2(-x, -y);
 	}
+	/// Are all members real numbers?
 	bool valid() const {
 		return !(std::isinf(x) || std::isinf(y) || 
 				 std::isnan(x) || std::isnan(y));
@@ -171,13 +174,16 @@ inline Vec2 operator/(float s, Vec2 v) {
 	return Vec2(s / v.x, s / v.y);
 }
 
+/// Take minimum of each component
 inline Vec2 hmin(Vec2 l, Vec2 r) {
 	return Vec2(std::min(l.x, r.x), std::min(l.y, r.y));
 }
+/// Take maximum of each component
 inline Vec2 hmax(Vec2 l, Vec2 r) {
 	return Vec2(std::max(l.x, r.x), std::max(l.y, r.y));
 }
 
+/// 2D dot product
 inline float dot(Vec2 l, Vec2 r) {
 	return l.x * r.x + l.y * r.y;
 }

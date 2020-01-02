@@ -2,6 +2,7 @@
 Scotty4D
 
     WIP:
+        0) documentation
         1) best way to project for axis scale
         2) rendering widgets at constant screen sizes
         3) outline still has some rare precision issues

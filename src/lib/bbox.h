@@ -12,10 +12,12 @@
 
 struct BBox {
 
+    /// Default min is max float value, default max is negative max float value
 	BBox() : 
         min(FLT_MAX),
         max(-FLT_MAX) {
 	}
+    /// Set minimum and maximum extent
 	BBox(Vec3 min, Vec3 max) :
         min(min),
         max(max) {
@@ -31,16 +33,19 @@ struct BBox {
 		return *this;
 	}
 
+    /// Rest min to max float, max to negative max float
     void reset() {
         min = Vec3(FLT_MAX);
         max = Vec3(-FLT_MAX);
     }
 
+    /// Expand bounding box to include point
     void enclose(Vec3 point) {
         min = hmin(min, point);
 		max = hmax(max, point);
     }
 
+    /// Get the eight corner points of the bounding box
     std::vector<Vec3> corners() const {
         std::vector<Vec3> ret(8);
         ret[0] = Vec3(min.x, min.y, min.z);
@@ -54,6 +59,8 @@ struct BBox {
         return ret;
     }
 
+    /// Given a screen transformation (projection), calculate screen-space ([-1,1]x[-1,1]) 
+    /// bounds that will always contain the bounding box on screen
     void screen_rect(Mat4 transform, Vec2& min_out, Vec2& max_out) const {
 
         min_out = Vec2(FLT_MAX);

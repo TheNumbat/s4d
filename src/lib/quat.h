@@ -23,11 +23,9 @@ struct Quat {
 		z = _z;
 		w = _w;
 	}
-	Quat(Vec3 xyz, float _w) {
-		x = xyz.x;
-		y = xyz.y;
-		z = xyz.z;
-		w = _w;
+	Quat(Vec3 _complex, float _real) {
+		complex = _complex;
+		real = _real;
 	}
 	Quat(const Vec4& src) {
 		x = src.x;
@@ -42,6 +40,7 @@ struct Quat {
 		w = src.w;
 	}
 
+	/// Create unit quaternion representing given axis-angle rotation
 	static Quat axis_angle(Vec3 axis, float angle) {
 		axis.normalize();
 		angle = Radians(angle) / 2.0f;
@@ -52,6 +51,7 @@ struct Quat {
 		float w = std::cos(angle);
 		return Quat(x,y,z,w).unit();
 	}
+	/// Create unit quaternion representing given euler angles (XYZ)
 	static Quat euler(Vec3 angles) {
 		float c1 = std::cos(Radians(angles[2] * 0.5f));
 		float c2 = std::cos(Radians(angles[1] * 0.5f));
@@ -108,9 +108,11 @@ struct Quat {
 					w*r.w - x*r.x - y*r.y - z*r.z);
 	}
 
+	/// Convert quaternion to equivalent euler angle rotation (XYZ)
 	Vec3 to_euler() const {
 		return to_mat().to_euler();
 	}
+	/// Convert quaternion to equivalent rotation matrix (orthonormal, 3x3)
 	Mat4 to_mat() const {
 		return {
 			{1-2*y*y-2*z*z, 2*x*y + 2*z*w, 2*x*z - 2*y*w, 0.0f},
@@ -120,10 +122,12 @@ struct Quat {
 		};
 	}
 
+	/// Apply rotation to given vector 
 	Vec3 rotate(Vec3 v) const {
 		return (((*this) * Quat(v, 0)) * conjugate()).complex;
 	}
 
+	/// Spherical linear interpolation between this and another quaternion weighted by t.
 	Quat slerp(Quat q, float t) {
 		float omega = std::acos(clamp(x*q.x + y*q.y + 
 									  z*q.z + w*q.w, 
@@ -142,6 +146,7 @@ struct Quat {
 					w*st0 + q.w*st1);
 	}
 
+	/// Are all members real numbers?
 	bool valid() const {
 		return !(std::isinf(x) || std::isinf(y) || std::isinf(z) || std::isinf(w) ||
 				 std::isnan(x) || std::isnan(y) || std::isnan(z) || std::isnan(w));

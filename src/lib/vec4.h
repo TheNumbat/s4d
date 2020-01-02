@@ -151,12 +151,15 @@ struct Vec4 {
 		return x != v.x || y != v.y || z != v.z || w != v.w;
 	}
 
+	/// Absolute value
 	Vec4 abs() const {
 		return Vec4(std::abs(x), std::abs(y), std::abs(z), std::abs(w));
 	}
+	/// Negation
 	Vec4 operator-() const {
 		return Vec4(-x, -y, -z, -w);
 	}
+	/// Are all members real numbers?
 	bool valid() const {
 		return !(std::isinf(x) || std::isinf(y) || std::isinf(z) || std::isinf(w) ||
 				 std::isnan(x) || std::isnan(y) || std::isnan(z) || std::isnan(w));
@@ -184,9 +187,11 @@ struct Vec4 {
 		return std::sqrt(norm_squared());
 	}
 
+	/// Returns first three components
 	Vec3 xyz() const {
 		return Vec3(x, y, z);
 	}
+	/// Performs perspective division (xyz/w)
 	Vec3 project() const {
 		return Vec3(x / w, y / w, z / w);
 	}
@@ -215,13 +220,16 @@ inline Vec4 operator/(float s, Vec4 v) {
 	return Vec4(s / v.x, s / v.y, s / v.z, s / v.w);
 }
 
+/// Take minimum of each component
 inline Vec4 hmin(Vec4 l, Vec4 r) {
 	return Vec4(std::min(l.x, r.x), std::min(l.y, r.y), std::min(l.z, r.z), std::min(l.w, r.w));
 }
+/// Take maximum of each component
 inline Vec4 hmax(Vec4 l, Vec4 r) {
 	return Vec4(std::max(l.x, r.x), std::max(l.y, r.y), std::max(l.z, r.z), std::max(l.w, r.w));
 }
 
+/// 4D dot product
 inline float dot(Vec4 l, Vec4 r) {
 	return l.x * r.x + l.y * r.y + l.z * r.z + l.w * r.w;
 }

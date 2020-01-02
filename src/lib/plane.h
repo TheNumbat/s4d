@@ -11,14 +11,16 @@ struct Plane {
 
 	Plane() {
 	}
+    /// Create plane from (a,b,c,d)
 	Plane(Vec4 p) :
         p(p) {
 	}
+    /// Create plane from point and unit normal
     Plane(Vec3 point, Vec3 n) {
         p.x = n.x;
         p.y = n.y;
         p.z = n.z;
-        p.w = dot(point, n);
+        p.w = dot(point, n.unit());
     }
 	Plane(const Plane& src) {
 		p = src.p;
@@ -29,6 +31,8 @@ struct Plane {
 		return *this;
 	}
 
+    /// Calculate intersection point between plane and line.
+    /// Returns false if the hit point is 'backward' along the line relative to pt.dir
     bool hit(Line line, Vec3& pt) const {
         Vec3 n = p.xyz();
         float t = (p.w - dot(line.point, n)) / dot(line.dir, n);

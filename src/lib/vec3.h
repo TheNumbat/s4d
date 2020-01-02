@@ -131,12 +131,15 @@ struct Vec3 {
 		return x != v.x || y != v.y || z != v.z;
 	}
 
+	/// Absolute value
 	Vec3 abs() const {
 		return Vec3(std::abs(x), std::abs(y), std::abs(z));
 	}
+	/// Negation
 	Vec3 operator-() const {
 		return Vec3(-x, -y, -z);
 	}
+	/// Are all members real numbers?
 	bool valid() const {
 		return !(std::isinf(x) || std::isinf(y) || std::isinf(z) ||
 				 std::isnan(x) || std::isnan(y) || std::isnan(z));
@@ -163,6 +166,7 @@ struct Vec3 {
 		return std::sqrt(norm_squared());
 	}
 
+	/// Make sure all components are in the range [min,max) with floating point mod logic
 	Vec3 range(float min, float max) const {
 		if(!valid()) return {};
 		Vec3 r = *this;
@@ -199,16 +203,20 @@ inline Vec3 operator/(float s, Vec3 v) {
 	return Vec3(s / v.x, s / v.y, s / v.z);
 }
 
+/// Take minimum of each component
 inline Vec3 hmin(Vec3 l, Vec3 r) {
 	return Vec3(std::min(l.x, r.x), std::min(l.y, r.y), std::min(l.z, r.z));
 }
+/// Take maximum of each component
 inline Vec3 hmax(Vec3 l, Vec3 r) {
 	return Vec3(std::max(l.x, r.x), std::max(l.y, r.y), std::max(l.z, r.z));
 }
 
+/// 3D dot product
 inline float dot(Vec3 l, Vec3 r) {
 	return l.x * r.x + l.y * r.y + l.z * r.z;
 }
+/// 3D cross product
 inline Vec3 cross(Vec3 l, Vec3 r) {
 	return Vec3(l.y * r.z - l.z * r.y, l.z * r.x - l.x * r.z, l.x * r.y - l.y * r.x);
 }

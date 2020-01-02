@@ -159,15 +159,14 @@ void Scene::render_selected(Scene_Object& obj) {
 	framebuffer.clear_d();
 	obj.render(view, mesh_shader, false, true);
 	
-	// NOTE(max): NVIDIA driver synchronization bug
-	GL::flush();
-
 	Vec2 min, max;
 	obj.bbox().screen_rect(viewproj, min, max);
 
+	GL::flush_if_nvidia();
 	GL::Effects::outline(framebuffer, framebuffer, Gui::outline, 
 						 min - Vec2(3.0f / state.window_dim.x), 
 						 max + Vec2(3.0f / state.window_dim.y));
+	GL::flush_if_nvidia();
 	
 	framebuffer.clear_d();
 
@@ -530,31 +529,21 @@ void Scene::gui() {
 			else 		 state.drag_id = 0;
 		}
 
-		if(state.dragging && state.action == Gui::Action::move) {
-			Vec3 fake_pos = apply_action(obj);
-			ImGui::DragFloat3("Position", fake_pos.data);
-		} else {
-			if(ImGui::DragFloat3("Position", obj.pose.pos.data, 0.1f) && selected)
-				state.action = Gui::Action::move;
-		}
+		auto fake_display = [&](Gui::Action mode, std::string label, Vec3& data, float sens) {
+			if(state.dragging && state.action == mode) {
+				Vec3 fake = apply_action(obj);
+				ImGui::DragFloat3(label.c_str(), fake.data);
+			} else {
+				if(ImGui::DragFloat3(label.c_str(), data.data, sens) && selected)
+					state.action = mode;
+			}
+		};
 		
 		obj.pose.clamp_euler();
-		if(state.dragging && state.action == Gui::Action::rotate) {
-			Vec3 fake_rot = apply_action(obj);
-			ImGui::DragFloat3("Rotation", fake_rot.range(0.0f, 360.0f).data);
-		} else {
-			if(ImGui::DragFloat3("Rotation", obj.pose.euler.data) && selected)
-				state.action = Gui::Action::rotate;
-		}
+		fake_display(Gui::Action::move, "Position", obj.pose.pos, 0.1f);
+		fake_display(Gui::Action::rotate, "Rotation", obj.pose.euler, 1.0f);
+		fake_display(Gui::Action::scale, "Scale", obj.pose.scale, 0.03f);
 		
-		if(state.dragging && state.action == Gui::Action::scale) {
-			Vec3 fake_scale = apply_action(obj);
-			ImGui::DragFloat3("Scale", fake_scale.data, 0.01f);
-		} else {
-			if(ImGui::DragFloat3("Scale", obj.pose.scale.data, 0.01f) && selected)
-				state.action = Gui::Action::scale;
-		}
-
 		if(selected) {
 			if(ImGui::Button("Move"))
 				state.action = Gui::Action::move;

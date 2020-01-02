@@ -15,10 +15,14 @@ namespace GL {
 
 static void setup_debug_proc();
 static void check_leaked_handles();
+static bool is_nvidia = false;
 
 void setup() {
 	setup_debug_proc();
 	Effects::init();
+	
+	std::string ver = version();
+	is_nvidia = ver.find("NVIDIA") != std::string::npos;
 }
 
 void shutdown() {
@@ -26,8 +30,8 @@ void shutdown() {
 	check_leaked_handles();
 }
 
-void flush() {
-	glFlush();
+void flush_if_nvidia() {
+	if(is_nvidia) glFlush();
 }
 
 void color_mask(bool enable) {

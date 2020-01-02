@@ -12,7 +12,7 @@ namespace GL {
 
 void setup();
 void shutdown();
-void flush();
+void flush_if_nvidia();
 std::string version();
 std::string renderer();
 

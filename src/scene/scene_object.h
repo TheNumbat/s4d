@@ -7,7 +7,7 @@
 struct Pose {
 	Vec3 pos;
 	Vec3 euler;
-	Vec3 scale = {1.0f, 1.0f, 1.0f};
+	Vec3 scale = {1.0f};
 
 	Mat4 transform() const;
 	Mat4 rotation_mat() const;

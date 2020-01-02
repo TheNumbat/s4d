@@ -73,8 +73,7 @@ private:
 		bool settings_open = false;
 		
 		bool dragging = false, plane = false;
-		Vec3 drag_start;
-		float drag_end = 0.0f;
+		Vec3 drag_start, drag_end;
 		Axis axis = Axis::X;
 		Action action = Action::move;
 		Scene_Object::ID drag_id = (Scene_Object::ID)Basic::none;

@@ -34,6 +34,13 @@ void color_mask(bool enable) {
 	glColorMask(enable, enable, enable, enable);
 }
 
+std::string version() {
+	return std::string((char*)glGetString(GL_VERSION));
+}
+std::string renderer() {
+	return std::string((char*)glGetString(GL_RENDERER));
+}
+
 void global_params() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

@@ -2,7 +2,6 @@
 Scotty4D
 
     UI WIP:
-        0) how to scale after rotation
         1) best way to project for axis movement
         2) rendering widgets at constant screen sizes
         real screen space bounding box for objects intersecting the near plane

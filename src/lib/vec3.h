@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <ostream>
 
 #include "log.h"
 
@@ -219,4 +220,9 @@ inline float dot(Vec3 l, Vec3 r) {
 /// 3D cross product
 inline Vec3 cross(Vec3 l, Vec3 r) {
 	return Vec3(l.y * r.z - l.z * r.y, l.z * r.x - l.x * r.z, l.x * r.y - l.y * r.x);
+}
+
+inline std::ostream& operator<<(std::ostream& out, Vec3 v) {
+	out << "{" << v.x << "," << v.y << "," << v.z << "}";
+	return out;
 }

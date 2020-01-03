@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <ostream>
 
 #include "line.h"
 #include "vec4.h"
@@ -42,3 +43,8 @@ struct Plane {
 
     Vec4 p;
 };
+
+inline std::ostream& operator<<(std::ostream& out, Plane v) {
+	out << v.p;
+	return out;
+}

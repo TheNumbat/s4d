@@ -170,3 +170,8 @@ struct Quat {
 inline Quat slerp(Quat q0, Quat q1, float t) {
 	return q0.slerp(q1, t);
 }
+
+inline std::ostream& operator<<(std::ostream& out, Quat q) {
+	out << "{" << q.x << "," << q.y << "," << q.z << "," << q.w << "}";
+	return out;
+}

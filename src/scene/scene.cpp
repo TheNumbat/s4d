@@ -21,7 +21,7 @@ Scene::Scene(Vec2 window_dim, App& app) :
 	create_baseplane();
 }
 
-Scene::Gui::Gui() : widget_lines(2.0f) {
+Scene::Gui::Gui() : widget_lines(1.0f) {
 	x_trans = Scene_Object((Scene_Object::ID)Gui::Basic::x_trans, Pose::rotated({0.0f, 0.0f, -90.0f}), Util::arrow_mesh(), Gui::red);
 	y_trans = Scene_Object((Scene_Object::ID)Gui::Basic::y_trans, {}, Util::arrow_mesh(), Gui::green);
 	z_trans = Scene_Object((Scene_Object::ID)Gui::Basic::z_trans, Pose::rotated({90.0f, 0.0f, 0.0f}), Util::arrow_mesh(), Gui::blue);
@@ -290,10 +290,10 @@ bool Scene::screen_to_axis(const Scene_Object& obj, Vec2 mouse, Vec3& hit) {
 	Vec3 pos = state.dragging && state.action == Gui::Action::move ? apply_action(obj) : obj.pose.pos;
 	Line select(camera.pos(), dir);
 	Line target(pos, axis);
-	Plane plane(pos, -camera.front().unit());
+	// Plane plane(pos, -camera.front().unit());
 
-	bool ret = plane.hit(select, hit);
-	hit = target.closest(hit);
+	bool ret = target.closest(select, hit);
+	// hit = target.closest(hit);
 	return ret && hit.valid();
  }
 

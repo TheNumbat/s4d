@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <ostream>
 
 #include "log.h"
 
@@ -186,4 +187,9 @@ inline Vec2 hmax(Vec2 l, Vec2 r) {
 /// 2D dot product
 inline float dot(Vec2 l, Vec2 r) {
 	return l.x * r.x + l.y * r.y;
+}
+
+inline std::ostream& operator<<(std::ostream& out, Vec2 v) {
+	out << "{" << v.x << "," << v.y << "}";
+	return out;
 }

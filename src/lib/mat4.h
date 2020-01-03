@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <ostream>
 
 #include "log.h"
 #include "vec4.h"
@@ -365,4 +366,9 @@ inline Mat4 Mat4::look_at(Vec3 pos, Vec3 at, Vec3 up) {
 	r[3][2] =  dot(F, pos);
 	r[3][3] = 1.0f;
 	return r;
+}
+
+inline std::ostream& operator<<(std::ostream& out, Mat4 m) {
+	out << "{" << m[0] << "," << m[1] << "," << m[2] << "," << m[3] << "}";
+	return out;
 }

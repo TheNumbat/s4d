@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <ostream>
 #include <cfloat>
 
 #include "vec2.h"
@@ -89,3 +90,9 @@ struct BBox {
 
     Vec3 min, max;
 };
+
+inline std::ostream& operator<<(std::ostream& out, BBox b) {
+	out << "{" << b.min << "," << b.max << "}";
+	return out;
+}
+

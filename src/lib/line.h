@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <ostream>
 
 #include "vec3.h"
 
@@ -53,3 +54,8 @@ struct Line {
 
     Vec3 point, dir;
 };
+
+inline std::ostream& operator<<(std::ostream& out, Line l) {
+	out << "{" << l.point << "," << l.dir << "}";
+	return out;
+}

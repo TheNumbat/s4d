@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <ostream>
 
 #include "log.h"
 #include "vec3.h"
@@ -232,4 +233,9 @@ inline Vec4 hmax(Vec4 l, Vec4 r) {
 /// 4D dot product
 inline float dot(Vec4 l, Vec4 r) {
 	return l.x * r.x + l.y * r.y + l.z * r.z + l.w * r.w;
+}
+
+inline std::ostream& operator<<(std::ostream& out, Vec4 v) {
+	out << "{" << v.x << "," << v.y << "," << v.z << "," << v.w << "}";
+	return out;
 }

@@ -56,7 +56,7 @@ private:
 	// GUI
 	struct Gui {
 		Gui();
-		void render_widgets(Mat4 view, GL::Shader& shader, Vec3 pos, float scale);
+		void render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& mesh, Vec3 pos, float scale);
 
 		enum class Axis {
 			X, Y, Z
@@ -80,6 +80,9 @@ private:
 		Axis axis = Axis::X;
 		Action action = Action::move;
 		Scene_Object::ID drag_id = (Scene_Object::ID)Basic::none;
+		
+		GL::Lines widget_lines;
+		void generate_widget_lines(const Scene_Object& obj);
 
 		Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot, x_scale, z_scale, y_scale, xy_trans, yz_trans, xz_trans;
 
@@ -90,14 +93,14 @@ private:
 		static inline const Vec3 red = Vec3(163.0f / 255.0f, 66.0f / 255.0f, 81.0f / 255.0f);
 		static inline const Vec3 green = Vec3(124.0f / 255.0f, 172.0f / 255.0f, 40.0f / 255.0f);
 		static inline const Vec3 blue = Vec3(64.0f / 255.0f, 127.0f / 255.0f, 193.0f / 255.0f);
-		
+		Vec3 axis_color(Axis a);
 	};
 	Gui state;
-	Vec3 apply_action(Scene_Object& obj);
+	Vec3 apply_action(const Scene_Object& obj);
 	void render_selected(Scene_Object& obj);
 	Vec3 screen_to_world(Vec2 mouse);
-	bool screen_to_axis(Scene_Object& obj, Vec2 mouse, Vec3& hit);
-	bool screen_to_plane(Scene_Object& obj, Vec2 mouse, Vec3& hit);
+	bool screen_to_axis(const Scene_Object& obj, Vec2 mouse, Vec3& hit);
+	bool screen_to_plane(const Scene_Object& obj, Vec2 mouse, Vec3& hit);
 
 	// User Objects
 	std::map<Scene_Object::ID, Scene_Object> objs;

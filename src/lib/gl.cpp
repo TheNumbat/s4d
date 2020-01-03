@@ -221,6 +221,11 @@ void Lines::render() {
 	glBindVertexArray(0);
 }
 
+void Lines::clear() {
+	vertices.clear();
+	dirty = true;
+}
+
 void Lines::pop() {
 	vertices.pop_back();
 	vertices.pop_back();

@@ -76,6 +76,7 @@ public:
 	void render();
 	void add(Vec3 start, Vec3 end, Vec3 color);
 	void pop();
+	void clear();
 
 private:
 	void create();

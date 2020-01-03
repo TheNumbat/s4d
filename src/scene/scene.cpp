@@ -284,17 +284,27 @@ Vec3 Scene::screen_to_world(Vec2 mouse) {
 
 bool Scene::screen_to_axis(const Scene_Object& obj, Vec2 mouse, Vec3& hit) {
 	
-	Vec3 axis; axis[(int)state.axis] = 1.0f;
-	Vec3 dir = (screen_to_world(mouse) - camera.pos()).unit();
+	Vec3 axis1; axis1[(int)state.axis] = 1.0f;
+	Vec3 axis2; axis2[((int)state.axis + 1) % 3] = 1.0f;
+	Vec3 axis3; axis3[((int)state.axis + 2) % 3] = 1.0f;
 	
-	Vec3 pos = state.dragging && state.action == Gui::Action::move ? apply_action(obj) : obj.pose.pos;
+	Vec3 dir = (screen_to_world(mouse) - camera.pos()).unit();
+	Vec3 pos = obj.pose.pos;
 	Line select(camera.pos(), dir);
-	Line target(pos, axis);
-	// Plane plane(pos, -camera.front().unit());
+	Line target(pos, axis1);
+	Plane l(pos, axis2);
+	Plane r(pos, axis3);
 
-	bool ret = target.closest(select, hit);
-	// hit = target.closest(hit);
-	return ret && hit.valid();
+	Vec3 hit1, hit2;
+	bool hl = l.hit(select, hit1);
+	bool hr = r.hit(select, hit2);
+	if(!hl && !hr) return false;
+	else if(!hl) hit = hit2;
+	else if(!hr) hit = hit1;
+	else hit = (hit1 - camera.pos()).norm() > (hit2 - camera.pos()).norm() ? hit2 : hit1;
+	
+	hit = target.closest(hit);
+	return hit.valid();
  }
 
 bool Scene::screen_to_plane(const Scene_Object& obj, Vec2 mouse, Vec3& hit) {

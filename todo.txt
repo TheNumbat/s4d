@@ -2,9 +2,9 @@
 Scotty4D
 
     UI WIP:
-        1) best way to project for axis movement
-        2) rendering widgets at constant screen sizes
+        1) rendering widgets at constant screen sizes
         real screen space bounding box for objects intersecting the near plane
+        DPI awareness
 
     // BASE
 

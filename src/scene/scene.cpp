@@ -226,7 +226,7 @@ void Scene::render() {
 		mesh_shader.uniform("proj", proj);
 
 		for(auto& obj : objs) {
-			if(obj.first != state.drag_id) 
+			if(obj.first != state.selected) 
 				obj.second.render(view, mesh_shader);
 		}
 	}
@@ -237,7 +237,7 @@ void Scene::render() {
 		baseplane.render();
 	}
 
-	auto selected = objs.find(state.drag_id);
+	auto selected = objs.find(state.selected);
 	if(selected != objs.end()) {
 		render_selected(selected->second);
 	}
@@ -322,7 +322,7 @@ void Scene::end_drag(Vec2 mouse) {
 
 	if(!state.dragging) return;
 
-	Scene_Object& obj = objs[state.drag_id];
+	Scene_Object& obj = objs[state.selected];
 
 	switch(state.action) {
 	case Gui::Action::scale: {
@@ -346,7 +346,7 @@ void Scene::drag(Vec2 mouse) {
 
 	if(!state.dragging) return;
 	
-	Scene_Object& obj = objs[state.drag_id];
+	Scene_Object& obj = objs[state.selected];
 	Vec3 pos = obj.pose.pos;
 	
 	if(state.action == Gui::Action::rotate) {
@@ -437,12 +437,12 @@ bool Scene::select(Vec2 mouse) {
 	} break;
 	default: {
 		state.dragging = false;
-		state.drag_id = clicked; 
+		state.selected = clicked; 
 	} break;
 	}
 
 	if(state.dragging) {
-		Scene_Object& obj = objs[state.drag_id];
+		Scene_Object& obj = objs[state.selected];
 		
 		Vec3 hit;
 		if(state.action == Gui::Action::rotate) {
@@ -488,6 +488,13 @@ void Scene::camera_radius(float dmouse) {
 	camera.mouse_radius(dmouse);
 }
 
+void Scene::key_down(SDL_Keycode key) {
+	
+	if(key == SDLK_e && state.selected) {
+		state.action = (Gui::Action)(((int)state.action + 1) % 3);
+	}
+}
+
 void Scene::apply_window_dim(Vec2 new_dim) {
 
 	state.window_dim = new_dim;
@@ -501,18 +508,18 @@ void Scene::apply_window_dim(Vec2 new_dim) {
 	GL::viewport(state.window_dim);
 }
 
-void Scene::gui() {
+void Scene::gui(float menu_height) {
 
 	const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
+	ImGuiStyle& style = ImGui::GetStyle();
 
-	ImGui::SetNextWindowPos({0.0, 18.0});
+	ImGui::SetNextWindowPos({0.0, menu_height});
 	ImGui::SetNextWindowSize({state.window_dim.x / 5.0f, state.window_dim.y});
 
 	ImGui::Begin("Objects", nullptr, flags);
 
 	float available_w = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 	float last_w = 0.0f, next_w = 0.0f;
-	ImGuiStyle& style = ImGui::GetStyle();
 	auto MaybeSameLineButton = [&](std::string label) -> bool {
 		last_w = ImGui::GetItemRectMax().x;
 		next_w = last_w + style.ItemSpacing.x + ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2;
@@ -574,11 +581,11 @@ void Scene::gui() {
 		std::string& name = obj.opt.name;
 		ImGui::InputText("##name", name.data(), name.capacity());
 		
-		bool selected = entry.first == state.drag_id;
+		bool selected = entry.first == state.selected;
 		ImGui::SameLine();
 		if(ImGui::Checkbox("##selected", &selected)) {
-			if(selected) state.drag_id = entry.first;
-			else 		 state.drag_id = 0;
+			if(selected) state.selected = entry.first;
+			else 		 state.selected = 0;
 		}
 
 		auto fake_display = [&](Gui::Action mode, std::string label, Vec3& data, float sens) {

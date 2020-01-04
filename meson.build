@@ -32,7 +32,7 @@ deps += cc.find_library('nfd', dirs : nfd_dir)
 
 if host_system == 'windows'
     
-    link += ['../src/icon.res']
+    link += ['../src/icon.res', 'Shcore.lib']
     args += ['-fp:fast', '-wd4201', '-wd4702']
 
     inc_dir = include_directories('deps', 'deps/win')

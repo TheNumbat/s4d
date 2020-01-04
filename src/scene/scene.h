@@ -8,6 +8,7 @@
 #include "scene_object.h"
 
 #include <map>
+#include <SDL2/SDL.h>
 
 class App;
 class Scene {
@@ -16,11 +17,12 @@ public:
 	~Scene();
 
 	void render();
-	void gui();
+	void gui(float menu_height);
 
 	void apply_window_dim(Vec2 new_dim);
 	void add_object(Scene_Object&& obj);
 
+	void key_down(SDL_Keycode key);
 	void camera_orbit(Vec2 dmouse);
 	void camera_move(Vec2 dmouse);
 	void camera_radius(float dmouse);
@@ -79,7 +81,7 @@ private:
 		Vec3 drag_start, drag_end;
 		Axis axis = Axis::X;
 		Action action = Action::move;
-		Scene_Object::ID drag_id = (Scene_Object::ID)Basic::none;
+		Scene_Object::ID selected = (Scene_Object::ID)Basic::none;
 		
 		GL::Lines widget_lines;
 		void generate_widget_lines(const Scene_Object& obj);

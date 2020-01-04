@@ -24,6 +24,8 @@ public:
 	void ungrab_mouse();
 
 private:
+	float dpi_scale();
+	void set_dpi();
 	void platform_init();
 	void platform_shutdown();
 	void begin_frame();

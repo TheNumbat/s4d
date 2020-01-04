@@ -4,13 +4,6 @@
 
 #include <fstream>
 
-#ifdef _WIN32
-extern "C" {
-	__declspec(dllexport) bool NvOptimusEnablement = true;
-	__declspec(dllexport) bool AmdPowerXpressRequestHighPerformance = true;
-}
-#endif
-
 namespace GL {
 
 static void setup_debug_proc();

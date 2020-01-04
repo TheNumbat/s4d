@@ -8,6 +8,14 @@
 #include <imgui/imgui_impl_sdl.h>
 #include <imgui/imgui_impl_opengl3.h>
 
+#ifdef _WIN32
+#include <ShellScalingApi.h>
+extern "C" {
+	__declspec(dllexport) bool NvOptimusEnablement = true;
+	__declspec(dllexport) bool AmdPowerXpressRequestHighPerformance = true;
+}
+#endif
+
 Platform::Platform() {
 	platform_init();
 }
@@ -16,7 +24,30 @@ Platform::~Platform() {
 	platform_shutdown();
 }
 
+float Platform::dpi_scale() {
+
+	const float sys =
+#ifdef _WIN32
+		96.0f;
+#elif defined(__APPLE__)
+		72.0f;
+#endif
+
+	float hdpi;
+	if(SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(window), nullptr, &hdpi, nullptr)) {
+		warn("Failed to get display DPI: %s", SDL_GetError());
+		return 1.0f;
+	}
+	
+	return hdpi / sys;
+}
+
 void Platform::platform_init() {
+
+#ifdef _WIN32
+	if(SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) != S_OK) 
+		warn("Failed to set process DPI aware.");
+#endif
 
 	if(SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		die("Failed to initialize SDL: %s", SDL_GetError());
@@ -26,7 +57,10 @@ void Platform::platform_init() {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	window = SDL_CreateWindow("s4d", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	Vec2 wsize = Vec2(900, 600);
+
+	window = SDL_CreateWindow("s4d", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (int)wsize.x, (int)wsize.y, 
+							  SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 	if(!window) {
 		die("Failed to create window: %s", SDL_GetError());
 	}
@@ -46,13 +80,23 @@ void Platform::platform_init() {
 	}
 
 	GL::setup();
-
 	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
 	ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
 	ImGui_ImplOpenGL3_Init();
+	
+	set_dpi();
+}
 
-	ImGui::StyleColorsDark();
-	ImGui::GetStyle().WindowRounding = 0.0f;
+void Platform::set_dpi() {
+	float scale = dpi_scale();
+	ImGuiStyle& style = ImGui::GetStyle();
+	ImGuiIO& IO = ImGui::GetIO();
+	style.WindowRounding = 0.0f;
+	style.ScaleAllSizes(scale);
+	
+	IO.Fonts->Clear();
+	IO.Fonts->AddFontFromFileTTF("font.ttf", 16.0f * scale);
 }
 
 void Platform::platform_shutdown() {

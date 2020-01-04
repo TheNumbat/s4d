@@ -1,10 +1,16 @@
 
 Scotty4D
 
-    UI WIP:
-        1) rendering widgets at constant screen sizes
-        real screen space bounding box for objects intersecting the near plane
+    UI:
         DPI awareness
+            update scale on change
+            scale outline size by resolution
+            testing on linux/mac
+        
+        Bake shaders + font into code
+        rendering widgets at constant screen sizes
+
+        real screen space bounding box for objects intersecting the near plane
 
     // BASE
 

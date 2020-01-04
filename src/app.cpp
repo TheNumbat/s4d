@@ -19,6 +19,11 @@ void App::event(SDL_Event e) {
 	ImGuiIO& IO = ImGui::GetIO();
 
 	switch(e.type) {
+	case SDL_KEYDOWN: {
+		if(IO.WantCaptureKeyboard) break;
+		scene.key_down(e.key.keysym.sym);
+	} break;
+
 	case SDL_WINDOWEVENT: {
 		if (e.window.event == SDL_WINDOWEVENT_RESIZED ||
 			e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
@@ -118,6 +123,7 @@ bool App::state_button(Mode mode, std::string name) {
 
 void App::render_gui() {
 
+	float menu_height;
 	if(ImGui::BeginMainMenuBar()) {
 
 		if(ImGui::BeginMenu("File")) {
@@ -158,10 +164,11 @@ void App::render_gui() {
 
 		ImGui::Text("FPS: %f", ImGui::GetIO().Framerate);
 
+		menu_height = ImGui::GetWindowSize().y;
 		ImGui::EndMainMenuBar();
 	}
 
-	scene.gui();
+	scene.gui(menu_height);
 
 	if(state.error_shown) {
 		ImGui::SetNextWindowPosCenter();

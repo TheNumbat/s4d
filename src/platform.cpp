@@ -27,14 +27,19 @@ Platform::~Platform() {
 float Platform::dpi_scale() {
 
 	const float sys =
-#ifdef _WIN32
-		96.0f;
-#elif defined(__APPLE__)
+#ifdef __APPLE__
 		72.0f;
+#else
+		96.0f;
 #endif
 
 	float hdpi;
-	if(SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(window), nullptr, &hdpi, nullptr)) {
+	int index = SDL_GetWindowDisplayIndex(window);
+	if(index < 0) {
+		warn("Failed to get window display index: %s", SDL_GetError());
+		return 1.0f;
+	}
+	if(SDL_GetDisplayDPI(index, nullptr, &hdpi, nullptr)) {
 		warn("Failed to get display DPI: %s", SDL_GetError());
 		return 1.0f;
 	}
@@ -90,13 +95,25 @@ void Platform::platform_init() {
 
 void Platform::set_dpi() {
 	float scale = dpi_scale();
-	ImGuiStyle& style = ImGui::GetStyle();
-	ImGuiIO& IO = ImGui::GetIO();
+	if(prev_dpi == scale) return;
+	if(prev_dpi == 0.0f) prev_dpi = 1.0f;
+	
+	Vec2 size = window_dim();
+	size *= scale / prev_dpi;
+	SDL_SetWindowSize(window, (int)size.x, (int)size.y);
+
+	ImGuiStyle style;
 	style.WindowRounding = 0.0f;
 	style.ScaleAllSizes(scale);
+	ImGui::GetStyle() = style;
 	
+	ImGuiIO& IO = ImGui::GetIO();
 	IO.Fonts->Clear();
 	IO.Fonts->AddFontFromFileTTF("font.ttf", 16.0f * scale);
+	IO.Fonts->Build();
+	ImGui_ImplOpenGL3_DestroyDeviceObjects();
+	
+	prev_dpi = scale;
 }
 
 void Platform::platform_shutdown() {
@@ -132,7 +149,7 @@ void Platform::loop(App& app) {
 
 	bool running = true;
 	while(running) {
-	
+		
 		begin_frame();
 
 		SDL_Event e;
@@ -157,6 +174,7 @@ void Platform::loop(App& app) {
 		app.render();
 
 		complete_frame();
+		set_dpi();
 	}
 }
 

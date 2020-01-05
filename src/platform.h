@@ -25,6 +25,8 @@ public:
 
 private:
 	float dpi_scale();
+	float prev_dpi = 0.0f;
+
 	void set_dpi();
 	void platform_init();
 	void platform_shutdown();

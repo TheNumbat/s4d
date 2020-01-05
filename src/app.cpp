@@ -133,10 +133,6 @@ void App::render_gui() {
 
 		if(ImGui::BeginMenu("Edit")) {
 
-			ImGui::EndMenu();
-		}
-
-		if(ImGui::BeginMenu("View")) {
 			if(ImGui::MenuItem("Reload Shaders")) {
 				scene.reload_shaders();
 				GL::Effects::reload();

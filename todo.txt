@@ -3,8 +3,7 @@ Scotty4D
 
     UI:
         DPI awareness
-            update scale on change
-            scale outline size by resolution
+            scale outline size by dpi
             testing on linux/mac
         
         Bake shaders + font into code

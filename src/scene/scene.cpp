@@ -9,8 +9,8 @@
 Scene::Scene(Vec2 window_dim, App& app) :
 	app(app),
 	camera(window_dim),
-	mesh_shader("mesh.vert", "mesh.frag"),
-	line_shader("line.vert", "line.frag"),
+	mesh_shader(GL::Shaders::mesh_v, GL::Shaders::mesh_f),
+	line_shader(GL::Shaders::line_v, GL::Shaders::line_f),
 	framebuffer(2, window_dim, default_samples),
 	id_resolve(1, window_dim, 1, false),
 	baseplane(1.0f) {
@@ -59,11 +59,6 @@ void Scene::create_baseplane() {
 
 void Scene::show_settings() {
 	state.settings_open = true;
-}
-
-void Scene::reload_shaders() {
-	mesh_shader.reload();
-	line_shader.reload();
 }
 
 Scene_Object::ID Scene::read_id(Vec2 pos) {

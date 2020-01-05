@@ -1,6 +1,6 @@
 
 #include "app.h"
-#include "platform.h"
+#include "platform/platform.h"
 
 #include <SDL2/SDL.h>
 #include <imgui/imgui.h>
@@ -133,10 +133,6 @@ void App::render_gui() {
 
 		if(ImGui::BeginMenu("Edit")) {
 
-			if(ImGui::MenuItem("Reload Shaders")) {
-				scene.reload_shaders();
-				GL::Effects::reload();
-			}
 			if(ImGui::MenuItem("Display Settings")) {
 				scene.show_settings();
 			}

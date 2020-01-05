@@ -2,13 +2,8 @@
 Scotty4D
 
     UI:
-        DPI awareness
-            scale outline size by dpi
-            testing on linux/mac
-        
-        Bake shaders + font into code
+        DPI/file IO testing on linux/mac
         rendering widgets at constant screen sizes
-
         real screen space bounding box for objects intersecting the near plane
 
     // BASE

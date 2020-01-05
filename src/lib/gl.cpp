@@ -263,8 +263,6 @@ Shader::Shader(std::string vertex, std::string fragment) {
 }
 
 Shader::Shader(Shader&& src) {
-	v_file = std::move(src.v_file);
-	f_file = std::move(src.f_file);
 	program = src.program; src.program = 0;
 	v = src.v; src.v = 0;
 	f = src.f; src.f = 0;
@@ -272,8 +270,6 @@ Shader::Shader(Shader&& src) {
 
 void Shader::operator=(Shader&& src) {
 	destroy();
-	v_file = std::move(src.v_file);
-	f_file = std::move(src.f_file);
 	program = src.program; src.program = 0;
 	v = src.v; src.v = 0;
 	f = src.f; src.f = 0;
@@ -285,11 +281,6 @@ Shader::~Shader() {
 
 void Shader::bind() const {
 	glUseProgram(program);
-}
-
-void Shader::reload() {
-	destroy();
-	load(v_file, f_file);
 }
 
 void Shader::destroy() {
@@ -335,17 +326,10 @@ GLuint Shader::loc(std::string name) const {
 
 void Shader::load(std::string vertex, std::string fragment) {
 
-	v_file = vertex;
-	f_file = fragment;
-	std::string vs, fs;
-	std::ifstream vfin(vertex), ffin(fragment);
-	std::getline(vfin, vs, '\0');
-	std::getline(ffin, fs, '\0');
-
 	v = glCreateShader(GL_VERTEX_SHADER);
 	f = glCreateShader(GL_FRAGMENT_SHADER);
-	const GLchar* vs_c = vs.c_str();
-	const GLchar* fs_c = fs.c_str();
+	const GLchar* vs_c = vertex.c_str();
+	const GLchar* fs_c = fragment.c_str();
 	glShaderSource(v, 1, &vs_c, NULL);
 	glShaderSource(f, 1, &fs_c, NULL);
 	glCompileShader(v);
@@ -559,9 +543,9 @@ bool Framebuffer::is_multisampled() const {
 void Effects::init() {
 
 	glGenVertexArrays(1, &vao);
-	resolve_shader.load("effects.vert", "resolve.frag");
-	outline_shader.load("effects.vert", "outline.frag");
-	outline_shader_ms.load("effects.vert", "outline_ms.frag");
+	resolve_shader.load(effects_v, resolve_f);
+	outline_shader.load(effects_v, outline_f);
+	outline_shader_ms.load(effects_v, outline_ms_f);
 }
 
 void Effects::destroy() {
@@ -644,12 +628,6 @@ void Effects::resolve_to(int buf, const Framebuffer& from, const Framebuffer& to
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glEnable(GL_DEPTH_TEST);
 	glBindVertexArray(0);
-}
-
-void Effects::reload() {
-	outline_shader.reload();
-	outline_shader_ms.reload();
-	resolve_shader.reload();
 }
 
 static void debug_proc(GLenum glsource, GLenum gltype, GLuint id, GLenum severity, GLsizei length, const GLchar* glmessage, const void* up) {
@@ -759,6 +737,155 @@ static void setup_debug_proc() {
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	glDebugMessageCallback(debug_proc, nullptr);
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+}
+
+const std::string Effects::effects_v = R"(
+#version 330 core
+
+layout (location = 0) in vec2 v_pos;
+
+uniform vec2 bounds[4];
+
+void main() {
+	gl_Position = vec4(bounds[gl_VertexID], 0.0f, 1.0f);
+})";
+const std::string Effects::outline_f = R"(
+#version 400 core
+
+out vec4 out_color;
+
+uniform sampler2D depth;
+uniform vec3 color;
+uniform vec2 i_screen_size;
+
+void main() {
+
+    ivec2 coord = ivec2(gl_FragCoord.xy);
+	float o = 1.0f / texture(depth, coord * i_screen_size).r;
+
+	float diff = 0.0f;
+	for (int i = -2; i <= 2; i++) {
+		for (int j = -2; j <= 2; j++) {
+			float d = 1.0f / texture(depth, (coord + ivec2(i,j)) * i_screen_size).r;
+			diff = max(diff, abs(o - d));
+		}
+	}
+
+	float a = isinf(diff) ? 1.0f : 0.0f;
+	out_color = vec4(color * a, a);
+})";
+const std::string Effects::outline_ms_f = R"(
+#version 400 core
+
+out vec4 out_color;
+
+uniform sampler2DMS depth;
+uniform vec3 color;
+
+void main() {
+
+	ivec2 coord = ivec2(gl_FragCoord.xy);
+	float o = 1.0f / texelFetch(depth, coord, gl_SampleID).r;
+
+	float diff = 0.0f;
+	for (int i = -2; i <= 2; i++) {
+		for (int j = -2; j <= 2; j++) {
+			float d = 1.0f / texelFetch(depth, coord + ivec2(i,j), gl_SampleID).r;
+			diff = max(diff, abs(o - d));
+		}
+	}
+
+	float a = isinf(diff) ? 1.0f : 0.0f;
+	out_color = vec4(color * a, a);
+})";
+const std::string Effects::resolve_f = R"(
+#version 330 core
+
+out vec4 out_color;
+
+uniform sampler2DMS tex;
+uniform int samples;
+
+void main() {
+
+	ivec2 coord = ivec2(gl_FragCoord.xy);
+
+	vec3 color = vec3(0.0);
+
+	for (int i = 0; i < samples; i++)
+		color += texelFetch(tex, coord, i).xyz;
+
+	color /= float(samples);
+
+	out_color = vec4(color, 1.0f);
+})";
+
+namespace Shaders {
+	const std::string line_v = R"(
+#version 330 core
+
+layout (location = 0) in vec3 v_pos;
+layout (location = 1) in vec3 v_col;
+
+uniform mat4 viewproj;
+smooth out vec3 f_col;
+
+void main() {
+    gl_Position = viewproj * vec4(v_pos, 1.0f);
+    f_col = v_col;
+})";
+	const std::string line_f = R"(
+#version 330 core
+
+smooth in vec3 f_col;
+
+uniform float alpha;
+
+out vec4 out_col;
+
+void main() {
+	out_col = vec4(f_col, alpha);
+})"; 
+	const std::string mesh_v = R"(
+#version 330 core
+
+layout (location = 0) in vec3 v_pos;
+layout (location = 1) in vec3 v_norm;
+
+uniform float scale;
+uniform mat4 modelview, proj, normal;
+
+smooth out vec3 f_norm;
+
+void main() {
+    
+    f_norm = (normal * vec4(v_norm, 0.0f)).xyz;
+    gl_Position = proj * modelview * vec4(v_pos, 1.0f) + vec4(f_norm, 0.0f) * scale;
+})";
+	const std::string mesh_f = R"(
+#version 330 core
+
+uniform vec3 color;
+uniform bool solid;
+uniform int id;
+
+layout (location = 0) out vec4 out_col;
+layout (location = 1) out vec4 out_id;
+
+smooth in vec3 f_norm;
+
+void main() {
+
+	out_id = vec4((id & 0xff) / 255.0f, ((id >> 8) & 0xff) / 255.0f, ((id >> 16) & 0xff) / 255.0f, 1.0f);
+
+	if(solid) {
+		out_col = vec4(color, 1.0f);
+	} else {
+		float ndotl = max(normalize(f_norm).z, 0.0f);
+		float light = clamp(0.2f + ndotl, 0.0f, 1.0f);
+		out_col = vec4(light * color, 1.0f);
+	}
+})"; 
 }
 
 }

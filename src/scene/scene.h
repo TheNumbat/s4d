@@ -31,7 +31,6 @@ public:
 	void drag(Vec2 mouse);
 	void end_drag(Vec2 mouse);
 
-	void reload_shaders();
 	void show_settings();
 
 private:

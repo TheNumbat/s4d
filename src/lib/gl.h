@@ -107,7 +107,6 @@ public:
 	void operator=(Shader&& src);
 
 	void bind() const;
-	void reload();
 	void load(std::string vertex, std::string fragment);
 	
 	void uniform(std::string name, Mat4 mat) const;
@@ -122,7 +121,6 @@ private:
 	GLuint loc(std::string name) const;
 	static bool validate(GLuint program);
 
-	std::string v_file, f_file;
 	GLuint program = 0;
 	GLuint v = 0, f = 0;
 
@@ -178,8 +176,6 @@ public:
 
 	static void outline(const Framebuffer& from, const Framebuffer& to, Vec3 color, Vec2 min, Vec2 max);
 
-	static void reload();
-
 private:
 	static void init();
 	static void destroy();
@@ -195,6 +191,15 @@ private:
 
 	friend void setup();
 	friend void shutdown();
+
+	static const std::string effects_v;
+	static const std::string outline_f, outline_ms_f;
+	static const std::string resolve_f;
 };
+
+namespace Shaders {
+	extern const std::string line_v, line_f;
+	extern const std::string mesh_v, mesh_f;
+}
 
 }

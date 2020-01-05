@@ -515,12 +515,20 @@ void Scene::gui(float menu_height) {
 
 	float available_w = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 	float last_w = 0.0f, next_w = 0.0f;
+	
 	auto MaybeSameLineButton = [&](std::string label) -> bool {
 		last_w = ImGui::GetItemRectMax().x;
 		next_w = last_w + style.ItemSpacing.x + ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2;
 		if (next_w < available_w)
 			ImGui::SameLine();
 		return ImGui::Button(label.c_str());
+	};
+	auto StateButton = [&](Gui::Action action, std::string name, bool same = true) -> bool {
+		bool active = state.action == action;
+		if(active) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonActive));
+		bool clicked = same ? MaybeSameLineButton(name) : ImGui::Button(name.c_str());
+		if(active) ImGui::PopStyleColor();
+		return clicked;
 	};
 
 	if(ImGui::Button("Create Object")) {
@@ -599,11 +607,11 @@ void Scene::gui(float menu_height) {
 		fake_display(Gui::Action::scale, "Scale", obj.pose.scale, 0.03f);
 		
 		if(selected) {
-			if(ImGui::Button("Move"))
+			if(StateButton(Gui::Action::move, "Move", false))
 				state.action = Gui::Action::move;
-			if(MaybeSameLineButton("Rotate"))
+			if(StateButton(Gui::Action::rotate, "Rotate"))
 				state.action = Gui::Action::rotate;
-			if(MaybeSameLineButton("Scale"))
+			if(StateButton(Gui::Action::scale, "Scale"))
 				state.action = Gui::Action::scale;
 			if(MaybeSameLineButton("Delete"))
 				to_delete = entry.first;

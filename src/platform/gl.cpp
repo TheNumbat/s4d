@@ -1,6 +1,6 @@
 	
 #include "gl.h"
-#include "log.h"
+#include "../lib/log.h"
 
 #include <fstream>
 

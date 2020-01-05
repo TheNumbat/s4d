@@ -1,7 +1,7 @@
 
 #include "../lib/log.h"
-#include "../lib/gl.h"
 
+#include "gl.h"
 #include "platform.h"
 #include "font.h"
 

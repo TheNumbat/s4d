@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "../lib/gl.h"
+#include "../platform/gl.h"
 
 #include <string>
 

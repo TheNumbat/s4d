@@ -2,8 +2,8 @@
 #pragma once
 
 #include "../lib/math.h"
-#include "../lib/gl.h"
 #include "../lib/camera.h"
+#include "../platform/gl.h"
 
 #include "scene_object.h"
 

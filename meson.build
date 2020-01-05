@@ -8,15 +8,10 @@ project_dir = meson.current_source_dir()
 inc_dir 	= include_directories('deps')
 
 sources = [
-    'deps/imgui/imgui.cpp',
-    'deps/imgui/imgui_draw.cpp',
-    'deps/imgui/imgui_widgets.cpp',
-    'deps/imgui/imgui_impl_sdl.cpp',
-    'deps/imgui/imgui_impl_opengl3.cpp',
+    'deps/imgui/imgui_compile.cpp',
     'deps/glad/glad.cpp',
     'deps/misc/misc.cpp',
-    'src/lib/gl.cpp',
-    'src/lib/camera.cpp',
+    'src/platform/gl.cpp',
     'src/platform/platform.cpp',
     'src/app.cpp',
     'src/scene/scene.cpp',

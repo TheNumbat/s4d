@@ -2,7 +2,7 @@
 #pragma once
 
 #include "../lib/math.h"
-#include "../lib/gl.h"
+#include "../platform/gl.h"
 
 struct Pose {
 	Vec3 pos;

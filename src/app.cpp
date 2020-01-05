@@ -163,7 +163,8 @@ void App::render_gui() {
 	scene.gui(menu_height);
 
 	if(state.error_shown) {
-		ImGui::SetNextWindowPosCenter();
+		Vec2 center = plt.window_dim() / 2.0f;
+		ImGui::SetNextWindowPos(ImVec2{center.x, center.y}, 0, ImVec2{0.5f, 0.5f});
 		ImGui::Begin("Error", &state.error_shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize);
 		ImGui::Text("%s", state.error_msg.c_str());
 		if(ImGui::Button("Close")) {

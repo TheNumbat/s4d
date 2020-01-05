@@ -23,9 +23,11 @@ struct Quat {
 		z = _z;
 		w = _w;
 	}
-	Quat(Vec3 _complex, float _real) {
-		complex = _complex;
-		real = _real;
+	Quat(Vec3 complex, float real) {
+		x = complex.x;
+		y = complex.y;
+		z = complex.z;
+		w = real;
 	}
 	Quat(const Vec4& src) {
 		x = src.x;
@@ -89,6 +91,12 @@ struct Quat {
 	Quat inverse() const {
 		return conjugate().unit();
 	}
+	Vec3 complex() const {
+		return Vec3(x,y,z);
+	}
+	float real() const {
+		return w;
+	}
 	
 	float norm_squared() const {
 		return x * x + y * y + z * z + w * w;
@@ -124,7 +132,7 @@ struct Quat {
 
 	/// Apply rotation to given vector 
 	Vec3 rotate(Vec3 v) const {
-		return (((*this) * Quat(v, 0)) * conjugate()).complex;
+		return (((*this) * Quat(v, 0)) * conjugate()).complex();
 	}
 
 	/// Spherical linear interpolation between this and another quaternion weighted by t.
@@ -158,10 +166,6 @@ struct Quat {
 			float y;
 			float z;
 			float w;
-		};
-		struct {
-			Vec3 complex;
-			float real;
 		};
 		float data[4] = {};
 	};

@@ -565,7 +565,7 @@ void Scene::gui(float menu_height) {
 	if(objs.size() > 0)
 		ImGui::Separator();
 
-	int i = 0;
+	size_t i = 0;
 	Scene_Object::ID to_delete = 0;
 
 	for(auto& entry : objs) {

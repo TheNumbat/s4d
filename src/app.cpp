@@ -123,7 +123,7 @@ bool App::state_button(Mode mode, std::string name) {
 
 void App::render_gui() {
 
-	float menu_height;
+	float menu_height = 0.0f;
 	if(ImGui::BeginMainMenuBar()) {
 
 		if(ImGui::BeginMenu("File")) {

@@ -69,7 +69,7 @@ namespace Util {
 
 				int fv = shapes[s].mesh.num_face_vertices[f];
 
-				for (size_t v = 0; v < fv; v++) {
+				for (int v = 0; v < fv; v++) {
 					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
 
 					if(idx.normal_index == -1) {
@@ -149,11 +149,11 @@ namespace Util {
 		// https://wiki.unity3d.com/index.php/ProceduralPrimitives
 		std::vector<GL::Mesh::Vert> cone_verts(float bradius, float tradius, float height) {
 
-			const int n_sides = 18, n_cap = n_sides + 1;
+			const size_t n_sides = 18, n_cap = n_sides + 1;
 			const float _2pi = PI * 2.0f;
 
 			std::vector<Vec3> vertices(n_cap + n_cap + n_sides * 2 + 2);
-			int vert = 0;
+			size_t vert = 0;
 
 			vertices[vert++] = Vec3(0.0f, 0.0f, 0.0f);
 			while(vert <= n_sides) {
@@ -200,11 +200,11 @@ namespace Util {
 			normals[vert] = normals[n_sides * 2 + 2 ];
 			normals[vert + 1] = normals[n_sides * 2 + 3 ];
 			
-			int n_tris = n_sides + n_sides + n_sides * 2;
+			size_t n_tris = n_sides + n_sides + n_sides * 2;
 			std::vector<int> triangles(n_tris * 3 + 3);
 			
-			int tri = 0;
-			int i = 0;
+			size_t tri = 0;
+			size_t i = 0;
 			while (tri < n_sides - 1) {
 				triangles[i] = 0;
 				triangles[i + 1] = tri + 1;
@@ -293,7 +293,7 @@ namespace Util {
 			int n_idx = n_tris * 3;
 			std::vector<int> triangles(n_idx);
 			
-			int i = 0;
+			size_t i = 0;
 			for(int seg = 0; seg <= n_rad_sides; seg++) {
 				for(int side = 0; side <= n_sides - 1; side++) {
 

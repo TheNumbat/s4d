@@ -333,7 +333,6 @@ namespace Util {
 				int64_t greaterIndex = firstIsSmaller ? p2 : p1;
 				int64_t key = (smallerIndex << 32ll) + greaterIndex;
 				
-				size_t ret = 0;
 				auto entry = cache.find(key);
 				if (entry != cache.end()) {
 					return entry->second;
@@ -354,7 +353,6 @@ namespace Util {
 		
 			std::vector<Vec3> vertList;
 			std::map<int64_t, size_t> middlePointIndexCache;
-			int index = 0;
 			float t = (1.0f + std::sqrt(5.0f)) / 2.0f;
 			vertList.push_back(Vec3(-1.0f,  t, 0.0f).unit() * radius);
 			vertList.push_back(Vec3( 1.0f,  t, 0.0f).unit() * radius);

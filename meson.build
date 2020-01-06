@@ -25,7 +25,7 @@ nfd_dir = join_paths(project_dir, 'deps/nfd')
 deps += cc.find_library('nfd', dirs : nfd_dir)
 
 if host_system == 'windows'
-    
+
     assert(cc.get_id() == 'msvc', 'Use the Visual Studio compiler on Windows.')
     if get_option('buildtype') == 'debug'
         link += ['/NODEFAULTLIB:MSVCRT']

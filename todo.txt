@@ -2,7 +2,7 @@
 Scotty4D
 
     UI:
-        DPI/file IO testing on linux/mac
+        build/DPI/file IO on mac
         rendering widgets at constant screen sizes
 
     // BASE

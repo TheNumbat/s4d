@@ -107,10 +107,10 @@ void Scene::Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Sha
 	line.uniform("alpha", 0.5f);
 	widget_lines.render();
 
-	if(dragging) return;
-
 	mesh.bind();
 	if(action == Gui::Action::move) {
+
+		if(dragging) return;
 
 		x_trans.pose.scale = scale;
 		x_trans.pose.pos = pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
@@ -140,19 +140,25 @@ void Scene::Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Sha
 	
 	} else if(action == Gui::Action::rotate) {
 
-		x_rot.pose.scale = scale;
-		x_rot.pose.pos = pose.pos;
-		x_rot.render(view, mesh, true);
-
-		y_rot.pose.scale = scale;
-		y_rot.pose.pos = pose.pos;
-		y_rot.render(view, mesh, true);
-
-		z_rot.pose.scale = scale;
-		z_rot.pose.pos = pose.pos;
-		z_rot.render(view, mesh, true);
+		if(!dragging || axis == Axis::X) {
+			x_rot.pose.scale = scale;
+			x_rot.pose.pos = pose.pos;
+			x_rot.render(view, mesh, true);
+		}
+		if(!dragging || axis == Axis::Y) {
+			y_rot.pose.scale = scale;
+			y_rot.pose.pos = pose.pos;
+			y_rot.render(view, mesh, true);
+		}
+		if(!dragging || axis == Axis::Z) {
+			z_rot.pose.scale = scale;
+			z_rot.pose.pos = pose.pos;
+			z_rot.render(view, mesh, true);
+		}
 
 	} else if(action == Gui::Action::scale) {
+
+		if(dragging) return;
 
 		x_scale.pose.scale = scale;
 		x_scale.pose.pos = pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
@@ -447,7 +453,7 @@ bool Scene::select(Vec2 mouse) {
 				state.drag_start = (hit - obj.pose.pos).unit();
 				state.drag_end = {0.0f};
 			}
-			return state.dragging;
+			return state.selected;
 		}
 
 		bool good;
@@ -459,12 +465,12 @@ bool Scene::select(Vec2 mouse) {
 		if(state.action == Gui::Action::move) {
 			
 			state.drag_start = state.drag_end = hit;
-			state.generate_widget_lines(obj);
 
 		} else {
 			state.drag_start = hit;
 			state.drag_end = {1.0f};
 		}
+		state.generate_widget_lines(obj);
 	}
 	return state.selected;
 }

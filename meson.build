@@ -22,7 +22,6 @@ sources = [
 link = []
 deps = []
 nfd_dir = join_paths(project_dir, 'deps/nfd')
-deps += cc.find_library('nfd', dirs : nfd_dir)
 
 if host_system == 'windows'
 
@@ -37,6 +36,7 @@ if host_system == 'windows'
     sdl_dir = join_paths(project_dir, 'deps/win/SDL2')
     deps += cc.find_library('SDL2-static', dirs : sdl_dir)
     deps += cc.find_library('SDL2main', dirs : sdl_dir)
+    deps += cc.find_library('nfd', dirs : nfd_dir)
 
 elif host_system == 'linux'
 
@@ -44,6 +44,7 @@ elif host_system == 'linux'
 
     deps += dependency('sdl2')
     deps += dependency('gtk+-3.0')
+    deps += cc.find_library('nfd_l', dirs : nfd_dir)
     link += ['-ldl', '-pthread']
 
 endif

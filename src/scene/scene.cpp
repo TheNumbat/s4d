@@ -107,6 +107,8 @@ void Scene::Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Sha
 	line.uniform("alpha", 0.5f);
 	widget_lines.render();
 
+	if(dragging) return;
+
 	mesh.bind();
 	if(action == Gui::Action::move) {
 

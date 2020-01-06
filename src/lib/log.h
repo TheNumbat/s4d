@@ -45,14 +45,8 @@ inline std::string last_file(std::string path) {
 #error Unsupported compiler.
 #endif
 
-#ifdef _WIN32
 #define fail_assert(msg, file, line) (void)( \
 	log("\033[1;31m%s:%u [ASSERT] " msg "\033[0m\n", file, line), DEBUG_BREAK, std::exit(__LINE__), 0)
-#elif defined(__linux__)
-#include <signal.h>
-#define fail_assert(msg, file, line) (void)( \
-	log("\033[1;31m%s:%u [ASSERT] " msg "\033[0m\n", file, line), raise(SIGTRAP), std::exit(__LINE__), 0)
-#endif
 
 #undef assert
 #define assert(expr) (void)( \

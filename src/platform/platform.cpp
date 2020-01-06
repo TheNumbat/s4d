@@ -28,12 +28,7 @@ Platform::~Platform() {
 
 float Platform::dpi_scale() {
 
-	const float sys =
-#ifdef __APPLE__
-		72.0f;
-#else
-		96.0f;
-#endif
+	const float sys = 96.0f;
 
 	float hdpi;
 	int index = SDL_GetWindowDisplayIndex(window);
@@ -43,6 +38,8 @@ float Platform::dpi_scale() {
 	if(SDL_GetDisplayDPI(index, nullptr, &hdpi, nullptr)) {
 		return 1.0f;
 	}
+
+	info("dpi: %f", hdpi / sys);
 	
 	return hdpi / sys;
 }

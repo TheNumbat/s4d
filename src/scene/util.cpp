@@ -41,6 +41,10 @@ namespace Util {
 		return GL::Mesh(Detail::square_verts(r));
 	}
 
+	GL::Mesh sphere_mesh(float r) {
+		return GL::Mesh(Detail::ico_sphere_verts(r, 3));
+	}
+
 	std::string obj_mesh(std::string obj_file, GL::Mesh& mesh) {
 
 		tinyobj::attrib_t attrib;
@@ -314,6 +318,109 @@ namespace Util {
 			std::vector<GL::Mesh::Vert> verts;
 			for(int i : triangles) {
 				verts.push_back({vertices[i], normals[i]});
+			}
+			return verts;
+		}
+
+		std::vector<GL::Mesh::Vert> ico_sphere_verts(float radius, int level) {
+			struct TriIdx {
+				int v1, v2, v3;
+			};
+		
+			auto middle_point = [&](int p1, int p2, std::vector<Vec3>& vertices, std::map<int64_t, size_t>& cache, float radius) -> size_t {
+				bool firstIsSmaller = p1 < p2;
+				int64_t smallerIndex = firstIsSmaller ? p1 : p2;
+				int64_t greaterIndex = firstIsSmaller ? p2 : p1;
+				int64_t key = (smallerIndex << 32ll) + greaterIndex;
+				
+				size_t ret = 0;
+				auto entry = cache.find(key);
+				if (entry != cache.end()) {
+					return entry->second;
+				}
+		
+				Vec3 point1 = vertices[p1];
+				Vec3 point2 = vertices[p2];
+				Vec3 middle (
+					(point1.x + point2.x) / 2.0f, 
+					(point1.y + point2.y) / 2.0f, 
+					(point1.z + point2.z) / 2.0f
+				);
+				size_t i = vertices.size();
+				vertices.push_back(middle.unit() * radius); 
+				cache[key] = i;
+				return i;
+			};
+		
+			std::vector<Vec3> vertList;
+			std::map<int64_t, size_t> middlePointIndexCache;
+			int index = 0;
+			float t = (1.0f + std::sqrt(5.0f)) / 2.0f;
+			vertList.push_back(Vec3(-1.0f,  t, 0.0f).unit() * radius);
+			vertList.push_back(Vec3( 1.0f,  t, 0.0f).unit() * radius);
+			vertList.push_back(Vec3(-1.0f, -t, 0.0f).unit() * radius);
+			vertList.push_back(Vec3( 1.0f, -t, 0.0f).unit() * radius);
+			vertList.push_back(Vec3(0.0f, -1.0f,  t).unit() * radius);
+			vertList.push_back(Vec3(0.0f,  1.0f,  t).unit() * radius);
+			vertList.push_back(Vec3(0.0f, -1.0f, -t).unit() * radius);
+			vertList.push_back(Vec3(0.0f,  1.0f, -t).unit() * radius);
+			vertList.push_back(Vec3( t, 0.0f, -1.0f).unit() * radius);
+			vertList.push_back(Vec3( t, 0.0f,  1.0f).unit() * radius);
+			vertList.push_back(Vec3(-t, 0.0f, -1.0f).unit() * radius);
+			vertList.push_back(Vec3(-t, 0.0f,  1.0f).unit() * radius);
+	
+			std::vector<TriIdx> faces;
+			faces.push_back(TriIdx{0, 11, 5});
+			faces.push_back(TriIdx{0, 5, 1});
+			faces.push_back(TriIdx{0, 1, 7});
+			faces.push_back(TriIdx{0, 7, 10});
+			faces.push_back(TriIdx{0, 10, 11});
+			faces.push_back(TriIdx{1, 5, 9});
+			faces.push_back(TriIdx{5, 11, 4});
+			faces.push_back(TriIdx{11, 10, 2});
+			faces.push_back(TriIdx{10, 7, 6});
+			faces.push_back(TriIdx{7, 1, 8});
+			faces.push_back(TriIdx{3, 9, 4});
+			faces.push_back(TriIdx{3, 4, 2});
+			faces.push_back(TriIdx{3, 2, 6});
+			faces.push_back(TriIdx{3, 6, 8});
+			faces.push_back(TriIdx{3, 8, 9});
+			faces.push_back(TriIdx{4, 9, 5});
+			faces.push_back(TriIdx{2, 4, 11});
+			faces.push_back(TriIdx{6, 2, 10});
+			faces.push_back(TriIdx{8, 6, 7});
+			faces.push_back(TriIdx{9, 8, 1});
+	
+			for(int i = 0; i < level; i++) {
+				std::vector<TriIdx> faces2;
+				for(auto tri : faces) {
+					int a = middle_point(tri.v1, tri.v2, vertList, middlePointIndexCache, radius);
+					int b = middle_point(tri.v2, tri.v3, vertList, middlePointIndexCache, radius);
+					int c = middle_point(tri.v3, tri.v1, vertList, middlePointIndexCache, radius);
+					faces2.push_back(TriIdx{tri.v1, a, c});
+					faces2.push_back(TriIdx{tri.v2, b, a});
+					faces2.push_back(TriIdx{tri.v3, c, b});
+					faces2.push_back(TriIdx{a, b, c});
+				}
+				faces = faces2;
+			}
+	
+			std::vector<int> triList;
+			for(size_t i = 0; i < faces.size(); i++ ) {
+				triList.push_back(faces[i].v1);
+				triList.push_back(faces[i].v2);
+				triList.push_back(faces[i].v3);
+			}		
+	
+			std::vector<Vec3> normals(vertList.size());
+			for(size_t i = 0; i < normals.size(); i++)
+				normals[i] = vertList[i].unit();
+	
+			std::vector<GL::Mesh::Vert> verts;
+			for(TriIdx t : faces) {
+				verts.push_back({vertList[t.v1], normals[t.v1]});
+				verts.push_back({vertList[t.v2], normals[t.v2]});
+				verts.push_back({vertList[t.v3], normals[t.v3]});
 			}
 			return verts;
 		}

@@ -4,7 +4,6 @@ Scotty4D
     UI:
         DPI/file IO testing on linux/mac
         rendering widgets at constant screen sizes
-        real screen space bounding box for objects intersecting the near plane
 
     // BASE
 
@@ -15,7 +14,6 @@ Scotty4D
         glTF 2
 
     more features
-        more basic shapes
         mesh preview | render to texture at default pos and keep
         scene graph?
         changing the origin of a mesh

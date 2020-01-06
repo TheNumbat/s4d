@@ -551,6 +551,11 @@ void Scene::gui(float menu_height) {
 			ImGui::CloseCurrentPopup();
 		}
 
+		if(ImGui::Button("Sphere")) {
+			add_object(Scene_Object(next_id++, {}, Util::sphere_mesh(1.0f)));
+			ImGui::CloseCurrentPopup();
+		}
+
 		ImGui::EndPopup();
 	}
 

@@ -2,7 +2,6 @@
 Scotty4D
 
     UI:
-        build/DPI/file IO on mac
         rendering widgets at constant screen sizes
 
     // BASE

@@ -206,17 +206,13 @@ Vec2 Platform::get_mouse() {
 }
 
 void Platform::capture_mouse() {
-#ifdef _WIN32
 	SDL_CaptureMouse(SDL_TRUE);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
-#endif
 }
 
 void Platform::release_mouse() {
-#ifdef _WIN32
 	SDL_CaptureMouse(SDL_FALSE);
 	SDL_SetRelativeMouseMode(SDL_FALSE);
-#endif
 }
 
 void Platform::set_mouse(Vec2 pos) {

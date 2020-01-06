@@ -38,8 +38,6 @@ float Platform::dpi_scale() {
 	if(SDL_GetDisplayDPI(index, nullptr, &hdpi, nullptr)) {
 		return 1.0f;
 	}
-
-	info("dpi: %f", hdpi / sys);
 	
 	return hdpi / sys;
 }

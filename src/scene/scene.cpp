@@ -466,7 +466,7 @@ bool Scene::select(Vec2 mouse) {
 			state.drag_end = {1.0f};
 		}
 	}
-	return state.dragging;
+	return state.selected;
 }
 
 void Scene::add_object(Scene_Object&& obj) {

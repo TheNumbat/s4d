@@ -1,7 +1,7 @@
 
 project('s4d', 'cpp', default_options : ['cpp_std=c++17'])
 
-cc 	    = meson.get_compiler('cpp')
+cc 	        = meson.get_compiler('cpp')
 host_system = host_machine.system()
 
 project_dir = meson.current_source_dir()
@@ -49,12 +49,11 @@ elif host_system == 'linux'
 
 elif host_system == 'darwin'
 
-    assert(cc.get_id()== 'clang', 'Use clang on mac.')
+    assert(cc.get_id() == 'clang', 'Use clang on mac.')
 
     deps += dependency('sdl2')
     deps += dependency('gtk+-3.0')
     deps += cc.find_library('nfd_m', dirs : nfd_dir)
-    link += ['-ldl', '-pthread']
 
 else
     assert(false, 'Only windows/linux/mac supported.')

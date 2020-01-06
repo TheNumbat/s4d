@@ -51,19 +51,22 @@ void App::event(SDL_Event e) {
 
 	case SDL_MOUSEBUTTONDOWN: {
 
+		if(IO.WantCaptureMouse) break;
+
 		if(e.button.button == SDL_BUTTON_LEFT) {
-			if(!IO.WantCaptureMouse && scene.select(Vec2(e.button.x, e.button.y))) {
+			if(scene.select(Vec2(e.button.x, e.button.y))) {
 				state.cam_mode = Camera_Control::none;
 				state.scene_captured = true;
 				plt.grab_mouse();
-			}
-		} else if(state.cam_mode == Camera_Control::none) {
-			if(e.button.button == SDL_BUTTON_RIGHT) {
-				state.cam_mode = Camera_Control::orbit;
-			} else if(e.button.button == SDL_BUTTON_MIDDLE) {
+			} else if(state.cam_mode == Camera_Control::none) {
 				state.cam_mode = Camera_Control::move;
+				plt.capture_mouse();
 			}
-			plt.capture_mouse();
+		} else if(e.button.button == SDL_BUTTON_RIGHT) {
+			if(state.cam_mode == Camera_Control::none) {
+				state.cam_mode = Camera_Control::orbit;
+				plt.capture_mouse();
+			}
 		}
 
 		state.last_mouse.x = (float)e.button.x;
@@ -78,12 +81,12 @@ void App::event(SDL_Event e) {
 				scene.end_drag(state.last_mouse);
 				state.scene_captured = false;
 				plt.ungrab_mouse();
+				break;
 			}
-			break;
 		}
 
 		if((e.button.button == SDL_BUTTON_RIGHT && state.cam_mode == Camera_Control::orbit) ||
-		   (e.button.button == SDL_BUTTON_MIDDLE && state.cam_mode == Camera_Control::move)) {
+		   (e.button.button == SDL_BUTTON_LEFT && state.cam_mode == Camera_Control::move)) {
 			state.cam_mode = Camera_Control::none;
 			plt.release_mouse();
 			plt.set_mouse(state.last_mouse);

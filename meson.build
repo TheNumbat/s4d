@@ -21,7 +21,12 @@ sources = [
 
 link = []
 deps = []
+args = []
 nfd_dir = join_paths(project_dir, 'deps/nfd')
+
+if get_option('no_mouse_capture')
+	args += '-DNO_MOUSE_CAPTURE'
+endif
 
 if host_system == 'windows'
 
@@ -63,5 +68,6 @@ executable('s4d', sources,
     dependencies : deps,
     include_directories : inc_dir, 
     link_args : link,
+    cpp_args : args,
     gui_app : true)
 

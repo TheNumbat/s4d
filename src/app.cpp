@@ -60,12 +60,16 @@ void App::event(SDL_Event e) {
 				plt.grab_mouse();
 			} else if(state.cam_mode == Camera_Control::none) {
 				state.cam_mode = Camera_Control::move;
+#ifndef NO_MOUSE_CAPTURE			
 				plt.capture_mouse();
+#endif
 			}
 		} else if(e.button.button == SDL_BUTTON_RIGHT) {
 			if(state.cam_mode == Camera_Control::none) {
 				state.cam_mode = Camera_Control::orbit;
+#ifndef NO_MOUSE_CAPTURE			
 				plt.capture_mouse();
+#endif
 			}
 		}
 
@@ -88,8 +92,10 @@ void App::event(SDL_Event e) {
 		if((e.button.button == SDL_BUTTON_RIGHT && state.cam_mode == Camera_Control::orbit) ||
 		   (e.button.button == SDL_BUTTON_LEFT && state.cam_mode == Camera_Control::move)) {
 			state.cam_mode = Camera_Control::none;
+#ifndef NO_MOUSE_CAPTURE			
 			plt.release_mouse();
 			plt.set_mouse(state.last_mouse);
+#endif
 		}
 
 	} break;

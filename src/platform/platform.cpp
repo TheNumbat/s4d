@@ -38,11 +38,9 @@ float Platform::dpi_scale() {
 	float hdpi;
 	int index = SDL_GetWindowDisplayIndex(window);
 	if(index < 0) {
-		warn("Failed to get window display index: %s", SDL_GetError());
 		return 1.0f;
 	}
 	if(SDL_GetDisplayDPI(index, nullptr, &hdpi, nullptr)) {
-		warn("Failed to get display DPI: %s", SDL_GetError());
 		return 1.0f;
 	}
 	
@@ -76,7 +74,14 @@ void Platform::platform_init() {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 	gl_context = SDL_GL_CreateContext(window);
 	if(!gl_context) {
-		die("Failed to create OpenGL 4.5 context: %s", SDL_GetError());
+		warn("Failed to create OpenGL 4.5 context: %s", SDL_GetError());
+		
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		gl_context = SDL_GL_CreateContext(window);
+		if(!gl_context) {
+			die("Failed to create Opengl 3.3 context: %s", SDL_GetError());
+		}
 	}
 
 	SDL_GL_MakeCurrent(window, gl_context);

@@ -9,13 +9,15 @@ namespace GL {
 static void setup_debug_proc();
 static void check_leaked_handles();
 static bool is_nvidia = false;
+static bool has_gl_45 = false;
 
 void setup() {
-	setup_debug_proc();
-	Effects::init();
-	
 	std::string ver = version();
 	is_nvidia = ver.find("NVIDIA") != std::string::npos;
+	has_gl_45 = ver.find("4.5") != std::string::npos;
+
+	if(has_gl_45) setup_debug_proc();
+	Effects::init();
 }
 
 void shutdown() {
@@ -44,8 +46,8 @@ void global_params() {
 	glPolygonOffset(1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_GREATER);
-	glClearDepthf(0.0f);
-	glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+	glClearDepth(0.0);
+	if(has_gl_45) glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 }
@@ -545,7 +547,7 @@ void Effects::init() {
 	glGenVertexArrays(1, &vao);
 	resolve_shader.load(effects_v, resolve_f);
 	outline_shader.load(effects_v, outline_f);
-	outline_shader_ms.load(effects_v, outline_ms_f);
+	outline_shader_ms.load(effects_v, has_gl_45 ? outline_ms_f_45 : outline_ms_f_33);
 }
 
 void Effects::destroy() {
@@ -750,7 +752,7 @@ void main() {
 	gl_Position = vec4(bounds[gl_VertexID], 0.0f, 1.0f);
 })";
 const std::string Effects::outline_f = R"(
-#version 400 core
+#version 330 core
 
 out vec4 out_color;
 
@@ -760,7 +762,7 @@ uniform vec2 i_screen_size;
 
 void main() {
 
-    ivec2 coord = ivec2(gl_FragCoord.xy);
+	ivec2 coord = ivec2(gl_FragCoord.xy);
 	float o = 1.0f / texture(depth, coord * i_screen_size).r;
 
 	float diff = 0.0f;
@@ -774,7 +776,7 @@ void main() {
 	float a = isinf(diff) ? 1.0f : 0.0f;
 	out_color = vec4(color * a, a);
 })";
-const std::string Effects::outline_ms_f = R"(
+const std::string Effects::outline_ms_f_45 = R"(
 #version 400 core
 
 out vec4 out_color;
@@ -791,6 +793,30 @@ void main() {
 	for (int i = -2; i <= 2; i++) {
 		for (int j = -2; j <= 2; j++) {
 			float d = 1.0f / texelFetch(depth, coord + ivec2(i,j), gl_SampleID).r;
+			diff = max(diff, abs(o - d));
+		}
+	}
+
+	float a = isinf(diff) ? 1.0f : 0.0f;
+	out_color = vec4(color * a, a);
+})";
+const std::string Effects::outline_ms_f_33 = R"(
+#version 330 core
+
+out vec4 out_color;
+
+uniform sampler2DMS depth;
+uniform vec3 color;
+
+void main() {
+
+	ivec2 coord = ivec2(gl_FragCoord.xy);
+	float o = 1.0f / texelFetch(depth, coord, 0).r;
+
+	float diff = 0.0f;
+	for (int i = -2; i <= 2; i++) {
+		for (int j = -2; j <= 2; j++) {
+			float d = 1.0f / texelFetch(depth, coord + ivec2(i,j), 0).r;
 			diff = max(diff, abs(o - d));
 		}
 	}
@@ -831,8 +857,8 @@ uniform mat4 viewproj;
 smooth out vec3 f_col;
 
 void main() {
-    gl_Position = viewproj * vec4(v_pos, 1.0f);
-    f_col = v_col;
+	gl_Position = viewproj * vec4(v_pos, 1.0f);
+	f_col = v_col;
 })";
 	const std::string line_f = R"(
 #version 330 core
@@ -858,9 +884,9 @@ uniform mat4 modelview, proj, normal;
 smooth out vec3 f_norm;
 
 void main() {
-    
-    f_norm = (normal * vec4(v_norm, 0.0f)).xyz;
-    gl_Position = proj * modelview * vec4(v_pos, 1.0f) + vec4(f_norm, 0.0f) * scale;
+	
+	f_norm = (normal * vec4(v_norm, 0.0f)).xyz;
+	gl_Position = proj * modelview * vec4(v_pos, 1.0f) + vec4(f_norm, 0.0f) * scale;
 })";
 	const std::string mesh_f = R"(
 #version 330 core
@@ -886,6 +912,6 @@ void main() {
 		out_col = vec4(light * color, 1.0f);
 	}
 })"; 
-}
 
+}
 }

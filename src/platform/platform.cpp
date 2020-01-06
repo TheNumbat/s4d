@@ -112,6 +112,7 @@ void Platform::set_dpi() {
 	ImGuiIO& IO = ImGui::GetIO();
 	ImFontConfig config;
 	config.FontDataOwnedByAtlas = false;
+	IO.IniFilename = nullptr;
 	IO.Fonts->Clear();
 	IO.Fonts->AddFontFromMemoryTTF(font_ttf, font_ttf_len, 16.0f * scale, &config);
 	IO.Fonts->Build();

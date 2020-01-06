@@ -9,7 +9,7 @@
 inline std::mutex printf_lock;
 
 inline void log(std::string fmt, ...) {
-	std::lock_guard lock(printf_lock);
+	std::lock_guard<std::mutex> lock(printf_lock);
 	va_list args;
 	va_start(args, fmt);
 	vprintf(fmt.c_str(), args);
@@ -35,9 +35,19 @@ inline std::string last_file(std::string path) {
 	log("\033[0;31m%s:%u [fatal] " fmt "\033[0m\n", last_file(__FILE__).c_str(), __LINE__, ##__VA_ARGS__), \
 	std::exit(__LINE__));
 
+#ifdef _MSC_VER
+#define DEBUG_BREAK __debugbreak()
+#elif defined(__GNUC__)
+#define DEBUG_BREAK __builtin_trap()
+#elif defined(__clang__)
+#define DEBUG_BREAK __builtin_debugtrap()
+#else
+#error Unsupported compiler.
+#endif
+
 #ifdef _WIN32
 #define fail_assert(msg, file, line) (void)( \
-	log("\033[1;31m%s:%u [ASSERT] " msg "\033[0m\n", file, line), __debugbreak(), std::exit(__LINE__), 0)
+	log("\033[1;31m%s:%u [ASSERT] " msg "\033[0m\n", file, line), DEBUG_BREAK, std::exit(__LINE__), 0)
 #elif defined(__linux__)
 #include <signal.h>
 #define fail_assert(msg, file, line) (void)( \

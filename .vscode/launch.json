@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "debug",
+            "name": "Launch",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}\\build\\s4d.exe",
@@ -14,7 +14,7 @@
             "cwd": "${workspaceFolder}\\data",
             "environment": [],
             "externalConsole": false,
-            "preLaunchTask": "build"
+            "preLaunchTask": "Build"
         }
     ]
 }

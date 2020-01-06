@@ -20,35 +20,37 @@ sources = [
     'src/main.cpp']
 
 link = []
-args = []
 deps = []
 nfd_dir = join_paths(project_dir, 'deps/nfd')
 deps += cc.find_library('nfd', dirs : nfd_dir)
 
 if host_system == 'windows'
     
-    link += ['../src/platform/icon.res', 'Shcore.lib']
-    args += ['-fp:fast', '-wd4201', '-wd4702']
+    assert(cc.get_id() == 'msvc', 'Use the Visual Studio compiler on Windows.')
+    if get_option('buildtype') == 'debug'
+        link += ['/NODEFAULTLIB:MSVCRT']
+    endif
+
+    link += ['../src/platform/icon.res', 'Shcore.lib', 'Winmm.lib', 'Version.lib', 'Setupapi.lib']
 
     inc_dir = include_directories('deps', 'deps/win')
-    sdl_dir = join_paths(project_dir, 'deps/win/SDL2/lib')
-    deps += cc.find_library('SDL2', dirs : sdl_dir)
+    sdl_dir = join_paths(project_dir, 'deps/win/SDL2')
+    deps += cc.find_library('SDL2-static', dirs : sdl_dir)
     deps += cc.find_library('SDL2main', dirs : sdl_dir)
-    configure_file(input: 'deps/win/SDL2/lib/SDL2.dll', output: 'SDL2.dll', copy : true)
 
 elif host_system == 'linux'
+
+    assert(cc.get_id() == 'gcc' or cc.get_id() == 'clang', 'Use clang or GCC on linux.')
 
     deps += dependency('sdl2')
     deps += dependency('gtk+-3.0')
     link += ['-ldl', '-pthread']
-    args += ['-ffast-math']
 
 endif
 
 executable('s4d', sources,
     dependencies : deps,
     include_directories : inc_dir, 
-    cpp_args : args,
     link_args : link,
     gui_app : true)
 

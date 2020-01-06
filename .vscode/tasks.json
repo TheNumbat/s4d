@@ -5,11 +5,13 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "build",
+            "label": "Build",
             "command": "ninja -C ${workspaceFolder}\\build",
             "args": [],
             "problemMatcher": [
-                "$msCompile"
+                "$msCompile",
+                "$gcc",
+                "$clang"
             ],
             "group": {
                 "kind": "build",
@@ -18,11 +20,13 @@
         },
         {
             "type": "shell",
-            "label": "generate opt",
+            "label": "Set Optimized",
             "command": "rm -rf ${workspaceFolder}\\build && meson ${workspaceFolder}\\build -Dbuildtype=debugoptimized",
             "args": [],
             "problemMatcher": [
-                "$msCompile"
+                "$msCompile",
+                "$gcc",
+                "$clang"
             ],
             "group": {
                 "kind": "build",
@@ -31,11 +35,13 @@
         },
         {
             "type": "shell",
-            "label": "generate dbg",
+            "label": "Set Debug",
             "command": "rm -rf ${workspaceFolder}\\build && meson ${workspaceFolder}\\build -Dbuildtype=debug",
             "args": [],
             "problemMatcher": [
-                "$msCompile"
+                "$msCompile",
+                "$gcc",
+                "$clang"
             ],
             "group": {
                 "kind": "build",

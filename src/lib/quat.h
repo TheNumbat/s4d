@@ -141,8 +141,8 @@ struct Quat {
 									  z*q.z + w*q.w, 
 									  -1.0, 1.0));
 		
-		if(std::abs(omega) < 1e-10) {
-			omega = 1e-10;
+		if(std::abs(omega) < 16.0f * FLT_EPSILON) {
+			omega = 16.0f * FLT_EPSILON;
 		}
 		float som = std::sin(omega);
 		float st0 = std::sin((1-t) * omega) / som;

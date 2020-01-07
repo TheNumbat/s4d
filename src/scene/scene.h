@@ -2,109 +2,78 @@
 #pragma once
 
 #include "../lib/math.h"
-#include "../lib/camera.h"
 #include "../platform/gl.h"
 
-#include "scene_object.h"
-
 #include <map>
-#include <SDL2/SDL.h>
+#include <optional>
+#include <functional>
 
-class App;
-class Scene {
-public:
-	Scene(Vec2 window_dim, App& app);
-	~Scene();
+struct Pose {
+	Vec3 pos;
+	Vec3 euler;
+	Vec3 scale = {1.0f};
 
-	void render();
-	void gui(float menu_height);
+	Mat4 transform() const;
+	Mat4 rotation_mat() const;
+	Quat rotation_quat() const;
 
-	void apply_window_dim(Vec2 new_dim);
-	void add_object(Scene_Object&& obj);
+	void clamp_euler();
+	bool valid() const;
 
-	void key_down(SDL_Keycode key);
-	void camera_orbit(Vec2 dmouse);
-	void camera_move(Vec2 dmouse);
-	void camera_radius(float dmouse);
-	
-	bool select(Vec2 mouse);
-	void drag(Vec2 mouse);
-	void end_drag(Vec2 mouse);
-
-	void show_settings();
-
-private:
-	App& app;
-
-	// Camera 
-	Camera camera;
-	Mat4 view, proj, viewproj, iviewproj;
-	
-	// GL data
-	static const int default_samples = 4;
-	int samples = default_samples;
-	GL::Shader mesh_shader, line_shader;
-	GL::Framebuffer framebuffer, id_resolve;
-	
-	// Baseplane
-	void create_baseplane();
-	GL::Lines baseplane;
-	
-	// Picking
-	Scene_Object::ID read_id(Vec2 pos);
-	unsigned char* id_buffer = nullptr;
-
-	// GUI
-	struct Gui {
-		Gui();
-		void render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& mesh, const Pose& pose, float scale);
-
-		enum class Axis {
-			X, Y, Z
-		};
-		enum class Action {
-			move, rotate, scale
-		};
-		enum class Basic : Scene_Object::ID {
-			none,
-			x_trans, y_trans, z_trans,
-			xy_trans, yz_trans, xz_trans,
-			x_rot, y_rot, z_rot,
-			x_scale, y_scale, z_scale,
-			count
-		};
-		Vec2 window_dim;
-		bool settings_open = false;
-		
-		bool dragging = false, plane = false;
-		Vec3 drag_start, drag_end;
-		Axis axis = Axis::X;
-		Action action = Action::move;
-		Scene_Object::ID selected = (Scene_Object::ID)Basic::none;
-		
-		GL::Lines widget_lines;
-		void generate_widget_lines(const Scene_Object& obj);
-
-		Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot, x_scale, z_scale, y_scale, xy_trans, yz_trans, xz_trans;
-
-		// NOTE(max): copied from blender
-		static inline const Vec3 outline = Vec3(242.0f / 255.0f, 153.0f / 255.0f, 41.0f / 255.0f);
-		static inline const Vec3 baseplane = Vec3(71.0f / 255.0f);
-		static inline const Vec3 background = Vec3(58.0f / 255.0f);
-		static inline const Vec3 red = Vec3(163.0f / 255.0f, 66.0f / 255.0f, 81.0f / 255.0f);
-		static inline const Vec3 green = Vec3(124.0f / 255.0f, 172.0f / 255.0f, 40.0f / 255.0f);
-		static inline const Vec3 blue = Vec3(64.0f / 255.0f, 127.0f / 255.0f, 193.0f / 255.0f);
-		Vec3 axis_color(Axis a);
-	};
-	Gui state;
-	Vec3 apply_action(const Scene_Object& obj);
-	void render_selected(Scene_Object& obj);
-	Vec3 screen_to_world(Vec2 mouse);
-	bool screen_to_axis(const Scene_Object& obj, Vec2 mouse, Vec3& hit);
-	bool screen_to_plane(const Scene_Object& obj, Vec2 mouse, Vec3& hit);
-
-	// User Objects
-	std::map<Scene_Object::ID, Scene_Object> objs;
-	Scene_Object::ID next_id = (Scene_Object::ID)Gui::Basic::count;
+	static Pose rotated(Vec3 angles);
+	static Pose moved(Vec3 t);
+	static Pose scaled(Vec3 s);
 };
 
+class Scene_Object {
+public:
+	typedef int ID;
+
+	Scene_Object();
+	Scene_Object(ID id, Pose pose, GL::Mesh&& mesh, Vec3 color = {0.7f, 0.7f, 0.7f});
+	Scene_Object(const Scene_Object& src) = delete;
+	Scene_Object(Scene_Object&& src);
+	~Scene_Object();
+
+	void operator=(const Scene_Object& src) = delete;
+	void operator=(Scene_Object&& src);
+
+	void render(Mat4 view, const GL::Shader& shader, bool solid = false, bool depth_only = false) const;
+
+	ID id() const {return _id;}
+	BBox bbox() const;
+	
+	struct Options {
+		std::string name;
+		bool wireframe = false;
+	};
+	Options opt;
+	Pose pose;
+
+private:
+	static const int max_name_len = 256;
+
+	Vec3 color;
+	ID _id = 0;
+	GL::Mesh mesh;
+};
+
+class Scene {
+public:
+    Scene(Scene_Object::ID start);
+    ~Scene();
+
+    bool empty();
+    size_t size();
+    void add(Pose pose, GL::Mesh&& mesh);
+    void erase(Scene_Object::ID id);
+
+    void render_objs(Mat4 view, const GL::Shader& shader, Scene_Object::ID selected);
+    void for_objs(std::function<void(Scene_Object&)> func);
+
+    std::optional<std::reference_wrapper<Scene_Object>> get(Scene_Object::ID id);
+
+private:
+	std::map<Scene_Object::ID, Scene_Object> objs;
+	Scene_Object::ID next_id;
+};

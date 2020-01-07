@@ -1,9 +1,6 @@
 
 Scotty4D
 
-    UI:
-        rendering widgets at constant screen sizes
-
     // BASE
 
     undo/redo

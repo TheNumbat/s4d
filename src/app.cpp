@@ -1,5 +1,6 @@
 
 #include "app.h"
+#include "scene/util.h"
 #include "platform/platform.h"
 
 #include <SDL2/SDL.h>
@@ -7,11 +8,22 @@
 #include <imgui/imgui_impl_sdl.h>
 
 App::App(Platform& plt) : 
-	plt(plt), 
-	scene(plt.window_dim(), *this) {
+	plt(plt),
+	scene(Gui::num_ids()),
+	window_dim(plt.window_dim()),
+	camera(window_dim),
+	gui(window_dim),
+	mesh_shader(GL::Shaders::mesh_v, GL::Shaders::mesh_f),
+	line_shader(GL::Shaders::line_v, GL::Shaders::line_f),
+	framebuffer(2, window_dim, samples),
+	id_resolve(1, window_dim, 1, false) {
+
+	id_buffer = new unsigned char[(int)window_dim.x * (int)window_dim.y * 4];
+	GL::global_params();
 }
 
 App::~App() {
+	delete[] id_buffer;
 }
 
 void App::event(SDL_Event e) {
@@ -21,164 +33,220 @@ void App::event(SDL_Event e) {
 	switch(e.type) {
 	case SDL_KEYDOWN: {
 		if(IO.WantCaptureKeyboard) break;
-		scene.key_down(e.key.keysym.sym);
+		gui.keydown(e.key.keysym.sym);
 	} break;
 
 	case SDL_WINDOWEVENT: {
 		if (e.window.event == SDL_WINDOWEVENT_RESIZED ||
 			e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 
-			scene.apply_window_dim(Vec2((float)e.window.data1, (float)e.window.data2));
+			apply_window_dim(Vec2((float)e.window.data1, (float)e.window.data2));
 		}
 	} break;
 
 	case SDL_MOUSEMOTION: {
 
-		float dx = (e.motion.x - state.mouse.x);
-		float dy = (e.motion.y - state.mouse.y);
+		Vec2 d(e.motion.xrel, e.motion.yrel);
+		Vec2 p(e.motion.x, e.motion.y);
 		
-		if(state.scene_captured) {
-			scene.drag(Vec2(e.motion.x, e.motion.y));
-		} else if(state.cam_mode == Camera_Control::orbit) {
-			scene.camera_orbit(Vec2(dx, dy));
-		} else if(state.cam_mode == Camera_Control::move) {
-			scene.camera_move(Vec2(dx, dy));
+		if(gui_capture) {
+			gui.drag_to(scene, camera.pos(), screen_to_world(p));
+		} else if(cam_mode == Camera_Control::orbit) {
+			camera.mouse_orbit(d);
+		} else if(cam_mode == Camera_Control::move) {
+			camera.mouse_move(d);
 		}
 
-		state.mouse.x = (float)e.motion.x;
-		state.mouse.y = (float)e.motion.y;
 	} break;
 
 	case SDL_MOUSEBUTTONDOWN: {
 
 		if(IO.WantCaptureMouse) break;
 
+		Vec2 p(e.button.x, e.button.y);
+
 		if(e.button.button == SDL_BUTTON_LEFT) {
-			if(scene.select(Vec2(e.button.x, e.button.y))) {
-				state.cam_mode = Camera_Control::none;
-				state.scene_captured = true;
+
+			Scene_Object::ID id = read_id(p);
+			if(gui.select(scene, id, camera.pos(), screen_to_world(p))) {
+				cam_mode = Camera_Control::none;
 				plt.grab_mouse();
-			} else if(state.cam_mode == Camera_Control::none) {
-				state.cam_mode = Camera_Control::move;
-#ifndef NO_MOUSE_CAPTURE			
+				gui_capture = true;
+			} else if(cam_mode == Camera_Control::none) {
+				cam_mode = Camera_Control::move;
+				last_mouse = p;
+#ifndef NO_MOUSE_CAPTURE
 				plt.capture_mouse();
 #endif
 			}
 		} else if(e.button.button == SDL_BUTTON_RIGHT) {
-			if(state.cam_mode == Camera_Control::none) {
-				state.cam_mode = Camera_Control::orbit;
+			if(cam_mode == Camera_Control::none) {
+				cam_mode = Camera_Control::orbit;
+				last_mouse = p;
 #ifndef NO_MOUSE_CAPTURE			
 				plt.capture_mouse();
 #endif
 			}
 		}
-
-		state.last_mouse.x = (float)e.button.x;
-		state.last_mouse.y = (float)e.button.y;
-
 	} break;
 
 	case SDL_MOUSEBUTTONUP: {
 
+		Vec2 p(e.button.x, e.button.y);
+
 		if(e.button.button == SDL_BUTTON_LEFT) {
-			if(!IO.WantCaptureMouse && state.scene_captured) {
-				scene.end_drag(state.last_mouse);
-				state.scene_captured = false;
+			if(!IO.WantCaptureMouse && gui_capture) {
+				gui_capture = false;
+				gui.drag_to(scene, camera.pos(), screen_to_world(p));
+				gui.end_drag(scene);
 				plt.ungrab_mouse();
 				break;
 			}
 		}
 
-		if((e.button.button == SDL_BUTTON_RIGHT && state.cam_mode == Camera_Control::orbit) ||
-		   (e.button.button == SDL_BUTTON_LEFT && state.cam_mode == Camera_Control::move)) {
-			state.cam_mode = Camera_Control::none;
+		if((e.button.button == SDL_BUTTON_RIGHT && cam_mode == Camera_Control::orbit) ||
+		   (e.button.button == SDL_BUTTON_LEFT && cam_mode == Camera_Control::move)) {
+			cam_mode = Camera_Control::none;
 #ifndef NO_MOUSE_CAPTURE			
 			plt.release_mouse();
-			plt.set_mouse(state.last_mouse);
+			plt.set_mouse(last_mouse);
 #endif
 		}
 
 	} break;
 
 	case SDL_MOUSEWHEEL: {
-		scene.camera_radius((float)e.wheel.y);
+		camera.mouse_radius((float)e.wheel.y);
 	} break;
 	}
 }
 
+Scene_Object::ID App::read_id(Vec2 pos) {
+	
+	int x = (int)pos.x;
+	int y = (int)(window_dim.y - pos.y - 1);
+	int idx = y * (int)window_dim.x * 4 + x * 4;
+	
+	int a = id_buffer[idx];
+	int b = id_buffer[idx + 1];
+	int c = id_buffer[idx + 2];
+
+	return a | b << 8 | c << 16;
+}
+
+void App::render_selected(Scene_Object& obj) {
+
+	Vec3 prev_scale = obj.pose.scale;
+	Vec3 prev_rot = obj.pose.euler;
+	Vec3 prev_pos = obj.pose.pos;
+
+	gui.apply_transform(obj);
+
+	mesh_shader.bind();
+	obj.render(view, mesh_shader);
+
+	framebuffer.clear_d();
+	obj.render(view, mesh_shader, false, true);
+	
+	Vec2 min, max;
+	obj.bbox().screen_rect(viewproj, min, max);
+
+	GL::flush_if_nvidia();
+	GL::Effects::outline(framebuffer, framebuffer, Gui::Color::outline, 
+						 min - Vec2(3.0f / window_dim.x), 
+						 max + Vec2(3.0f / window_dim.y));
+	GL::flush_if_nvidia();
+	
+	framebuffer.clear_d();
+
+	float scl = (camera.pos() - obj.pose.pos).norm() / 5.5f;
+	gui.render_widgets(view, line_shader, mesh_shader, obj.pose, scl);
+
+	obj.pose.scale = prev_scale;
+	obj.pose.euler = prev_rot;
+	obj.pose.pos = prev_pos;
+}
+
 void App::render() {
 
-	scene.render();
-	render_gui();
-}
+	proj = camera.proj(), view = camera.view();
+	viewproj = proj * view;
+	iviewproj = Mat4::inverse(viewproj);
 
-void App::gui_error(std::string msg) {
-	state.error_msg = msg;
-	state.error_shown = true;
-}
+	framebuffer.clear(0, Vec4(Gui::Color::background, 1.0f));
+	framebuffer.clear(1, {0.0f, 0.0f, 0.0f, 1.0f});
+	framebuffer.clear_d();
+	framebuffer.bind();
+	{
+		mesh_shader.bind();
+		mesh_shader.uniform("proj", proj);
 
-bool App::state_button(Mode mode, std::string name) {
-	
-	bool active = state.mode == mode;
-	
-	if(active) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonActive));
-
-	bool clicked = ImGui::SmallButton(name.c_str());
-
-	if(active) ImGui::PopStyleColor();
-
-	return clicked;
-}
-
-void App::render_gui() {
-
-	float menu_height = 0.0f;
-	if(ImGui::BeginMainMenuBar()) {
-
-		if(ImGui::BeginMenu("File")) {
-
-			ImGui::EndMenu();
-		}
-
-		if(ImGui::BeginMenu("Edit")) {
-
-			if(ImGui::MenuItem("Display Settings")) {
-				scene.show_settings();
-			}
-			ImGui::EndMenu();
-		}
-
-		if(state_button(Mode::scene, "Scene"))
-			state.mode = Mode::scene;
-
-		if(state_button(Mode::model, "Model"))
-			state.mode = Mode::model;
-
-		if(state_button(Mode::render, "Render"))
-			state.mode = Mode::render;
-
-		if(state_button(Mode::rig, "Rig"))
-			state.mode = Mode::rig;
-
-		if(state_button(Mode::animate, "Animate"))
-			state.mode = Mode::animate;
-
-		ImGui::Text("FPS: %f", ImGui::GetIO().Framerate);
-
-		menu_height = ImGui::GetWindowSize().y;
-		ImGui::EndMainMenuBar();
+        scene.render_objs(view, mesh_shader, gui.selected_id());
+	}
+	{
+		line_shader.bind();
+		line_shader.uniform("alpha", 1.0f);
+		line_shader.uniform("viewproj", viewproj);
+		gui.render_base();
 	}
 
-	scene.gui(menu_height);
+	auto selected = scene.get(gui.selected_id());
+	if(selected.has_value()) {
+		render_selected(selected.value());
+	}
 
-	if(state.error_shown) {
-		Vec2 center = plt.window_dim() / 2.0f;
-		ImGui::SetNextWindowPos(ImVec2{center.x, center.y}, 0, ImVec2{0.5f, 0.5f});
-		ImGui::Begin("Error", &state.error_shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize);
-		ImGui::Text("%s", state.error_msg.c_str());
-		if(ImGui::Button("Close")) {
-			state.error_shown = false;
+	framebuffer.blit_to(1, id_resolve, false);
+	id_resolve.read(0, id_buffer);
+
+	framebuffer.blit_to_screen(0, window_dim);
+
+	// GUI
+	float height = gui.menu(settings_open);
+	gui.objs(scene, height);
+	gui.error();
+	settings();
+}
+
+Vec3 App::screen_to_world(Vec2 mouse) {
+
+	Vec2 t(2.0f * mouse.x / window_dim.x - 1.0f, 
+		   1.0f - 2.0f * mouse.y / window_dim.y);
+	Vec3 p = iviewproj * Vec3(t.x, t.y, 0.1f);
+	return (p - camera.pos()).unit();
+}
+
+void App::apply_window_dim(Vec2 new_dim) {
+
+	window_dim = new_dim;
+
+	delete[] id_buffer;
+	id_buffer = new unsigned char[(int)window_dim.x * (int)window_dim.y * 4]();
+
+	camera.set_ar(window_dim);
+	gui.update_dim(window_dim);
+	framebuffer.resize(window_dim, samples);
+	id_resolve.resize(window_dim);
+	GL::viewport(window_dim);
+}
+
+void App::settings() {
+	if(settings_open) {
+		ImGui::Begin("Display Settings", &settings_open, 
+			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+		
+		ImGui::InputInt("Multisampling", &samples);
+		if(samples < 1) samples = 1;
+		if(samples > 16) samples = 16;
+
+		if(ImGui::Button("Apply")) {
+			framebuffer.resize(window_dim, samples);
 		}
+
+		ImGui::Separator();
+		ImGui::Text("GPU: %s", GL::renderer().c_str());
+		ImGui::Text("OpenGL: %s", GL::version().c_str());
+
 		ImGui::End();
 	}
 }
+

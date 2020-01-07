@@ -14,8 +14,8 @@ sources = [
     'src/platform/gl.cpp',
     'src/platform/platform.cpp',
     'src/app.cpp',
+    'src/gui.cpp',
     'src/scene/scene.cpp',
-    'src/scene/scene_object.cpp',
     'src/scene/util.cpp',
     'src/main.cpp']
 

@@ -28,23 +28,26 @@ nfd_dir = join_paths(project_dir, 'deps/nfd')
 if host_system == 'windows'
 
     assert(cc.get_id() == 'msvc', 'Use the Visual Studio compiler on Windows.')
-    if get_option('buildtype') == 'debug'
-        link += ['/NODEFAULTLIB:MSVCRT']
-    endif
-
-    link += ['../src/platform/icon.res', 'Shcore.lib', 'Winmm.lib', 'Version.lib', 'Setupapi.lib']
 
     inc_dir = include_directories('deps', 'deps/win')
     sdl_dir = join_paths(project_dir, 'deps/win/SDL2')
-    assimp_dir = join_paths(project_dir, 'deps/assimp')
+    assimp_dir = join_paths(project_dir, 'deps/win/assimp')
+
+    if get_option('buildtype') == 'debug'
+        link += ['/NODEFAULTLIB:MSVCRT']
+        deps += cc.find_library('assimp_d', dirs : assimp_dir)
+        deps += cc.find_library('zlib_d', dirs : assimp_dir)
+        deps += cc.find_library('irrXML_d', dirs : assimp_dir)
+    else
+        deps += cc.find_library('assimp', dirs : assimp_dir)
+        deps += cc.find_library('zlib', dirs : assimp_dir)
+        deps += cc.find_library('irrXML', dirs : assimp_dir)
+    endif
+
+    link += ['../src/platform/icon.res', 'Shcore.lib', 'Winmm.lib', 'Version.lib', 'Setupapi.lib']
     deps += cc.find_library('SDL2-static', dirs : sdl_dir)
     deps += cc.find_library('SDL2main', dirs : sdl_dir)
     deps += cc.find_library('nfd', dirs : nfd_dir)
-    
-    # if get_option('buildtype') == 'debug'
-    #     deps += cc.find_library('assimpd', dirs : assimp_dir)
-    # else
-    #     deps += cc.find_library('assimp', dirs : assimp_dir)
 
 elif host_system == 'linux'
 

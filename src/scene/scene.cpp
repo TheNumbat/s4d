@@ -3,11 +3,9 @@
 #include "../lib/log.h"
 #include "../undo.h"
 
-#if 0
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#endif
 
 Mat4 Pose::transform() const {
 	return Mat4::translate(pos) * 
@@ -192,12 +190,11 @@ void Scene::clear(Undo& undo) {
 	undo.reset();
 }
 
-std::string Scene::load_scene(Undo& undo, std::string file) {
+std::string Scene::load_scene(bool clear_first, Undo& undo, std::string file) {
 
-#if 0
-	clear(undo);
+	if(clear_first) clear(undo);
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(file.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices);
+	const aiScene* scene = importer.ReadFile(file.c_str(), aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices);
 
 	if (!scene) {
 		return "Error parsing scene " + file + " : " + std::string(importer.GetErrorString());
@@ -231,6 +228,5 @@ std::string Scene::load_scene(Undo& undo, std::string file) {
 
 		add({}, GL::Mesh(expand_verts));
     }
-#endif
 	return {};
 }

@@ -33,7 +33,7 @@ void App::event(SDL_Event e) {
 	switch(e.type) {
 	case SDL_KEYDOWN: {
 		if(IO.WantCaptureKeyboard) break;
-		if(gui.keydown(e.key.keysym.sym)) break;
+		if(gui.keydown(undo, scene, e.key.keysym.sym)) break;
 
 		if(e.key.keysym.sym == SDLK_z) {
 			if(e.key.keysym.mod & KMOD_CTRL) {

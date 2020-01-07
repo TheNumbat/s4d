@@ -51,11 +51,15 @@ Vec3 Gui::Color::axis(Axis a) {
 	return Vec3();
 }
 
-bool Gui::keydown(SDL_Keycode key) {
+bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
     if(key == SDLK_e && selected) {
         action = (Gui::Action)(((int)action + 1) % 3);
 		return true;
     }
+	if(key == SDLK_DELETE && selected) {
+		undo.del_obj(scene, selected);
+		selected = 0;
+	}
 	return false;
 }
 
@@ -182,12 +186,24 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		return clicked;
 	};
 
-	if(ImGui::Button("Load Scene")) {
+	if(ImGui::Button("New Scene")) {
 		char* path = nullptr;
-		NFD_OpenDialog("dae;obj;fbx;gltf;3ds;blend", nullptr, &path);
+		NFD_OpenDialog("dae,obj,fbx,gltf,3ds,blend", nullptr, &path);
 		
 		if(path) {
-			std::string error = scene.load_scene(undo, std::string(path));
+			std::string error = scene.load_scene(true, undo, std::string(path));
+			if(!error.empty()) {
+				set_error(error);
+			}
+			free(path);
+		}
+	}
+	if(wrap_button("Add Scene")) {
+		char* path = nullptr;
+		NFD_OpenDialog("dae,obj,fbx,gltf,3ds,blend", nullptr, &path);
+		
+		if(path) {
+			std::string error = scene.load_scene(false, undo, std::string(path));
 			if(!error.empty()) {
 				set_error(error);
 			}
@@ -221,22 +237,6 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		}
 
 		ImGui::EndPopup();
-	}
-
-	if(wrap_button("Add OBJ")) {
-		char* path = nullptr;
-		NFD_OpenDialog("obj", nullptr, &path);
-		
-		if(path) {
-			GL::Mesh new_mesh;
-			std::string error = Util::obj_mesh(std::string(path), new_mesh);
-			if(error.empty()) {
-				undo.add_obj(scene, std::move(new_mesh));
-			} else {
-				set_error(error);
-			}
-			free(path);
-		}
 	}
 
 	if(!scene.empty())
@@ -305,7 +305,10 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		ImGui::PopID();
 	});
 
-	if(to_delete) undo.del_obj(scene, to_delete);
+	if(to_delete) {
+		undo.del_obj(scene, to_delete);
+		if(to_delete == selected) selected = 0;
+	}
 
 	ImGui::End();
 }

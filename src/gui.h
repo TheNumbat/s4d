@@ -30,7 +30,7 @@ public:
 	// Input
 	void update_dim(Vec2 dim);
 	void set_error(std::string msg);
-	bool keydown(SDL_Keycode key);
+	bool keydown(Undo& undo, Scene& scene, SDL_Keycode key);
 
 	// Object interaction
 	bool select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir);

@@ -1,6 +1,12 @@
 # s4d
 
-![screenshot](https://i.imgur.com/gkBHBR9.png)
+![screenshot](https://i.imgur.com/EmkPbuC.png)
+
+## Comments
+
+The windows assimp debug static libraries are too big to push to github. They are in a zip file in deps/win/assimp. Extract it.
+
+Currently mac/linux builds are broken, need to add assimp dependency.
 
 ## Build
 
@@ -14,6 +20,8 @@ ninja -C build
 - [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/) with C++ features
 - [Meson](https://mesonbuild.com/Getting-meson.html)
 - [Ninja](https://github.com/ninja-build/ninja/releases)
+
+Remember to unzip ``deps/win/assimp/libs.zip``.
 
 ### Linux/MacOS Dependencies
 

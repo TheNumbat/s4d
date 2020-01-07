@@ -10,3 +10,5 @@ bin/project.sublime-workspace
 data/log_*
 log_*
 imgui.ini
+deps/win/assimp/assimp.lib
+deps/win/assimp/assimp_d.lib

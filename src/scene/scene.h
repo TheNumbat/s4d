@@ -65,7 +65,7 @@ public:
     Scene(Scene_Object::ID start);
     ~Scene();
 
-	std::string load_scene(Undo& undo, std::string file);
+	std::string load_scene(bool clear_first, Undo& undo, std::string file);
 	void clear(Undo& undo);
 
     bool empty();

@@ -9,14 +9,14 @@ namespace GL {
 static void setup_debug_proc();
 static void check_leaked_handles();
 static bool is_nvidia = false;
-static bool has_gl_45 = false;
+static bool is_gl4 = false;
 
 void setup() {
 	std::string ver = version();
 	is_nvidia = ver.find("NVIDIA") != std::string::npos;
-	has_gl_45 = ver.find("4.5") != std::string::npos;
+	is_gl4 = ver.find("4.") != std::string::npos;
 
-	if(has_gl_45) setup_debug_proc();
+	setup_debug_proc();
 	Effects::init();
 }
 
@@ -47,7 +47,7 @@ void global_params() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_GREATER);
 	glClearDepth(0.0);
-	if(has_gl_45) glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+	if(glClipControl) glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 }
@@ -547,7 +547,7 @@ void Effects::init() {
 	glGenVertexArrays(1, &vao);
 	resolve_shader.load(effects_v, resolve_f);
 	outline_shader.load(effects_v, outline_f);
-	outline_shader_ms.load(effects_v, has_gl_45 ? outline_ms_f_45 : outline_ms_f_33);
+	outline_shader_ms.load(effects_v, is_gl4 ? outline_ms_f_4 : outline_ms_f_33);
 }
 
 void Effects::destroy() {
@@ -776,7 +776,7 @@ void main() {
 	float a = isinf(diff) ? 1.0f : 0.0f;
 	out_color = vec4(color * a, a);
 })";
-const std::string Effects::outline_ms_f_45 = R"(
+const std::string Effects::outline_ms_f_4 = R"(
 #version 400 core
 
 out vec4 out_color;

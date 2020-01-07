@@ -185,7 +185,7 @@ void Platform::loop(App& app) {
 
 Vec2 Platform::window_dim() {
 	int w, h;
-	SDL_GetWindowSize(window, &w, &h);
+	SDL_GL_GetDrawableSize(window, &w, &h);
 	return Vec2((float)w, (float)h);
 }
 

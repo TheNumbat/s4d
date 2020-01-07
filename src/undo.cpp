@@ -6,6 +6,11 @@
 Undo::Undo() {}
 Undo::~Undo() {}
 
+void Undo::reset() {
+    undos = {};
+    redos = {};
+}
+
 void Undo::del_obj(Scene& scene, Scene_Object::ID id) {
     action([id, &scene](){
         scene.erase(id);

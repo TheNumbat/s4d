@@ -38,6 +38,7 @@ public:
 
     void undo();
     void redo();
+    void reset();
 
 private:
     template<typename R, typename U> 

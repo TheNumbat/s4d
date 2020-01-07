@@ -182,6 +182,19 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		return clicked;
 	};
 
+	if(ImGui::Button("Load Scene")) {
+		char* path = nullptr;
+		NFD_OpenDialog("dae;obj;fbx;gltf;3ds;blend", nullptr, &path);
+		
+		if(path) {
+			std::string error = scene.load_scene(undo, std::string(path));
+			if(!error.empty()) {
+				set_error(error);
+			}
+			free(path);
+		}
+	}
+
 	if(ImGui::Button("Create Object")) {
 		ImGui::OpenPopup("Type");
 	}
@@ -210,7 +223,7 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		ImGui::EndPopup();
 	}
 
-	if(wrap_button("Load Object")) {
+	if(wrap_button("Load OBJ")) {
 		char* path = nullptr;
 		NFD_OpenDialog("obj", nullptr, &path);
 		

@@ -193,7 +193,7 @@ private:
 	friend void shutdown();
 
 	static const std::string effects_v;
-	static const std::string outline_f, outline_ms_f_33, outline_ms_f_45;
+	static const std::string outline_f, outline_ms_f_33, outline_ms_f_4;
 	static const std::string resolve_f;
 };
 

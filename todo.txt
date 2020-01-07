@@ -3,10 +3,8 @@ Scotty4D
 
     // BASE
 
-    saving & loading
-        obj
-        collada
-        glTF 2
+    better scene loading
+    scene exporting
 
     more features
         mesh preview | render to texture at default pos and keep

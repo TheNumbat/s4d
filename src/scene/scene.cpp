@@ -1,6 +1,11 @@
 
 #include "scene.h"
 #include "../lib/log.h"
+#include "../undo.h"
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 Mat4 Pose::transform() const {
 	return Mat4::translate(pos) * 
@@ -116,8 +121,8 @@ void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid, bool 
 }
 
 Scene::Scene(Scene_Object::ID start) :
-    next_id(start) {
-
+	next_id(start),
+	first_id(start) {
 }
 
 Scene::~Scene() {
@@ -129,7 +134,7 @@ Scene_Object::ID Scene::get_id() {
 }
 
 Scene_Object::ID Scene::add(Pose pose, GL::Mesh&& mesh, Scene_Object::ID id) {
-    if(!id) id = next_id++;
+	if(!id) id = next_id++;
 	assert(objs.find(id) == objs.end());
 	objs.emplace(std::make_pair(id, Scene_Object(id, pose, std::move(mesh))));
 	return id;
@@ -144,7 +149,7 @@ void Scene::restore(Scene_Object::ID id) {
 }
 
 void Scene::erase(Scene_Object::ID id) {
-    assert(erased.find(id) == erased.end());
+	assert(erased.find(id) == erased.end());
 	assert(objs.find(id) != objs.end());
 
 	erased.insert({id, std::move(objs[id])});
@@ -152,28 +157,78 @@ void Scene::erase(Scene_Object::ID id) {
 }
 
 void Scene::render_objs(Mat4 view, const GL::Shader& shader, Scene_Object::ID selected) {
-    for(auto& obj : objs) {
+	for(auto& obj : objs) {
 		if(obj.first != selected) 
 			obj.second.render(view, shader);
 	}
 }
 
 void Scene::for_objs(std::function<void(Scene_Object&)> func) {
-    for(auto& obj : objs) {
-        func(obj.second);
-    }
+	for(auto& obj : objs) {
+		func(obj.second);
+	}
 }
 
 size_t Scene::size() {
-    return objs.size();
+	return objs.size();
 }
 
 bool Scene::empty() {
-    return objs.size() == 0;
+	return objs.size() == 0;
 }
 
 std::optional<std::reference_wrapper<Scene_Object>> Scene::get(Scene_Object::ID id) {
-    auto entry = objs.find(id);
-    if(entry == objs.end()) return std::nullopt;
-    return entry->second;
+	auto entry = objs.find(id);
+	if(entry == objs.end()) return std::nullopt;
+	return entry->second;
+}
+
+void Scene::clear(Undo& undo) {
+	next_id = first_id;
+	objs.clear();
+	erased.clear();
+	undo.reset();
+}
+
+std::string Scene::load_scene(Undo& undo, std::string file) {
+
+#if 0
+	clear(undo);
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(file.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices);
+
+	if (!scene) {
+		return "Error parsing scene " + file + " : " + std::string(importer.GetErrorString());
+	}
+
+	for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+        const aiMesh* mesh = scene->mMeshes[i];
+    	
+		if(!mesh->HasNormals()) {
+			warn("Mesh %d has no normals, skipping.");
+			continue;
+		}
+
+		std::vector<GL::Mesh::Vert> verts;
+
+		for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+			const aiVector3D* pos = &(mesh->mVertices[i]);
+			const aiVector3D* norm = &(mesh->mNormals[i]);
+
+			verts.push_back({Vec3(pos->x, pos->y, pos->z), Vec3(norm->x, norm->y, norm->z)});
+		}
+
+		std::vector<GL::Mesh::Vert> expand_verts;
+		for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+			const aiFace& face = mesh->mFaces[i];
+			assert(face.mNumIndices == 3);
+			expand_verts.push_back(verts[face.mIndices[0]]);
+			expand_verts.push_back(verts[face.mIndices[1]]);
+			expand_verts.push_back(verts[face.mIndices[2]]);
+		}
+
+		add({}, GL::Mesh(expand_verts));
+    }
+#endif
+	return {};
 }

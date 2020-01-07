@@ -8,6 +8,8 @@
 #include <optional>
 #include <functional>
 
+class Undo;
+
 struct Pose {
 	Vec3 pos;
 	Vec3 euler;
@@ -63,6 +65,9 @@ public:
     Scene(Scene_Object::ID start);
     ~Scene();
 
+	std::string load_scene(Undo& undo, std::string file);
+	void clear(Undo& undo);
+
     bool empty();
     size_t size();
     Scene_Object::ID add(Pose pose, GL::Mesh&& mesh, Scene_Object::ID id = 0);
@@ -79,5 +84,5 @@ public:
 private:
 	std::map<Scene_Object::ID, Scene_Object> objs;
 	std::map<Scene_Object::ID, Scene_Object> erased;
-	Scene_Object::ID next_id;
+	Scene_Object::ID next_id, first_id;
 };

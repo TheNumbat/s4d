@@ -83,18 +83,10 @@ void App::event(SDL_Event e) {
 				gui_capture = true;
 			} else if(cam_mode == Camera_Control::none) {
 				cam_mode = Camera_Control::move;
-				last_mouse = p;
-#ifndef NO_MOUSE_CAPTURE
-				plt.capture_mouse();
-#endif
 			}
 		} else if(e.button.button == SDL_BUTTON_RIGHT) {
 			if(cam_mode == Camera_Control::none) {
 				cam_mode = Camera_Control::orbit;
-				last_mouse = p;
-#ifndef NO_MOUSE_CAPTURE			
-				plt.capture_mouse();
-#endif
 			}
 		}
 	} break;
@@ -116,10 +108,6 @@ void App::event(SDL_Event e) {
 		if((e.button.button == SDL_BUTTON_RIGHT && cam_mode == Camera_Control::orbit) ||
 		   (e.button.button == SDL_BUTTON_LEFT && cam_mode == Camera_Control::move)) {
 			cam_mode = Camera_Control::none;
-#ifndef NO_MOUSE_CAPTURE			
-			plt.release_mouse();
-			plt.set_mouse(last_mouse);
-#endif
 		}
 
 	} break;

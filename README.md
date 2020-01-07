@@ -9,8 +9,6 @@ meson build -Dbuildtype=debugoptimized
 ninja -C build
 ```
 
-If you're using a linux VM and the mouse doesn't work, add ``meson configure build -Dno_mouse_capture=true``.
-
 ### Windows Dependencies
 
 - [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/) with C++ features

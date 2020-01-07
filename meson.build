@@ -25,10 +25,6 @@ deps = []
 args = []
 nfd_dir = join_paths(project_dir, 'deps/nfd')
 
-if get_option('no_mouse_capture')
-	args += '-DNO_MOUSE_CAPTURE'
-endif
-
 if host_system == 'windows'
 
     assert(cc.get_id() == 'msvc', 'Use the Visual Studio compiler on Windows.')

@@ -867,9 +867,11 @@ smooth in vec3 f_col;
 
 uniform float alpha;
 
-out vec4 out_col;
+layout (location = 0) out vec4 out_col;
+layout (location = 1) out vec4 out_id;
 
 void main() {
+	out_id = vec4(0.0f);
 	out_col = vec4(f_col, alpha);
 })"; 
 	const std::string mesh_v = R"(

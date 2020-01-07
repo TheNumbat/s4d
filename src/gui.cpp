@@ -447,8 +447,7 @@ void Gui::end_drag(Undo& undo, Scene& scene) {
 	drag_start = drag_end = {};
 	dragging = false;
 
-	obj.pose = p;
-	// undo.set(obj.pose, p);
+	undo.set(obj.pose, p);
 }
 
 void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {

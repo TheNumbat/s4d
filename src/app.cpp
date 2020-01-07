@@ -201,7 +201,7 @@ void App::render() {
 
 	auto selected = scene.get(gui.selected_id());
 	if(selected.has_value()) {
-		render_selected(selected.value());
+		render_selected(*selected);
 	}
 
 	framebuffer.blit_to(1, id_resolve, false);

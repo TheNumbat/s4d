@@ -3,9 +3,11 @@
 #include "../lib/log.h"
 #include "../undo.h"
 
+#if 0
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#endif
 
 Mat4 Pose::transform() const {
 	return Mat4::translate(pos) * 

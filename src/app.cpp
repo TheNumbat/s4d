@@ -51,7 +51,7 @@ void App::event(SDL_Event e) {
 		if (e.window.event == SDL_WINDOWEVENT_RESIZED ||
 			e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 
-			apply_window_dim(Vec2((float)e.window.data1, (float)e.window.data2));
+			apply_window_dim(plt.window_dim());
 		}
 	} break;
 

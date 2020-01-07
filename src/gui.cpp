@@ -195,7 +195,7 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		}
 	}
 
-	if(ImGui::Button("Create Object")) {
+	if(ImGui::Button("Add Object")) {
 		ImGui::OpenPopup("Type");
 	}
 	if(ImGui::BeginPopup("Type")) {
@@ -223,7 +223,7 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		ImGui::EndPopup();
 	}
 
-	if(wrap_button("Load OBJ")) {
+	if(wrap_button("Add OBJ")) {
 		char* path = nullptr;
 		NFD_OpenDialog("obj", nullptr, &path);
 		

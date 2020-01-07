@@ -36,11 +36,15 @@ if host_system == 'windows'
 
     inc_dir = include_directories('deps', 'deps/win')
     sdl_dir = join_paths(project_dir, 'deps/win/SDL2')
-    # assimp_dir = join_paths(project_dir, 'deps/assimp')
+    assimp_dir = join_paths(project_dir, 'deps/assimp')
     deps += cc.find_library('SDL2-static', dirs : sdl_dir)
     deps += cc.find_library('SDL2main', dirs : sdl_dir)
-    # deps += cc.find_library('assimp', dirs : assimp_dir)
     deps += cc.find_library('nfd', dirs : nfd_dir)
+    
+    # if get_option('buildtype') == 'debug'
+    #     deps += cc.find_library('assimpd', dirs : assimp_dir)
+    # else
+    #     deps += cc.find_library('assimp', dirs : assimp_dir)
 
 elif host_system == 'linux'
 

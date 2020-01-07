@@ -6,9 +6,9 @@
 #include <nfd/nfd.h>
 
 Gui::Gui(Vec2 dim) : 
-    window_dim(dim), 
+    baseplane(1.0f),
     widget_lines(1.0f),
-    baseplane(1.0f) {
+	window_dim(dim) {
 
 	x_trans = Scene_Object((Scene_Object::ID)Basic::x_trans, Pose::rotated({0.0f, 0.0f, -90.0f}), Util::arrow_mesh(), Gui::Color::red);
 	y_trans = Scene_Object((Scene_Object::ID)Basic::y_trans, {}, Util::arrow_mesh(), Gui::Color::green);
@@ -51,10 +51,12 @@ Vec3 Gui::Color::axis(Axis a) {
 	return Vec3();
 }
 
-void Gui::keydown(SDL_Keycode key) {
+bool Gui::keydown(SDL_Keycode key) {
     if(key == SDLK_e && selected) {
         action = (Gui::Action)(((int)action + 1) % 3);
+		return true;
     }
+	return false;
 }
 
 void Gui::generate_widget_lines(const Scene_Object& obj) {
@@ -421,21 +423,22 @@ bool Gui::to_plane(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit) {
 	return p.hit(look, hit);
 }
 
-void Gui::end_drag(Scene& scene) {
+void Gui::end_drag(Undo& undo, Scene& scene) {
 
 	if(!dragging) return;
     
-    Scene_Object& obj = scene.get(selected).value();
+    Scene_Object& obj = *scene.get(selected);
+	Pose p = obj.pose;
 
 	switch(action) {
 	case Action::scale: {
-		obj.pose.scale = apply_action(obj);
+		p.scale = apply_action(obj);
 	} break;
 	case Action::rotate: {
-		obj.pose.euler = apply_action(obj); 
+		p.euler = apply_action(obj); 
 	} break;
 	case Action::move: {
-		obj.pose.pos = apply_action(obj);
+		p.pos = apply_action(obj);
 	} break;
 	default: assert(false);
 	}
@@ -443,13 +446,16 @@ void Gui::end_drag(Scene& scene) {
 	widget_lines.clear();
 	drag_start = drag_end = {};
 	dragging = false;
+
+	obj.pose = p;
+	// undo.set(obj.pose, p);
 }
 
 void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 
 	if(!dragging) return;
 	
-    Scene_Object& obj = scene.get(selected).value();
+    Scene_Object& obj = *scene.get(selected);
 	Vec3 pos = obj.pose.pos;
 	
 	if(action == Action::rotate) {
@@ -544,7 +550,7 @@ bool Gui::select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir) {
 	}
 
 	if(dragging) {
-		Scene_Object& obj = scene.get(selected).value();
+		Scene_Object& obj = *scene.get(selected);
 		Vec3 hit;
 		if(action == Action::rotate) {
 			if(to_plane(obj, cam, dir, hit)) {

@@ -15,6 +15,7 @@ sources = [
     'src/platform/platform.cpp',
     'src/app.cpp',
     'src/gui.cpp',
+    'src/undo.cpp',
     'src/scene/scene.cpp',
     'src/scene/util.cpp',
     'src/main.cpp']

@@ -8,10 +8,10 @@
 #include <imgui/imgui_impl_sdl.h>
 
 App::App(Platform& plt) : 
-	plt(plt),
-	scene(Gui::num_ids()),
 	window_dim(plt.window_dim()),
 	camera(window_dim),
+	plt(plt),
+	scene(Gui::num_ids()),
 	gui(window_dim),
 	mesh_shader(GL::Shaders::mesh_v, GL::Shaders::mesh_f),
 	line_shader(GL::Shaders::line_v, GL::Shaders::line_f),
@@ -33,7 +33,16 @@ void App::event(SDL_Event e) {
 	switch(e.type) {
 	case SDL_KEYDOWN: {
 		if(IO.WantCaptureKeyboard) break;
-		gui.keydown(e.key.keysym.sym);
+		if(gui.keydown(e.key.keysym.sym)) break;
+
+		if(e.key.keysym.sym == SDLK_z) {
+			if(e.key.keysym.mod & KMOD_CTRL) {
+				undo.undo();
+			}
+		}
+		else if(e.key.keysym.sym == SDLK_y) {
+			
+		}
 	} break;
 
 	case SDL_WINDOWEVENT: {
@@ -98,7 +107,7 @@ void App::event(SDL_Event e) {
 			if(!IO.WantCaptureMouse && gui_capture) {
 				gui_capture = false;
 				gui.drag_to(scene, camera.pos(), screen_to_world(p));
-				gui.end_drag(scene);
+				gui.end_drag(undo, scene);
 				plt.ungrab_mouse();
 				break;
 			}

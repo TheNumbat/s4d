@@ -11,6 +11,7 @@
 #include "scene/scene.h"
 
 #include "gui.h"
+#include "undo.h"
 
 class Platform;
 class App {
@@ -28,22 +29,23 @@ private:
 	void render_selected(Scene_Object& obj);
 	Vec3 screen_to_world(Vec2 mouse);
 
-	// Systems
-	Platform& plt;
-	Scene scene;
-	Gui gui;
-	bool gui_capture = false;
-
 	// Camera data
     enum class Camera_Control {
         none,
         orbit,
         move
     };
+	Vec2 window_dim, last_mouse;
 	Camera_Control cam_mode = Camera_Control::none;
 	Camera camera;
 	Mat4 view, proj, viewproj, iviewproj;
-	Vec2 window_dim, last_mouse;
+
+	// Systems
+	Platform& plt;
+	Scene scene;
+	Gui gui;
+	Undo undo;
+	bool gui_capture = false;
 
 	// GL data
 	int samples = 4;

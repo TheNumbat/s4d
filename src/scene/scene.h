@@ -65,8 +65,11 @@ public:
 
     bool empty();
     size_t size();
-    void add(Pose pose, GL::Mesh&& mesh);
-    void erase(Scene_Object::ID id);
+    Scene_Object::ID add(Pose pose, GL::Mesh&& mesh, Scene_Object::ID id = 0);
+	Scene_Object::ID get_id();
+    
+	void erase(Scene_Object::ID id);
+	void restore(Scene_Object::ID id);
 
     void render_objs(Mat4 view, const GL::Shader& shader, Scene_Object::ID selected);
     void for_objs(std::function<void(Scene_Object&)> func);
@@ -75,5 +78,6 @@ public:
 
 private:
 	std::map<Scene_Object::ID, Scene_Object> objs;
+	std::map<Scene_Object::ID, Scene_Object> erased;
 	Scene_Object::ID next_id;
 };

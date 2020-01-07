@@ -1,5 +1,6 @@
 
 #include "scene.h"
+#include "../lib/log.h"
 
 Mat4 Pose::transform() const {
 	return Mat4::translate(pos) * 
@@ -123,13 +124,31 @@ Scene::~Scene() {
 
 }
 
-void Scene::add(Pose pose, GL::Mesh&& mesh) {
-    Scene_Object::ID id = next_id++;
+Scene_Object::ID Scene::get_id() {
+	return next_id++;
+}
+
+Scene_Object::ID Scene::add(Pose pose, GL::Mesh&& mesh, Scene_Object::ID id) {
+    if(!id) id = next_id++;
+	assert(objs.find(id) == objs.end());
 	objs.emplace(std::make_pair(id, Scene_Object(id, pose, std::move(mesh))));
+	return id;
+}
+
+void Scene::restore(Scene_Object::ID id) {
+	if(objs.find(id) != objs.end()) return;
+	assert(erased.find(id) != erased.end());
+
+	objs.insert({id, std::move(erased[id])});
+	erased.erase(id);
 }
 
 void Scene::erase(Scene_Object::ID id) {
-    objs.erase(id);
+    assert(erased.find(id) == erased.end());
+	assert(objs.find(id) != objs.end());
+
+	erased.insert({id, std::move(objs[id])});
+	objs.erase(id);
 }
 
 void Scene::render_objs(Mat4 view, const GL::Shader& shader, Scene_Object::ID selected) {

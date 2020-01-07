@@ -32,27 +32,20 @@ public:
     Undo();
     ~Undo();
     
-    template<typename T>
-    void set(T& old, T next) {
-        action(
-            [&old, next]() {
-                old = next;
-            },
-            [&old, prev=old]() {
-                old = prev;
-            });
-    }
+    void add_obj(Scene& scene, GL::Mesh&& mesh);
+    void del_obj(Scene& scene, Scene_Object::ID id);
+    void update_obj(Scene& scene, Scene_Object::ID id, Pose new_pos);
 
+    void undo();
+    void redo();
+
+private:
     template<typename R, typename U> 
     void action(R redo, U undo) {
         action(std::make_unique<Action<R,U>>(redo, undo));
     }
-
-    void undo();
-    void redo();
-    
-private:
     void action(std::unique_ptr<Action_Base> action);
+    
     std::stack<std::unique_ptr<Action_Base>> undos;
     std::stack<std::unique_ptr<Action_Base>> redos;
 };

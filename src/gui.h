@@ -40,9 +40,9 @@ public:
 	Scene_Object::ID selected_id();
 
 	// 2D GUI rendering
-	float menu(bool& settings);
+	float menu(Undo& undo, bool& settings);
 	void error();
-	void objs(Scene& scene, float menu_height);
+	void objs(Undo& undo, Scene& scene, float menu_height);
 
 	// 3D GUI rendering
 	void render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& mesh, const Pose& pose, float scale);
@@ -75,6 +75,7 @@ private:
 	Action action = Action::move;
 	bool dragging = false, drag_plane = false;
 	Vec3 drag_start, drag_end;
+	Vec3 gui_drag_start;
 
 	// 3D GUI Objects
 	enum class Basic : Scene_Object::ID {

@@ -154,7 +154,7 @@ void Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& me
 	} else assert(false);
 }
 
-void Gui::objs(Scene& scene, float menu_height) {
+void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 
 	const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -188,22 +188,22 @@ void Gui::objs(Scene& scene, float menu_height) {
 	if(ImGui::BeginPopup("Type")) {
 		
 		if(ImGui::Button("Cube")) {
-			scene.add({}, Util::cube_mesh(1.0f));
+			undo.add_obj(scene, Util::cube_mesh(1.0f));
 			ImGui::CloseCurrentPopup();
 		}
 
 		if(ImGui::Button("Cylinder")) {
-			scene.add({}, Util::cyl_mesh(1.0f, 1.0f));
+			undo.add_obj(scene, Util::cyl_mesh(1.0f, 1.0f));
 			ImGui::CloseCurrentPopup();
 		}
 
 		if(ImGui::Button("Torus")) {
-			scene.add({}, Util::torus_mesh(0.8f, 1.0f));
+			undo.add_obj(scene, Util::torus_mesh(0.8f, 1.0f));
 			ImGui::CloseCurrentPopup();
 		}
 
 		if(ImGui::Button("Sphere")) {
-			scene.add({}, Util::sphere_mesh(1.0f));
+			undo.add_obj(scene, Util::sphere_mesh(1.0f));
 			ImGui::CloseCurrentPopup();
 		}
 
@@ -218,7 +218,7 @@ void Gui::objs(Scene& scene, float menu_height) {
 			GL::Mesh new_mesh;
 			std::string error = Util::obj_mesh(std::string(path), new_mesh);
 			if(error.empty()) {
-				scene.add({}, std::move(new_mesh));
+				undo.add_obj(scene, std::move(new_mesh));
 			} else {
 				set_error(error);
 			}
@@ -246,14 +246,29 @@ void Gui::objs(Scene& scene, float menu_height) {
 			else 		    selected = 0;
 		}
 
+		auto check_undo = [&](Action mode, Vec3& old, const Vec3& newv) {
+			if (ImGui::IsItemActivated()) {
+				old = newv;
+			}
+			if (ImGui::IsItemDeactivatedAfterEdit() && old != newv) {
+				Pose p = obj.pose;
+				if(mode == Action::move) {p.pos = newv; obj.pose.pos = old;}
+				else if(mode == Action::rotate) {p.euler = newv; obj.pose.euler = old;}
+				else if(mode == Action::scale) {p.scale = newv; obj.pose.scale = old;}
+				undo.update_obj(scene, obj.id(), p);
+			}
+		};
+
 		auto fake_display = [&](Action mode, std::string label, Vec3& data, float sens) {
 			if(dragging && action == mode) {
 				Vec3 fake = apply_action(obj);
 				ImGui::DragFloat3(label.c_str(), fake.data);
-			} else {
-				if(ImGui::DragFloat3(label.c_str(), data.data, sens) && is_selected)
+			} else if(ImGui::DragFloat3(label.c_str(), data.data, sens)) {
+				if(is_selected) {
 					action = mode;
+				}
 			}
+			check_undo(mode, gui_drag_start, data);
 		};
 		
 		obj.pose.clamp_euler();
@@ -277,7 +292,7 @@ void Gui::objs(Scene& scene, float menu_height) {
 		ImGui::PopID();
 	});
 
-	if(to_delete) scene.erase(to_delete);
+	if(to_delete) undo.del_obj(scene, to_delete);
 
 	ImGui::End();
 }
@@ -300,7 +315,7 @@ void Gui::error() {
 	}
 }
 
-float Gui::menu(bool& settings) {
+float Gui::menu(Undo& undo, bool& settings) {
 
 	auto state_button = [&](Gui::Mode m, std::string name) -> bool {
 		bool active = m == mode;
@@ -320,6 +335,12 @@ float Gui::menu(bool& settings) {
 
 		if(ImGui::BeginMenu("Edit")) {
 
+			if(ImGui::MenuItem("Undo (Ctrl+z)")) {
+				undo.undo();
+			}
+			if(ImGui::MenuItem("Redo (Ctrl+y)")) {
+				undo.redo();
+			}
 			if(ImGui::MenuItem("Display Settings")) {
 				settings = true;
 			}
@@ -447,7 +468,7 @@ void Gui::end_drag(Undo& undo, Scene& scene) {
 	drag_start = drag_end = {};
 	dragging = false;
 
-	undo.set(obj.pose, p);
+	undo.update_obj(scene, obj.id(), p);
 }
 
 void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {

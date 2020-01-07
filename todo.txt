@@ -3,11 +3,6 @@ Scotty4D
 
     // BASE
 
-    undo/redo
-        use set
-        drag-ables
-        edit gui option
-
     saving & loading
         obj
         collada

@@ -41,7 +41,9 @@ void App::event(SDL_Event e) {
 			}
 		}
 		else if(e.key.keysym.sym == SDLK_y) {
-			
+			if(e.key.keysym.mod & KMOD_CTRL) {
+				undo.redo();
+			}
 		}
 	} break;
 
@@ -198,8 +200,8 @@ void App::render() {
 	framebuffer.blit_to_screen(0, window_dim);
 
 	// GUI
-	float height = gui.menu(settings_open);
-	gui.objs(scene, height);
+	float height = gui.menu(undo, settings_open);
+	gui.objs(undo, scene, height);
 	gui.error();
 	settings();
 }

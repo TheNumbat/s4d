@@ -15,6 +15,7 @@ ninja -C build
 
 ### Windows Dependencies
 
+Tools
 - [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/) with C++ features
 - [Meson](https://mesonbuild.com/Getting-meson.html)
 - [Ninja](https://github.com/ninja-build/ninja/releases)
@@ -27,6 +28,7 @@ Tools
 - gcc or clang
 - meson
 - ninja
+
 Libraries
 - SDL2
 - gtk+3.0

@@ -64,7 +64,7 @@ elif host_system == 'darwin'
     assert(cc.get_id() == 'clang', 'Use clang on mac.')
 
     deps += dependency('sdl2')
-    # deps += dependency('assimp')
+    deps += dependency('assimp')
     deps += dependency('gtk+-3.0')
     deps += cc.find_library('nfd_m', dirs : nfd_dir)
 

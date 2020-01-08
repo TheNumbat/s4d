@@ -23,20 +23,22 @@ Remember to unzip ``deps/win/assimp/libs.zip``.
 
 ### Linux/MacOS Dependencies
 
+Tools
 - gcc or clang
-- SDL2
-- gtk+3.0
 - meson
 - ninja
+Libraries
+- SDL2
+- gtk+3.0
 - assimp
 
 #### Apt
 ```
-sudo apt install clang libsdl2-dev libgtk-3-dev python3-pip ninja-build libassimp-dev
+sudo apt install libsdl2-dev libgtk-3-dev python3-pip ninja-build libassimp-dev
 sudo pip3 install meson
 ```
 
 #### Brew
 ```
-brew install meson sdl2 gtk+3 pkgconfig
+brew install meson sdl2 gtk+3 pkgconfig assimp
 ```

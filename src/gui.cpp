@@ -213,7 +213,7 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		}
 	}
 
-	if(ImGui::Button("Add Object")) {
+	if(wrap_button("Add Object")) {
 		ImGui::OpenPopup("Type");
 	}
 	if(ImGui::BeginPopup("Type")) {
@@ -275,8 +275,9 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		};
 
 		auto fake_display = [&](Action mode, std::string label, Vec3& data, float sens) {
-			if(dragging && action == mode) {
+			if(is_selected && dragging && action == mode) {
 				Vec3 fake = apply_action(obj);
+				if(action == Action::rotate) fake = fake.range(0.0f, 360.0f);
 				ImGui::DragFloat3(label.c_str(), fake.data);
 			} else if(ImGui::DragFloat3(label.c_str(), data.data, sens)) {
 				if(is_selected) {

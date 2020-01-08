@@ -217,13 +217,13 @@ void Scene::load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform)
 			verts.push_back({Vec3(pos->x, pos->y, pos->z), Vec3(norm->x, norm->y, norm->z)});
 		}
 
-		std::vector<GL::Mesh::Vert> expand_verts;
+		std::vector<GL::Mesh::Index> indices;
 		for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
 			const aiFace& face = mesh->mFaces[i];
 			assert(face.mNumIndices == 3);
-			expand_verts.push_back(verts[face.mIndices[0]]);
-			expand_verts.push_back(verts[face.mIndices[1]]);
-			expand_verts.push_back(verts[face.mIndices[2]]);
+			indices.push_back(face.mIndices[0]);
+			indices.push_back(face.mIndices[1]);
+			indices.push_back(face.mIndices[2]);
 		}
 
 		aiVector3D ascale, arot, apos;
@@ -233,7 +233,7 @@ void Scene::load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform)
 		Vec3 scale(ascale.x, ascale.y, ascale.z);
 		Pose p = {pos, Degrees(rot).range(0.0f, 360.0f), scale};
 
-		Scene_Object obj(reserve_id(), p, GL::Mesh(std::move(expand_verts)));
+		Scene_Object obj(reserve_id(), p, GL::Mesh(std::move(verts), std::move(indices)));
 		if(mesh->mName.length) {
 			obj.opt.name = std::string(mesh->mName.C_Str());
 		}

@@ -107,7 +107,6 @@ void Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& me
 		z_trans.pose.pos = pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
 		z_trans.render(view, mesh, true);
 
-		GL::disable(GL::Opt::culling);
 		xy_trans.pose.scale = scale;
 		xy_trans.pose.pos = pose.pos + Vec3(0.45f * scl, 0.45f * scl, 0.0f);
 		xy_trans.render(view, mesh, true);
@@ -119,7 +118,6 @@ void Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& me
 		xz_trans.pose.scale = scale;
 		xz_trans.pose.pos = pose.pos + Vec3(0.45f * scl, 0.0f, 0.45f * scl);
 		xz_trans.render(view, mesh, true);
-		GL::enable(GL::Opt::culling);
 	
 	} else if(action == Action::rotate) {
 
@@ -238,11 +236,6 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 	}
 	if(ImGui::BeginPopup("Type")) {
 		
-		if(ImGui::Button("Cube")) {
-			undo.add_obj(scene, Util::cube_mesh(1.0f));
-			ImGui::CloseCurrentPopup();
-		}
-
 		if(ImGui::Button("Cylinder")) {
 			undo.add_obj(scene, Util::cyl_mesh(1.0f, 1.0f));
 			ImGui::CloseCurrentPopup();

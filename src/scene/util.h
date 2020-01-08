@@ -17,15 +17,18 @@ namespace Util {
 	GL::Mesh arrow_mesh();
 	GL::Mesh scale_mesh();
 
-	std::string obj_mesh(std::string obj_file, GL::Mesh& mesh);
+	namespace Gen {
+		struct Data {
+			std::vector<GL::Mesh::Vert> verts;
+			std::vector<GL::Mesh::Index> elems;
+		};
 
-	namespace Detail {
-		std::vector<GL::Mesh::Vert> cube_verts(float r);
-		std::vector<GL::Mesh::Vert> square_verts(float r);
+		Data cube(float r);
+		Data square(float r);
 
 		// https://wiki.unity3d.com/index.php/ProceduralPrimitives
-		std::vector<GL::Mesh::Vert> ico_sphere_verts(float radius, int level);
-		std::vector<GL::Mesh::Vert> cone_verts(float bradius, float tradius, float height);
-		std::vector<GL::Mesh::Vert> torus_verts(float iradius, float oradius);
+		Data ico_sphere(float radius, int level);
+		Data cone(float bradius, float tradius, float height);
+		Data torus(float iradius, float oradius);
 	}
 }

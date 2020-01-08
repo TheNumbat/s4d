@@ -1,7 +1,7 @@
 
 #include "util.h"
 
-#include <misc/tiny_obj_loader.h>
+#include <map>
 
 namespace Util {
 
@@ -10,148 +10,81 @@ namespace Util {
 	}
 
 	GL::Mesh arrow_mesh() {
-		auto base = Detail::cone_verts(0.03f, 0.03f, 0.7f);
-		auto tip = Detail::cone_verts(0.075f, 0.005f, 0.2f);
-		for(auto& v : tip) v.pos.y += 0.7f;
-		base.insert(base.end(), tip.begin(), tip.end());
-		return GL::Mesh(std::move(base));
+		Gen::Data base = Gen::cone(0.03f, 0.03f, 0.7f);
+		Gen::Data tip = Gen::cone(0.075f, 0.005f, 0.2f);
+		for(auto& v : tip.verts) v.pos.y += 0.7f;
+		for(auto& i : tip.elems) i += base.verts.size();
+		base.verts.insert(base.verts.end(), tip.verts.begin(), tip.verts.end());
+		base.elems.insert(base.elems.end(), tip.elems.begin(), tip.elems.end());
+		return GL::Mesh(std::move(base.verts), std::move(base.elems));
 	}
 
 	GL::Mesh scale_mesh() {
-		auto base = Detail::cone_verts(0.03f, 0.03f, 0.7f);
-		auto tip = Detail::cube_verts(0.1f);
-		for(auto& v : tip) v.pos.y += 0.7f;
-		base.insert(base.end(), tip.begin(), tip.end());
-		return GL::Mesh(std::move(base));
+		Gen::Data base = Gen::cone(0.03f, 0.03f, 0.7f);
+		Gen::Data tip = Gen::cube(0.1f);
+		for(auto& v : tip.verts) v.pos.y += 0.7f;
+		for(auto& i : tip.elems) i += base.verts.size();
+		base.verts.insert(base.verts.end(), tip.verts.begin(), tip.verts.end());
+		base.elems.insert(base.elems.end(), tip.elems.begin(), tip.elems.end());
+		return GL::Mesh(std::move(base.verts), std::move(base.elems));
 	}
 	
 	GL::Mesh cone_mesh(float bradius, float tradius, float height) {
-		return GL::Mesh(Detail::cone_verts(bradius, tradius, height));
+		Gen::Data cone = Gen::cone(bradius, tradius, height);
+		return GL::Mesh(std::move(cone.verts), std::move(cone.elems));
 	}
 
 	GL::Mesh torus_mesh(float iradius, float oradius) {
-		return GL::Mesh(Detail::torus_verts(iradius, oradius));
+		Gen::Data torus = Gen::torus(iradius, oradius);
+		return GL::Mesh(std::move(torus.verts), std::move(torus.elems));
 	}
 
 	GL::Mesh cube_mesh(float r) {
-		return GL::Mesh(Detail::cube_verts(r));
+		Gen::Data cube = Gen::cube(r);
+		return GL::Mesh(std::move(cube.verts), std::move(cube.elems));
 	}
 
 	GL::Mesh square_mesh(float r) {
-		return GL::Mesh(Detail::square_verts(r));
+		Gen::Data square = Gen::square(r);
+		return GL::Mesh(std::move(square.verts), std::move(square.elems));
 	}
 
 	GL::Mesh sphere_mesh(float r) {
-		return GL::Mesh(Detail::ico_sphere_verts(r, 3));
+		Gen::Data ico_sphere = Gen::ico_sphere(r, 3);
+		return GL::Mesh(std::move(ico_sphere.verts), std::move(ico_sphere.elems));
 	}
 
-	std::string obj_mesh(std::string obj_file, GL::Mesh& mesh) {
+	namespace Gen {
 
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-
-		std::string warn, err;
-		bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_file.c_str());
-
-		if(!ret) {
-			return "Failed to load mesh '" + last_file(obj_file) + "': unknown error";
-		}
-		if (!err.empty()) {
-			return "Failed to load mesh '" + last_file(obj_file) + "': " + err;
-		}
-		if(shapes.size() == 0) {
-			return "Failed to load mesh '" + last_file(obj_file) + "': no shapes found.";
-		}
-
-		std::vector<GL::Mesh::Vert> verts;
-
-		for (size_t s = 0; s < shapes.size(); s++) {
-			
-			size_t index_offset = 0;
-			for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-
-				int fv = shapes[s].mesh.num_face_vertices[f];
-
-				for (int v = 0; v < fv; v++) {
-					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-
-					if(idx.normal_index == -1) {
-						return "Failed to load mesh '" + last_file(obj_file) + "': no vertex normals.";
-					}
-
-					float vx = attrib.vertices[3*idx.vertex_index+0];
-					float vy = attrib.vertices[3*idx.vertex_index+1];
-					float vz = attrib.vertices[3*idx.vertex_index+2];
-					float nx = attrib.normals[3*idx.normal_index+0];
-					float ny = attrib.normals[3*idx.normal_index+1];
-					float nz = attrib.normals[3*idx.normal_index+2];
-					verts.push_back({{vx, vy, vz}, {nx, ny, nz}});
-				}
-				index_offset += fv;
-			}
-		}
-
-		mesh = GL::Mesh(std::move(verts));
-		return {};
-	}
-
-	namespace Detail {
-
-		std::vector<GL::Mesh::Vert> square_verts(float r) {
-			return {
+		Data square(float r) {
+			return {{
 				{{-r, 0.0f, -r}, {0.0f, 1.0f, 0.0f}},
 				{{-r, 0.0f, r}, {0.0f, 1.0f, 0.0f}},
 				{{r, 0.0f, -r}, {0.0f, 1.0f, 0.0f}},
-				{{r, 0.0f, -r}, {0.0f, 1.0f, 0.0f}},
-				{{-r, 0.0f, r}, {0.0f, 1.0f, 0.0f}},
-				{{r, 0.0f, r}, {0.0f, 1.0f, 0.0f}}
-			};
+				{{r, 0.0f, r}, {0.0f, 1.0f, 0.0f}}},
+				{0, 1, 2, 2, 1, 3}};
 		}
 
-		std::vector<GL::Mesh::Vert> cube_verts(float r) {
-			return {
-				{{-r,-r,-r},{-1.0f,0.0f,0.0f}},
-				{{-r,-r,r},{-1.0f,0.0f,0.0f}},
-				{{-r,r,r},{-1.0f,0.0f,0.0f}}, // Left Side
-				{{-r,-r,-r},{-1.0f,0.0f,0.0f}},
-				{{-r,r,r},{-1.0f,0.0f,0.0f}},
-				{{-r,r,-r},{-1.0f,0.0f,0.0f}}, // Left Side
-				{{r,r,-r},{0.0f,0.0f,-1.0f}},
-				{{-r,-r,-r},{0.0f,0.0f,-1.0f}},
-				{{-r,r,-r},{0.0f,0.0f,-1.0f}}, // Back Side
-				{{r,-r,r},{0.0f,-1.0f,0.0f}},
-				{{-r,-r,-r},{0.0f,-1.0f,0.0f}},
-				{{r,-r,-r},{0.0f,-1.0f,0.0f}}, // Bottom Side
-				{{r,r,-r},{0.0f,0.0f,-1.0f}},
-				{{r,-r,-r},{0.0f,0.0f,-1.0f}},
-				{{-r,-r,-r},{0.0f,0.0f,-1.0f}}, // Back Side
-				{{r,-r,r},{0.0f,-1.0f,0.0f}},
-				{{-r,-r,r},{0.0f,-1.0f,0.0f}},
-				{{-r,-r,-r},{0.0f,-1.0f,0.0f}}, // Bottom Side
-				{{-r,r,r},{0.0f,0.0f,1.0f}},
-				{{-r,-r,r},{0.0f,0.0f,1.0f}},
-				{{r,-r,r},{0.0f,0.0f,1.0f}}, // Front Side
-				{{r,r,r},{1.0f,0.0f,0.0f}},
-				{{r,-r,-r},{1.0f,0.0f,0.0f}},
-				{{r,r,-r},{1.0f,0.0f,0.0f}}, // Right Side
-				{{r,-r,-r},{1.0f,0.0f,0.0f}},
-				{{r,r,r},{1.0f,0.0f,0.0f}},
-				{{r,-r,r},{1.0f,0.0f,0.0f}}, // Right Side
-				{{r,r,r},{0.0f,1.0f,0.0f}},
-				{{r,r,-r},{0.0f,1.0f,0.0f}},
-				{{-r,r,-r},{0.0f,1.0f,0.0f}}, // Top Side
-				{{r,r,r},{0.0f,1.0f,0.0f}},
-				{{-r,r,-r},{0.0f,1.0f,0.0f}},
-				{{-r,r,r},{0.0f,1.0f,0.0f}}, // Top Side
-				{{r,r,r},{0.0f,0.0f,1.0f}},
-				{{-r,r,r},{0.0f,0.0f,1.0f}},
-				{{r,-r,r},{0.0f,0.0f,1.0f}}   // Front Side
-			};
+		Data cube(float r) {
+			return {{
+				{{-r, -r, -r}, Vec3{-r, -r, -r}.unit()},
+    			{{r, -r, -r}, Vec3{r, -r, -r}.unit()},
+    			{{r, r, -r}, Vec3{r, r, -r}.unit()},
+    			{{-r, r, -r}, Vec3{-r, r, -r}.unit()},
+    			{{-r, -r, r}, Vec3{-r, -r, r}.unit()},
+    			{{r, -r, r}, Vec3{r, -r, r}.unit()},
+    			{{r, r, r}, Vec3{r, r, r}.unit()},
+    			{{-r, r, r}, Vec3{-r, r, r}.unit()}},
+				{0, 1, 3, 3, 1, 2,
+				 1, 5, 2, 2, 5, 6,
+				 5, 4, 6, 6, 4, 7,
+				 4, 0, 7, 7, 0, 3,
+				 3, 2, 7, 7, 2, 6,
+				 4, 5, 0, 0, 5, 1}};
 		}
 
 		// https://wiki.unity3d.com/index.php/ProceduralPrimitives
-		std::vector<GL::Mesh::Vert> cone_verts(float bradius, float tradius, float height) {
+		Data cone(float bradius, float tradius, float height) {
 
 			const size_t n_sides = 18, n_cap = n_sides + 1;
 			const float _2pi = PI * 2.0f;
@@ -205,7 +138,7 @@ namespace Util {
 			normals[vert + 1] = normals[n_sides * 2 + 3 ];
 			
 			size_t n_tris = n_sides + n_sides + n_sides * 2;
-			std::vector<int> triangles(n_tris * 3 + 3);
+			std::vector<GL::Mesh::Index> triangles(n_tris * 3 + 3);
 			
 			size_t tri = 0;
 			size_t i = 0;
@@ -250,13 +183,13 @@ namespace Util {
 			}
 
 			std::vector<GL::Mesh::Vert> verts;
-			for(int i : triangles) {
+			for(size_t i = 0; i < vertices.size(); i++) {
 				verts.push_back({vertices[i], normals[i]});
 			}
-			return verts;
+			return {verts, triangles};
 		}
 
-		std::vector<GL::Mesh::Vert> torus_verts(float iradius, float oradius) {
+		Data torus(float iradius, float oradius) {
 
 			const int n_rad_sides = 48, n_sides = 24;
 			const float _2pi = PI * 2.0f;
@@ -295,7 +228,7 @@ namespace Util {
 			int n_faces = vertices.size();
 			int n_tris = n_faces * 2;
 			int n_idx = n_tris * 3;
-			std::vector<int> triangles(n_idx);
+			std::vector<GL::Mesh::Index> triangles(n_idx);
 			
 			size_t i = 0;
 			for(int seg = 0; seg <= n_rad_sides; seg++) {
@@ -316,13 +249,13 @@ namespace Util {
 			}
 
 			std::vector<GL::Mesh::Vert> verts;
-			for(int i : triangles) {
+			for(size_t i = 0; i < vertices.size(); i++) {
 				verts.push_back({vertices[i], normals[i]});
 			}
-			return verts;
+			return {verts, triangles};
 		}
 
-		std::vector<GL::Mesh::Vert> ico_sphere_verts(float radius, int level) {
+		Data ico_sphere(float radius, int level) {
 			struct TriIdx {
 				int v1, v2, v3;
 			};
@@ -351,21 +284,21 @@ namespace Util {
 				return i;
 			};
 		
-			std::vector<Vec3> vertList;
+			std::vector<Vec3> vertices;
 			std::map<int64_t, size_t> middlePointIndexCache;
 			float t = (1.0f + std::sqrt(5.0f)) / 2.0f;
-			vertList.push_back(Vec3(-1.0f,  t, 0.0f).unit() * radius);
-			vertList.push_back(Vec3( 1.0f,  t, 0.0f).unit() * radius);
-			vertList.push_back(Vec3(-1.0f, -t, 0.0f).unit() * radius);
-			vertList.push_back(Vec3( 1.0f, -t, 0.0f).unit() * radius);
-			vertList.push_back(Vec3(0.0f, -1.0f,  t).unit() * radius);
-			vertList.push_back(Vec3(0.0f,  1.0f,  t).unit() * radius);
-			vertList.push_back(Vec3(0.0f, -1.0f, -t).unit() * radius);
-			vertList.push_back(Vec3(0.0f,  1.0f, -t).unit() * radius);
-			vertList.push_back(Vec3( t, 0.0f, -1.0f).unit() * radius);
-			vertList.push_back(Vec3( t, 0.0f,  1.0f).unit() * radius);
-			vertList.push_back(Vec3(-t, 0.0f, -1.0f).unit() * radius);
-			vertList.push_back(Vec3(-t, 0.0f,  1.0f).unit() * radius);
+			vertices.push_back(Vec3(-1.0f,  t, 0.0f).unit() * radius);
+			vertices.push_back(Vec3( 1.0f,  t, 0.0f).unit() * radius);
+			vertices.push_back(Vec3(-1.0f, -t, 0.0f).unit() * radius);
+			vertices.push_back(Vec3( 1.0f, -t, 0.0f).unit() * radius);
+			vertices.push_back(Vec3(0.0f, -1.0f,  t).unit() * radius);
+			vertices.push_back(Vec3(0.0f,  1.0f,  t).unit() * radius);
+			vertices.push_back(Vec3(0.0f, -1.0f, -t).unit() * radius);
+			vertices.push_back(Vec3(0.0f,  1.0f, -t).unit() * radius);
+			vertices.push_back(Vec3( t, 0.0f, -1.0f).unit() * radius);
+			vertices.push_back(Vec3( t, 0.0f,  1.0f).unit() * radius);
+			vertices.push_back(Vec3(-t, 0.0f, -1.0f).unit() * radius);
+			vertices.push_back(Vec3(-t, 0.0f,  1.0f).unit() * radius);
 	
 			std::vector<TriIdx> faces;
 			faces.push_back(TriIdx{0, 11, 5});
@@ -392,9 +325,9 @@ namespace Util {
 			for(int i = 0; i < level; i++) {
 				std::vector<TriIdx> faces2;
 				for(auto tri : faces) {
-					int a = middle_point(tri.v1, tri.v2, vertList, middlePointIndexCache, radius);
-					int b = middle_point(tri.v2, tri.v3, vertList, middlePointIndexCache, radius);
-					int c = middle_point(tri.v3, tri.v1, vertList, middlePointIndexCache, radius);
+					int a = middle_point(tri.v1, tri.v2, vertices, middlePointIndexCache, radius);
+					int b = middle_point(tri.v2, tri.v3, vertices, middlePointIndexCache, radius);
+					int c = middle_point(tri.v3, tri.v1, vertices, middlePointIndexCache, radius);
 					faces2.push_back(TriIdx{tri.v1, a, c});
 					faces2.push_back(TriIdx{tri.v2, b, a});
 					faces2.push_back(TriIdx{tri.v3, c, b});
@@ -403,24 +336,22 @@ namespace Util {
 				faces = faces2;
 			}
 	
-			std::vector<int> triList;
+			std::vector<GL::Mesh::Index> triangles;
 			for(size_t i = 0; i < faces.size(); i++ ) {
-				triList.push_back(faces[i].v1);
-				triList.push_back(faces[i].v2);
-				triList.push_back(faces[i].v3);
+				triangles.push_back(faces[i].v1);
+				triangles.push_back(faces[i].v2);
+				triangles.push_back(faces[i].v3);
 			}		
 	
-			std::vector<Vec3> normals(vertList.size());
+			std::vector<Vec3> normals(vertices.size());
 			for(size_t i = 0; i < normals.size(); i++)
-				normals[i] = vertList[i].unit();
+				normals[i] = vertices[i].unit();
 	
 			std::vector<GL::Mesh::Vert> verts;
-			for(TriIdx t : faces) {
-				verts.push_back({vertList[t.v1], normals[t.v1]});
-				verts.push_back({vertList[t.v2], normals[t.v2]});
-				verts.push_back({vertList[t.v3], normals[t.v3]});
+			for(size_t i = 0; i < vertices.size(); i++) {
+				verts.push_back({vertices[i], normals[i]});
 			}
-			return verts;
+			return {verts, triangles};
 		}
 	}
 }

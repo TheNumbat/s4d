@@ -49,7 +49,6 @@ void global_params() {
 	glClearDepth(0.0);
 	if(glClipControl) glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
 }
 
 void clear_screen(Vec4 col) {
@@ -96,26 +95,30 @@ Mesh::Mesh() {
 	create();
 }
 
-Mesh::Mesh(std::vector<Vert>&& vertices) {
+Mesh::Mesh(std::vector<Vert>&& vertices, std::vector<Index>&& indices) {
 	create();
-	update(std::move(vertices));
+	update(std::move(vertices), std::move(indices));
 }
 
 Mesh::Mesh(Mesh&& src) {
 	vao = src.vao; src.vao = 0;
+	ebo = src.ebo; src.ebo = 0;
 	vbo = src.vbo; src.vbo = 0;
 	n_elem = src.n_elem; src.n_elem = 0;
 	_bbox = src._bbox; src._bbox.reset();
 	_verts = std::move(src._verts);
+	_idxs = std::move(src._idxs);
 }
 
 void Mesh::operator=(Mesh&& src) {
 	destroy();
 	vao = src.vao; src.vao = 0;
 	vbo = src.vbo; src.vbo = 0;
+	ebo = src.ebo; src.ebo = 0;
 	n_elem = src.n_elem; src.n_elem = 0;
 	_bbox = src._bbox; src._bbox.reset();
 	_verts = std::move(src._verts);
+	_idxs = std::move(src._idxs);
 }
 
 Mesh::~Mesh() {
@@ -125,6 +128,7 @@ Mesh::~Mesh() {
 void Mesh::create() {
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
+	glGenBuffers(1, &ebo);
 
 	glBindVertexArray(vao);
 
@@ -134,24 +138,31 @@ void Mesh::create() {
 
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vert), (GLvoid*)sizeof(Vec3));
 	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	
 	glBindVertexArray(0);
 }
 
 void Mesh::destroy() {
+	glDeleteBuffers(1, &ebo);
 	glDeleteBuffers(1, &vbo);
 	glDeleteVertexArrays(1, &vao);
-	vao = vbo = 0;
+	ebo = vao = vbo = 0;
 }
 
-void Mesh::update(std::vector<Vert>&& vertices) {
+void Mesh::update(std::vector<Vert>&& vertices, std::vector<Index>&& indices) {
 
 	_verts = std::move(vertices);
+	_idxs = std::move(indices);
 	
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vert) * _verts.size(), _verts.data(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Index) * _idxs.size(), _idxs.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
 
@@ -159,11 +170,15 @@ void Mesh::update(std::vector<Vert>&& vertices) {
 	for(auto& v : _verts) {
 		_bbox.enclose(v.pos);
 	}
-	n_elem = _verts.size();
+	n_elem = _idxs.size();
 }
 
 const std::vector<Mesh::Vert>& Mesh::verts() const {
 	return _verts;
+}
+
+const std::vector<Mesh::Index>& Mesh::indices() const {
+	return _idxs;
 }
 
 BBox Mesh::bbox() const {
@@ -173,7 +188,7 @@ BBox Mesh::bbox() const {
 void Mesh::render() const {
 
 	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0, n_elem);
+	glDrawElements(GL_TRIANGLES, n_elem, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }
 

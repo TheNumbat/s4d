@@ -1,7 +1,5 @@
 
-#include <misc/flags.h>
 #include <iostream>
-
 #include "platform/platform.h"
 
 int main(int argc, char** argv) {

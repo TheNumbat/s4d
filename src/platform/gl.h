@@ -33,13 +33,14 @@ void color_mask(bool enable);
 
 class Mesh {
 public:
+	typedef unsigned int Index;
 	struct Vert {
 		Vec3 pos;
 		Vec3 norm;
 	};
 
 	Mesh();
-	Mesh(std::vector<Vert>&& vertices);
+	Mesh(std::vector<Vert>&& vertices, std::vector<Index>&& indices);
 	Mesh(const Mesh& src) = delete;
 	Mesh(Mesh&& src);
 	~Mesh();
@@ -49,19 +50,22 @@ public:
 
 	/// Assumes proper shader is already bound
 	void render() const;
-	void update(std::vector<Vert>&& vertices);
+	void update(std::vector<Vert>&& vertices, std::vector<Index>&& indices);
 
 	BBox bbox() const;
 	const std::vector<Vert>& verts() const;
+	const std::vector<Index>& indices() const;
 
 private:
 	void create();
 	void destroy();
 
 	BBox _bbox;
-	GLuint vao = 0, vbo = 0;
+	GLuint vao = 0, vbo = 0, ebo = 0;
 	GLuint n_elem = 0;
+
 	std::vector<Vert> _verts;
+	std::vector<Index> _idxs;
 };
 
 class Lines {

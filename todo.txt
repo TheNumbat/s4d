@@ -1,14 +1,14 @@
 
 Scotty4D
 
+    Useful but low priority:
+        mesh preview in GUI
+        scene graph (parenting, etc)
+        changing the origin of a mesh
+
     // BASE
 
-    scene exporting
-
-    more features
-        mesh preview | render to texture at default pos and keep
-        scene graph?
-        changing the origin of a mesh
+    dae exporting
 
     // MESHEDIT
 

@@ -773,7 +773,7 @@ void main() {
 		}
 	}
 
-	float a = isinf(diff) ? 1.0f : 0.0f;
+	float a = isinf(o) && isinf(diff) ? 1.0f : 0.0f;
 	out_color = vec4(color * a, a);
 })";
 const std::string Effects::outline_ms_f_4 = R"(
@@ -797,7 +797,7 @@ void main() {
 		}
 	}
 
-	float a = isinf(diff) ? 1.0f : 0.0f;
+	float a = isinf(o) && isinf(diff) ? 1.0f : 0.0f;
 	out_color = vec4(color * a, a);
 })";
 const std::string Effects::outline_ms_f_33 = R"(

@@ -15,6 +15,10 @@ public:
 	Mat4 view() const {
 		return Mat4::look_at(_pos, center, global_up);
 	}
+	/// View transformation matrix without translation
+	Mat4 view_origin() const {
+		return Mat4::look_at(_pos - center, {}, global_up);
+	}
 	/// Perspective projection transformation matrix
 	Mat4 proj() const {
 		return Mat4::project(fov, ar, n);

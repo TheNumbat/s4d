@@ -54,13 +54,16 @@ Scene_Object::Scene_Object() {
 }
 
 Scene_Object::Scene_Object(Scene_Object&& src) :
-	_mesh(std::move(src._mesh)) {
+	_mesh(std::move(src._mesh)),
+	halfedge(std::move(src.halfedge)) {
 
 	opt.name = std::move(src.opt.name);
 	opt.wireframe = src.opt.wireframe; src.opt.wireframe = false;
 	_id = src._id; src._id = 0;
 	color = src.color; src.color = {};
 	pose = src.pose; src.pose = {};
+	from_mesh = src.from_mesh; src.from_mesh = false;
+	from_halfedge = src.from_halfedge; src.from_halfedge = false;
 }
 
 Scene_Object::Scene_Object(ID id, Pose p, GL::Mesh&& m, Vec3 c) :
@@ -69,6 +72,8 @@ Scene_Object::Scene_Object(ID id, Pose p, GL::Mesh&& m, Vec3 c) :
 	_id(id),
 	_mesh(std::move(m)) {
 	
+	from_mesh = true;
+	from_halfedge = false;
 	opt.name.reserve(max_name_len);
 	snprintf(opt.name.data(), opt.name.capacity(), "Object %d", id);
 }
@@ -79,11 +84,27 @@ Scene_Object::~Scene_Object() {
 
 void Scene_Object::operator=(Scene_Object&& src) {
 	_mesh = std::move(src._mesh);
+	halfedge = std::move(src.halfedge);
 	opt.name = std::move(src.opt.name);
 	opt.wireframe = src.opt.wireframe; src.opt.wireframe = false;
 	_id = src._id; src._id = 0;
 	color = src.color; src.color = {};
 	pose = src.pose; src.pose = {};
+	from_mesh = src.from_mesh; src.from_mesh = false;
+	from_halfedge = src.from_halfedge; src.from_halfedge = false;
+}
+
+std::string Scene_Object::sync_meshes() {
+	assert(!from_mesh || !from_halfedge);
+	if(from_mesh) {
+		from_mesh = false;
+		return halfedge.from_mesh(_mesh);
+	}
+	if(from_halfedge) {
+		from_halfedge = false;
+		halfedge.to_mesh(_mesh);
+	}
+	return "";
 }
 
 BBox Scene_Object::bbox() const {

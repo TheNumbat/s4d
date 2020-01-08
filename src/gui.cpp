@@ -211,51 +211,30 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 		return clicked;
 	};
 
+	if(_mode == Mode::scene) {
+		if(ImGui::Button("Load Scene")) {
+			load_scene(scene, undo);
+		}
+		if(wrap_button("Export Scene")) {
+			write_scene(scene);
+		}
 
-	if(ImGui::Button("Load Scene")) {
-		load_scene(scene, undo);
-	}
-	if(wrap_button("Export Scene")) {
-		write_scene(scene);
-	}
+		if(ImGui::Button("Load Objects")) {
+			char* path = nullptr;
+			NFD_OpenDialog(file_types, nullptr, &path);
 
-	if(ImGui::Button("Load Objects")) {
-		char* path = nullptr;
-		NFD_OpenDialog(file_types, nullptr, &path);
-		
-		if(path) {
-			std::string error = scene.load(false, undo, std::string(path));
-			if(!error.empty()) {
-				set_error(error);
+			if(path) {
+				std::string error = scene.load(false, undo, std::string(path));
+				if(!error.empty()) {
+					set_error(error);
+				}
+				free(path);
 			}
-			free(path);
 		}
+
+		if(!scene.empty())
+			ImGui::Separator();
 	}
-	if(wrap_button("New Object")) {
-		ImGui::OpenPopup("Type");
-	}
-	if(ImGui::BeginPopup("Type")) {
-		
-		if(ImGui::Button("Cylinder")) {
-			undo.add_obj(scene, Util::cyl_mesh(1.0f, 1.0f));
-			ImGui::CloseCurrentPopup();
-		}
-
-		if(ImGui::Button("Torus")) {
-			undo.add_obj(scene, Util::torus_mesh(0.8f, 1.0f));
-			ImGui::CloseCurrentPopup();
-		}
-
-		if(ImGui::Button("Sphere")) {
-			undo.add_obj(scene, Util::sphere_mesh(1.0f));
-			ImGui::CloseCurrentPopup();
-		}
-
-		ImGui::EndPopup();
-	}
-
-	if(!scene.empty())
-		ImGui::Separator();
 
 	size_t i = 0;
 	Scene_Object::ID to_delete = 0;
@@ -274,47 +253,53 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 			else 		    selected = 0;
 		}
 
-		auto check_undo = [&](Action mode, Vec3& old, const Vec3& newv) {
+		auto check_undo = [&](Action act, Vec3& old, const Vec3& newv) {
 			if (ImGui::IsItemActivated()) {
 				old = newv;
 			}
 			if (ImGui::IsItemDeactivatedAfterEdit() && old != newv) {
 				Pose p = obj.pose;
-				if(mode == Action::move) {p.pos = newv; obj.pose.pos = old;}
-				else if(mode == Action::rotate) {p.euler = newv; obj.pose.euler = old;}
-				else if(mode == Action::scale) {p.scale = newv; obj.pose.scale = old;}
+				if(act == Action::move) {p.pos = newv; obj.pose.pos = old;}
+				else if(act == Action::rotate) {p.euler = newv; obj.pose.euler = old;}
+				else if(act == Action::scale) {p.scale = newv; obj.pose.scale = old;}
 				undo.update_obj(scene, obj.id(), p);
 			}
 		};
 
-		auto fake_display = [&](Action mode, std::string label, Vec3& data, float sens) {
-			if(is_selected && dragging && action == mode) {
+		auto fake_display = [&](Action act, std::string label, Vec3& data, float sens) {
+			if(is_selected && dragging && action == act) {
 				Vec3 fake = apply_action(obj);
 				if(action == Action::rotate) fake = fake.range(0.0f, 360.0f);
 				ImGui::DragFloat3(label.c_str(), fake.data);
 			} else if(ImGui::DragFloat3(label.c_str(), data.data, sens)) {
 				if(is_selected) {
-					action = mode;
+					action = act;
 				}
 			}
-			check_undo(mode, gui_drag_start, data);
+			check_undo(act, gui_drag_start, data);
 		};
 		
-		obj.pose.clamp_euler();
-		fake_display(Action::move, "Position", obj.pose.pos, 0.1f);
-		fake_display(Action::rotate, "Rotation", obj.pose.euler, 1.0f);
-		fake_display(Action::scale, "Scale", obj.pose.scale, 0.03f);
+		if(_mode == Mode::scene) {
+			obj.pose.clamp_euler();
+			fake_display(Action::move, "Position", obj.pose.pos, 0.1f);
+			fake_display(Action::rotate, "Rotation", obj.pose.euler, 1.0f);
+			fake_display(Action::scale, "Scale", obj.pose.scale, 0.03f);
 		
-		if(is_selected) {
-			if(state_button(Action::move, "Move", false))
-				action = Action::move;
-			if(state_button(Action::rotate, "Rotate"))
-				action = Action::rotate;
-			if(state_button(Action::scale, "Scale"))
-				action = Action::scale;
-			if(wrap_button("Delete"))
-				to_delete = obj.id();
-		}
+			if(is_selected) {
+				if(state_button(Action::move, "Move", false))
+					action = Action::move;
+				if(state_button(Action::rotate, "Rotate"))
+					action = Action::rotate;
+				if(state_button(Action::scale, "Scale"))
+					action = Action::scale;
+				if(ImGui::Button("Edit"))
+					_mode = Mode::model;
+				if(wrap_button("Delete"))
+					to_delete = obj.id();
+			}
+		} else if(_mode == Mode::model) {
+
+		} else assert(false);
 
 		if(i++ != scene.size() - 1) ImGui::Separator();
 
@@ -350,7 +335,7 @@ void Gui::error() {
 float Gui::menu(Scene& scene, Undo& undo, bool& settings) {
 
 	auto state_button = [&](Gui::Mode m, std::string name) -> bool {
-		bool active = m == mode;
+		bool active = m == _mode;
 		if(active) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonActive));
 		bool clicked = ImGui::Button(name.c_str());
 		if(active) ImGui::PopStyleColor();
@@ -386,19 +371,19 @@ float Gui::menu(Scene& scene, Undo& undo, bool& settings) {
 		}
 
 		if(state_button(Gui::Mode::scene, "Scene"))
-			mode = Gui::Mode::scene;
+			_mode = Gui::Mode::scene;
 
 		if(state_button(Gui::Mode::model, "Model"))
-			mode = Gui::Mode::model;
+			_mode = Gui::Mode::model;
 
-		if(state_button(Gui::Mode::render, "Render"))
-			mode = Gui::Mode::render;
+		// if(state_button(Gui::Mode::render, "Render"))
+		// 	_mode = Gui::Mode::render;
 
-		if(state_button(Gui::Mode::rig, "Rig"))
-			mode = Gui::Mode::rig;
+		// if(state_button(Gui::Mode::rig, "Rig"))
+		// 	_mode = Gui::Mode::rig;
 
-		if(state_button(Gui::Mode::animate, "Animate"))
-			mode = Gui::Mode::animate;
+		// if(state_button(Gui::Mode::animate, "Animate"))
+		// 	_mode = Gui::Mode::animate;
 
 		ImGui::Text("FPS: %f", ImGui::GetIO().Framerate);
 
@@ -546,6 +531,8 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 
 bool Gui::select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir) {
 	
+	if(_mode != Mode::scene) return false;
+
 	dragging = true;
 	drag_plane = false;
 

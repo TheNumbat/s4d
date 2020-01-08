@@ -8,13 +8,9 @@ Scotty4D
 
     // MESHEDIT
 
-    Mode: model
-
-    half-edge mesh implementation
-    rendering half-edge mesh as mesh
-    rendering half-edge mesh as editable
-    
+    rendering half-edge mesh features
     transform widgets per face/edge/vert
+    half-edge mesh validation checks
 
     // PATHTRACER
 

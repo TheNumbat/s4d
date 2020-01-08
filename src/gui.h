@@ -10,6 +10,13 @@
 // GUI
 class Gui {
 public:
+	enum class Mode {
+		scene,
+		model,
+		// render,
+		// rig,
+		// animate
+	};
 	enum class Axis {
 		X, Y, Z
 	};
@@ -26,6 +33,8 @@ public:
 	
 	Gui(Vec2 window_dim);
 	~Gui();
+
+	Mode mode() const {return _mode;}
 
 	// Input
 	void update_dim(Vec2 dim);
@@ -62,14 +71,7 @@ private:
 	std::string error_msg;
 
 	// Edit mode
-	enum class Mode {
-		scene,
-		model,
-		render,
-		rig,
-		animate
-	};
-	Mode mode = Mode::scene;
+	Mode _mode = Mode::scene;
 
 	// Object transform actions
 	enum class Action {

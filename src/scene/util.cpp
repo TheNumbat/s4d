@@ -341,7 +341,7 @@ namespace Util {
 				triangles.push_back(faces[i].v1);
 				triangles.push_back(faces[i].v2);
 				triangles.push_back(faces[i].v3);
-			}		
+			}
 	
 			std::vector<Vec3> normals(vertices.size());
 			for(size_t i = 0; i < normals.size(); i++)

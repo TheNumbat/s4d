@@ -3,6 +3,7 @@
 
 #include "../lib/math.h"
 #include "../platform/gl.h"
+#include "halfedge.h"
 
 #include <map>
 #include <optional>
@@ -42,6 +43,7 @@ public:
 	void operator=(const Scene_Object& src) = delete;
 	void operator=(Scene_Object&& src);
 
+	std::string sync_meshes();
 	void render(Mat4 view, const GL::Shader& shader, bool solid = false, bool depth_only = false) const;
 
 	ID id() const {return _id;}
@@ -62,6 +64,9 @@ private:
 	Vec3 color;
 	ID _id = 0;
 	GL::Mesh _mesh;
+	
+	Halfedge_Mesh halfedge;
+	bool from_mesh = false, from_halfedge = false;
 };
 
 class Scene {

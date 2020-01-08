@@ -33,7 +33,7 @@ void color_mask(bool enable);
 
 class Mesh {
 public:
-	typedef unsigned int Index;
+	typedef GLuint Index;
 	struct Vert {
 		Vec3 pos;
 		Vec3 norm;

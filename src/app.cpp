@@ -65,7 +65,8 @@ void App::event(SDL_Event e) {
 		} else if(cam_mode == Camera_Control::orbit) {
 			camera.mouse_orbit(d);
 		} else if(cam_mode == Camera_Control::move) {
-			camera.mouse_move(d);
+			if(gui.mode() == Gui::Mode::scene)
+				camera.mouse_move(d);
 		}
 
 	} break;
@@ -139,23 +140,34 @@ void App::render_selected(Scene_Object& obj) {
 	Vec3 prev_rot = obj.pose.euler;
 	Vec3 prev_pos = obj.pose.pos;
 
-	gui.apply_transform(obj);
+	if(gui.mode() == Gui::Mode::scene) {
+		
+		gui.apply_transform(obj);
+
+	} else if(gui.mode() == Gui::Mode::model) {
+		
+		obj.pose = {};
+		std::string err = obj.sync_meshes();
+		if(!err.empty()) gui.set_error(err);
+
+	} else assert(false);
 
 	mesh_shader.bind();
 	obj.render(view, mesh_shader);
 
-	framebuffer.clear_d();
-	obj.render(view, mesh_shader, false, true);
-	
-	Vec2 min, max;
-	obj.bbox().screen_rect(viewproj, min, max);
+	if(gui.mode() == Gui::Mode::scene) {
+		framebuffer.clear_d();
+		obj.render(view, mesh_shader, false, true);
 
-	GL::flush_if_nvidia();
-	GL::Effects::outline(framebuffer, framebuffer, Gui::Color::outline, 
-						 min - Vec2(3.0f / window_dim.x), 
-						 max + Vec2(3.0f / window_dim.y));
-	GL::flush_if_nvidia();
-	
+		Vec2 min, max;
+		obj.bbox().screen_rect(viewproj, min, max);
+
+		GL::flush_if_nvidia();
+		GL::Effects::outline(framebuffer, framebuffer, Gui::Color::outline, 
+						 	min - Vec2(3.0f / window_dim.x), 
+						 	max + Vec2(3.0f / window_dim.y));
+		GL::flush_if_nvidia();
+	}
 	framebuffer.clear_d();
 
 	float scl = (camera.pos() - obj.pose.pos).norm() / 5.5f;
@@ -168,7 +180,14 @@ void App::render_selected(Scene_Object& obj) {
 
 void App::render() {
 
-	proj = camera.proj(), view = camera.view();
+	proj = camera.proj();
+	
+	if(gui.mode() == Gui::Mode::scene) {
+		view = camera.view();
+	} else if(gui.mode() == Gui::Mode::model) {
+		view = camera.view_origin();
+	} else assert(false);
+
 	viewproj = proj * view;
 	iviewproj = Mat4::inverse(viewproj);
 
@@ -176,7 +195,7 @@ void App::render() {
 	framebuffer.clear(1, {0.0f, 0.0f, 0.0f, 1.0f});
 	framebuffer.clear_d();
 	framebuffer.bind();
-	{
+	if(gui.mode() == Gui::Mode::scene) {
 		mesh_shader.bind();
 		mesh_shader.uniform("proj", proj);
 

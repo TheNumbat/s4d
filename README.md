@@ -6,8 +6,6 @@
 
 The windows assimp debug static libraries are too big to push to github. They are in a zip file in deps/win/assimp. Extract it.
 
-Currently mac/linux builds are broken, need to add assimp dependency.
-
 ## Build
 
 ```
@@ -30,10 +28,11 @@ Remember to unzip ``deps/win/assimp/libs.zip``.
 - gtk+3.0
 - meson
 - ninja
+- assimp
 
 #### Apt
 ```
-sudo apt install clang libsdl2-dev libgtk-3-dev python3-pip ninja-build
+sudo apt install clang libsdl2-dev libgtk-3-dev python3-pip ninja-build libassimp-dev
 sudo pip3 install meson
 ```
 

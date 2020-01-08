@@ -54,7 +54,7 @@ elif host_system == 'linux'
     assert(cc.get_id() == 'gcc' or cc.get_id() == 'clang', 'Use clang or GCC on linux.')
 
     deps += dependency('sdl2')
-    # deps += dependency('assimp')
+    deps += dependency('assimp')
     deps += dependency('gtk+-3.0')
     deps += cc.find_library('nfd_l', dirs : nfd_dir)
     link += ['-ldl', '-pthread']

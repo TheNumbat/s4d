@@ -6,10 +6,6 @@ Scotty4D
         scene graph (parenting, etc)
         changing the origin of a mesh
 
-    // BASE
-
-    dae exporting
-
     // MESHEDIT
 
     Mode: model

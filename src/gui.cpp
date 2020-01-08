@@ -158,7 +158,34 @@ void Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& me
 	} else assert(false);
 }
 
-void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
+void Gui::write_scene(Scene& scene) {
+
+	char* path = nullptr;
+	NFD_SaveDialog("dae", nullptr, &path);
+	if(path) {
+		std::string error = scene.write(std::string(path));
+		if(!error.empty()) {
+			set_error(error);
+		}
+		free(path);
+	}
+}
+
+void Gui::load_scene(Scene& scene, Undo& undo) {
+
+	char* path = nullptr;
+	NFD_OpenDialog(file_types, nullptr, &path);
+	
+	if(path) {
+		std::string error = scene.load(true, undo, std::string(path));
+		if(!error.empty()) {
+			set_error(error);
+		}
+		free(path);
+	}
+}
+
+void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 
 	const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -186,34 +213,27 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		return clicked;
 	};
 
-	static const char* file_types = "dae,obj,fbx,glb,gltf,3ds,blend";
 
-	if(ImGui::Button("New Scene")) {
+	if(ImGui::Button("Load Scene")) {
+		load_scene(scene, undo);
+	}
+	if(wrap_button("Export Scene")) {
+		write_scene(scene);
+	}
+
+	if(ImGui::Button("Load Objects")) {
 		char* path = nullptr;
 		NFD_OpenDialog(file_types, nullptr, &path);
 		
 		if(path) {
-			std::string error = scene.load_scene(true, undo, std::string(path));
+			std::string error = scene.load(false, undo, std::string(path));
 			if(!error.empty()) {
 				set_error(error);
 			}
 			free(path);
 		}
 	}
-	if(wrap_button("Add Scene")) {
-		char* path = nullptr;
-		NFD_OpenDialog(file_types, nullptr, &path);
-		
-		if(path) {
-			std::string error = scene.load_scene(false, undo, std::string(path));
-			if(!error.empty()) {
-				set_error(error);
-			}
-			free(path);
-		}
-	}
-
-	if(wrap_button("Add Object")) {
+	if(wrap_button("New Object")) {
 		ImGui::OpenPopup("Type");
 	}
 	if(ImGui::BeginPopup("Type")) {
@@ -334,7 +354,7 @@ void Gui::error() {
 	}
 }
 
-float Gui::menu(Undo& undo, bool& settings) {
+float Gui::menu(Scene& scene, Undo& undo, bool& settings) {
 
 	auto state_button = [&](Gui::Mode m, std::string name) -> bool {
 		bool active = m == mode;
@@ -349,6 +369,12 @@ float Gui::menu(Undo& undo, bool& settings) {
 
 		if(ImGui::BeginMenu("File")) {
 
+			if(ImGui::MenuItem("Load Scene")) {
+				load_scene(scene, undo);
+			}
+			if(ImGui::MenuItem("Export Scene")) {
+				write_scene(scene);
+			}
 			ImGui::EndMenu();
 		}
 

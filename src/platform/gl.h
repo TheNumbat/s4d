@@ -39,7 +39,7 @@ public:
 	};
 
 	Mesh();
-	Mesh(const std::vector<Vert>& vertices);
+	Mesh(std::vector<Vert>&& vertices);
 	Mesh(const Mesh& src) = delete;
 	Mesh(Mesh&& src);
 	~Mesh();
@@ -49,9 +49,10 @@ public:
 
 	/// Assumes proper shader is already bound
 	void render() const;
-	void update(const std::vector<Vert>& vertices);
+	void update(std::vector<Vert>&& vertices);
 
 	BBox bbox() const;
+	const std::vector<Vert>& verts() const;
 
 private:
 	void create();
@@ -60,6 +61,7 @@ private:
 	BBox _bbox;
 	GLuint vao = 0, vbo = 0;
 	GLuint n_elem = 0;
+	std::vector<Vert> _verts;
 };
 
 class Lines {

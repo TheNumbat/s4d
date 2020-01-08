@@ -14,7 +14,7 @@ namespace Util {
 		auto tip = Detail::cone_verts(0.075f, 0.005f, 0.2f);
 		for(auto& v : tip) v.pos.y += 0.7f;
 		base.insert(base.end(), tip.begin(), tip.end());
-		return GL::Mesh(base);
+		return GL::Mesh(std::move(base));
 	}
 
 	GL::Mesh scale_mesh() {
@@ -22,7 +22,7 @@ namespace Util {
 		auto tip = Detail::cube_verts(0.1f);
 		for(auto& v : tip) v.pos.y += 0.7f;
 		base.insert(base.end(), tip.begin(), tip.end());
-		return GL::Mesh(base);
+		return GL::Mesh(std::move(base));
 	}
 	
 	GL::Mesh cone_mesh(float bradius, float tradius, float height) {
@@ -92,7 +92,7 @@ namespace Util {
 			}
 		}
 
-		mesh = GL::Mesh(verts);
+		mesh = GL::Mesh(std::move(verts));
 		return {};
 	}
 

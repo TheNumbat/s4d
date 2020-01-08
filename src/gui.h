@@ -40,15 +40,19 @@ public:
 	Scene_Object::ID selected_id();
 
 	// 2D GUI rendering
-	float menu(Undo& undo, bool& settings);
+	float menu(Scene& scene, Undo& undo, bool& settings);
 	void error();
-	void objs(Undo& undo, Scene& scene, float menu_height);
+	void objs(Scene& scene, Undo& undo, float menu_height);
 
 	// 3D GUI rendering
 	void render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& mesh, const Pose& pose, float scale);
 	void render_base();
 
 private:
+	static inline const char* file_types = "dae,obj,fbx,glb,gltf,3ds,blend";
+	void load_scene(Scene& scene, Undo& undo);
+	void write_scene(Scene& scene);
+
 	Vec3 apply_action(const Scene_Object& obj);
 	bool to_axis(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit);
 	bool to_plane(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit);

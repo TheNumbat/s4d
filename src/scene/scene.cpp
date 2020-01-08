@@ -4,6 +4,7 @@
 #include "../undo.h"
 
 #include <assimp/Importer.hpp>
+#include <assimp/Exporter.hpp>
 #include <assimp/postprocess.h>
 
 Mat4 Pose::transform() const {
@@ -53,7 +54,7 @@ Scene_Object::Scene_Object() {
 }
 
 Scene_Object::Scene_Object(Scene_Object&& src) :
-	mesh(std::move(src.mesh)) {
+	_mesh(std::move(src._mesh)) {
 
 	opt.name = std::move(src.opt.name);
 	opt.wireframe = src.opt.wireframe; src.opt.wireframe = false;
@@ -66,7 +67,7 @@ Scene_Object::Scene_Object(ID id, Pose p, GL::Mesh&& m, Vec3 c) :
 	pose(p),
 	color(c),
 	_id(id),
-	mesh(std::move(m)) {
+	_mesh(std::move(m)) {
 	
 	opt.name.reserve(max_name_len);
 	snprintf(opt.name.data(), opt.name.capacity(), "Object %d", id);
@@ -77,7 +78,7 @@ Scene_Object::~Scene_Object() {
 }
 
 void Scene_Object::operator=(Scene_Object&& src) {
-	mesh = std::move(src.mesh);
+	_mesh = std::move(src._mesh);
 	opt.name = std::move(src.opt.name);
 	opt.wireframe = src.opt.wireframe; src.opt.wireframe = false;
 	_id = src._id; src._id = 0;
@@ -89,7 +90,7 @@ BBox Scene_Object::bbox() const {
 
 	Mat4 t = pose.transform();
 	BBox ret;
-	std::vector<Vec3> c = mesh.bbox().corners();
+	std::vector<Vec3> c = _mesh.bbox().corners();
 	for(auto& v : c) ret.enclose(t * v);
 	return ret;
 }
@@ -109,12 +110,12 @@ void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid, bool 
 	if(opt.wireframe) {
 		shader.uniform("color", Vec3());
 		GL::enable(GL::Opt::wireframe);
-		mesh.render();
+		_mesh.render();
 		GL::disable(GL::Opt::wireframe);
 	}
 
 	shader.uniform("color", color);
-	mesh.render();
+	_mesh.render();
 
 	if(depth_only) GL::color_mask(true);
 }
@@ -232,7 +233,7 @@ void Scene::load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform)
 		Vec3 scale(ascale.x, ascale.y, ascale.z);
 		Pose p = {pos, Degrees(rot).range(0.0f, 360.0f), scale};
 
-		Scene_Object obj(reserve_id(), p, GL::Mesh(expand_verts));
+		Scene_Object obj(reserve_id(), p, GL::Mesh(std::move(expand_verts)));
 		if(mesh->mName.length) {
 			obj.opt.name = std::string(mesh->mName.C_Str());
 		}
@@ -244,7 +245,7 @@ void Scene::load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform)
 	}
 }
 
-std::string Scene::load_scene(bool clear_first, Undo& undo, std::string file) {
+std::string Scene::load(bool clear_first, Undo& undo, std::string file) {
 
 	if(clear_first) clear(undo);
 	Assimp::Importer importer;
@@ -255,5 +256,86 @@ std::string Scene::load_scene(bool clear_first, Undo& undo, std::string file) {
 	}
 
 	load_node(scene, scene->mRootNode, aiMatrix4x4());
+	return {};
+}
+
+std::string Scene::write(std::string file) {
+	
+	if(objs.empty()) return {};
+
+	aiScene scene;
+	scene.mRootNode = new aiNode();
+
+	// no materials
+	scene.mMaterials = new aiMaterial*[1]();
+	scene.mMaterials[0] = nullptr;
+	scene.mNumMaterials = 1;
+	scene.mMaterials[0] = new aiMaterial();
+
+	// meshes
+	size_t n_meshes = objs.size();
+	scene.mMeshes = new aiMesh*[n_meshes]();
+	scene.mNumMeshes = n_meshes;
+	
+	scene.mRootNode->mNumMeshes = 0;
+	scene.mRootNode->mNumChildren = n_meshes;
+	scene.mRootNode->mChildren = new aiNode*[n_meshes]();
+
+	for(size_t i = 0; i < n_meshes; i++) {
+		scene.mMeshes[i] = new aiMesh();
+		scene.mRootNode->mChildren[i] = new aiNode();
+		scene.mRootNode->mChildren[i]->mNumMeshes = 1;
+		scene.mRootNode->mChildren[i]->mMeshes = new unsigned int(i);
+	}
+
+	size_t mesh_idx = 0;
+	for(auto& entry : objs) {
+
+		Scene_Object& obj = entry.second;
+		aiMesh* ai_mesh = scene.mMeshes[mesh_idx];
+		aiNode* ai_node = scene.mRootNode->mChildren[mesh_idx];
+
+		const std::vector<GL::Mesh::Vert>& verts = obj.mesh().verts();
+
+		ai_mesh->mVertices = new aiVector3D[verts.size()];
+		ai_mesh->mNormals = new aiVector3D[verts.size()];
+		ai_mesh->mNumVertices = verts.size();
+
+		int j = 0;
+		for(GL::Mesh::Vert v : verts) {
+			ai_mesh->mVertices[j] = aiVector3D(v.pos.x, v.pos.y, v.pos.z);
+			ai_mesh->mNormals[j] = aiVector3D(v.norm.x, v.norm.y, v.norm.z);
+			j++;
+		}
+
+		ai_mesh->mFaces = new aiFace[verts.size() / 3];
+		ai_mesh->mNumFaces = (unsigned int)(verts.size() / 3);
+
+		int k = 0;
+		for(int i = 0; i < (verts.size() / 3); i++) {
+			aiFace &face = ai_mesh->mFaces[i];
+			face.mIndices = new unsigned int[3];
+			face.mNumIndices = 3;
+			face.mIndices[0] = k;
+			face.mIndices[1] = k+1;
+			face.mIndices[2] = k+2;
+			k = k + 3;
+		}
+
+		ai_mesh->mName = aiString(obj.opt.name);
+		
+		Mat4 trans = obj.pose.transform();
+		ai_node->mTransformation = {trans[0][0], trans[1][0], trans[2][0], trans[3][0],
+									trans[0][1], trans[1][1], trans[2][1], trans[3][1],
+									trans[0][2], trans[1][2], trans[2][2], trans[3][2],
+									trans[0][3], trans[1][3], trans[2][3], trans[3][3]};
+
+		mesh_idx++;
+	}
+
+	Assimp::Exporter exporter;
+	if(exporter.Export(&scene, "collada", file.c_str())) {
+		return std::string(exporter.GetErrorString());
+	}
 	return {};
 }

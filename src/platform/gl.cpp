@@ -96,9 +96,9 @@ Mesh::Mesh() {
 	create();
 }
 
-Mesh::Mesh(const std::vector<Vert>& vertices) {
+Mesh::Mesh(std::vector<Vert>&& vertices) {
 	create();
-	update(vertices);
+	update(std::move(vertices));
 }
 
 Mesh::Mesh(Mesh&& src) {
@@ -106,6 +106,7 @@ Mesh::Mesh(Mesh&& src) {
 	vbo = src.vbo; src.vbo = 0;
 	n_elem = src.n_elem; src.n_elem = 0;
 	_bbox = src._bbox; src._bbox.reset();
+	_verts = std::move(src._verts);
 }
 
 void Mesh::operator=(Mesh&& src) {
@@ -114,6 +115,7 @@ void Mesh::operator=(Mesh&& src) {
 	vbo = src.vbo; src.vbo = 0;
 	n_elem = src.n_elem; src.n_elem = 0;
 	_bbox = src._bbox; src._bbox.reset();
+	_verts = std::move(src._verts);
 }
 
 Mesh::~Mesh() {
@@ -142,20 +144,26 @@ void Mesh::destroy() {
 	vao = vbo = 0;
 }
 
-void Mesh::update(const std::vector<Vert>& vertices) {
+void Mesh::update(std::vector<Vert>&& vertices) {
 
+	_verts = std::move(vertices);
+	
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vert) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vert) * _verts.size(), _verts.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
 
 	_bbox.reset();
-	for(auto& v : vertices) {
+	for(auto& v : _verts) {
 		_bbox.enclose(v.pos);
 	}
-	n_elem = vertices.size();
+	n_elem = _verts.size();
+}
+
+const std::vector<Mesh::Vert>& Mesh::verts() const {
+	return _verts;
 }
 
 BBox Mesh::bbox() const {

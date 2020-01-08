@@ -45,6 +45,8 @@ public:
 	void render(Mat4 view, const GL::Shader& shader, bool solid = false, bool depth_only = false) const;
 
 	ID id() const {return _id;}
+	const GL::Mesh& mesh() const {return _mesh;}
+	
 	BBox bbox() const;
 	
 	struct Options {
@@ -59,7 +61,7 @@ private:
 
 	Vec3 color;
 	ID _id = 0;
-	GL::Mesh mesh;
+	GL::Mesh _mesh;
 };
 
 class Scene {
@@ -67,7 +69,8 @@ public:
     Scene(Scene_Object::ID start);
     ~Scene();
 
-	std::string load_scene(bool clear_first, Undo& undo, std::string file);
+	std::string write(std::string file);
+	std::string load(bool clear_first, Undo& undo, std::string file);
 	void clear(Undo& undo);
 
     bool empty();

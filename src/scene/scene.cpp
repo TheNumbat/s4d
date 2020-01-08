@@ -4,7 +4,6 @@
 #include "../undo.h"
 
 #include <assimp/Importer.hpp>
-#include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
 Mat4 Pose::transform() const {
@@ -129,7 +128,7 @@ Scene::~Scene() {
 
 }
 
-Scene_Object::ID Scene::get_id() {
+Scene_Object::ID Scene::reserve_id() {
 	return next_id++;
 }
 
@@ -138,6 +137,12 @@ Scene_Object::ID Scene::add(Pose pose, GL::Mesh&& mesh, Scene_Object::ID id) {
 	assert(objs.find(id) == objs.end());
 	objs.emplace(std::make_pair(id, Scene_Object(id, pose, std::move(mesh))));
 	return id;
+}
+
+Scene_Object::ID Scene::add(Scene_Object&& obj) {
+	assert(objs.find(obj.id()) == objs.end());
+	objs.emplace(std::make_pair(obj.id(), std::move(obj)));
+	return obj.id();
 }
 
 void Scene::restore(Scene_Object::ID id) {
@@ -190,21 +195,15 @@ void Scene::clear(Undo& undo) {
 	undo.reset();
 }
 
-std::string Scene::load_scene(bool clear_first, Undo& undo, std::string file) {
+void Scene::load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform) {
 
-	if(clear_first) clear(undo);
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(file.c_str(), aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices);
+	transform = transform * node->mTransformation;
 
-	if (!scene) {
-		return "Error parsing scene " + file + " : " + std::string(importer.GetErrorString());
-	}
-
-	for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
-        const aiMesh* mesh = scene->mMeshes[i];
-    	
+	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+		const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		
 		if(!mesh->HasNormals()) {
-			warn("Mesh %d has no normals, skipping.");
+			warn("Mesh has no normals, skipping.");
 			continue;
 		}
 
@@ -226,7 +225,35 @@ std::string Scene::load_scene(bool clear_first, Undo& undo, std::string file) {
 			expand_verts.push_back(verts[face.mIndices[2]]);
 		}
 
-		add({}, GL::Mesh(expand_verts));
-    }
+		aiVector3D ascale, arot, apos;
+		transform.Decompose(ascale, arot, apos);
+		Vec3 pos(apos.x, apos.y, apos.z);
+		Vec3 rot(arot.x, arot.y, arot.z);
+		Vec3 scale(ascale.x, ascale.y, ascale.z);
+		Pose p = {pos, Degrees(rot).range(0.0f, 360.0f), scale};
+
+		Scene_Object obj(reserve_id(), p, GL::Mesh(expand_verts));
+		if(mesh->mName.length) {
+			obj.opt.name = std::string(mesh->mName.C_Str());
+		}
+		add(std::move(obj));
+	}
+
+	for(unsigned int i = 0; i < node->mNumChildren; i++) {
+		load_node(scene, node->mChildren[i], transform);
+	}
+}
+
+std::string Scene::load_scene(bool clear_first, Undo& undo, std::string file) {
+
+	if(clear_first) clear(undo);
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(file.c_str(), aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices);
+
+	if (!scene) {
+		return "Error parsing scene " + file + " : " + std::string(importer.GetErrorString());
+	}
+
+	load_node(scene, scene->mRootNode, aiMatrix4x4());
 	return {};
 }

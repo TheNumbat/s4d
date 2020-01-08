@@ -4,7 +4,7 @@
 
 ## Comments
 
-The windows assimp debug static libraries are too big to push to github. They are in a zip file in deps/win/assimp. Extract it.
+The windows assimp debug static libraries are too big to push to github. They are in ``deps/win/assimp/libs.zip``. Extract it.
 
 ## Build
 

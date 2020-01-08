@@ -8,6 +8,8 @@
 #include <optional>
 #include <functional>
 
+#include <assimp/scene.h>
+
 class Undo;
 
 struct Pose {
@@ -70,8 +72,9 @@ public:
 
     bool empty();
     size_t size();
+	Scene_Object::ID add(Scene_Object&& obj);
     Scene_Object::ID add(Pose pose, GL::Mesh&& mesh, Scene_Object::ID id = 0);
-	Scene_Object::ID get_id();
+	Scene_Object::ID reserve_id();
     
 	void erase(Scene_Object::ID id);
 	void restore(Scene_Object::ID id);
@@ -82,6 +85,8 @@ public:
     std::optional<std::reference_wrapper<Scene_Object>> get(Scene_Object::ID id);
 
 private:
+	void load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform);
+
 	std::map<Scene_Object::ID, Scene_Object> objs;
 	std::map<Scene_Object::ID, Scene_Object> erased;
 	Scene_Object::ID next_id, first_id;

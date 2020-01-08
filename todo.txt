@@ -3,9 +3,6 @@ Scotty4D
 
     // BASE
 
-    assimp build on mac/linux
-    better scene loading
-        model poses
     scene exporting
 
     more features

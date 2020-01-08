@@ -186,9 +186,11 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 		return clicked;
 	};
 
+	static const char* file_types = "dae,obj,fbx,glb,gltf,3ds,blend";
+
 	if(ImGui::Button("New Scene")) {
 		char* path = nullptr;
-		NFD_OpenDialog("dae,obj,fbx,gltf,3ds,blend", nullptr, &path);
+		NFD_OpenDialog(file_types, nullptr, &path);
 		
 		if(path) {
 			std::string error = scene.load_scene(true, undo, std::string(path));
@@ -200,7 +202,7 @@ void Gui::objs(Undo& undo, Scene& scene, float menu_height) {
 	}
 	if(wrap_button("Add Scene")) {
 		char* path = nullptr;
-		NFD_OpenDialog("dae,obj,fbx,gltf,3ds,blend", nullptr, &path);
+		NFD_OpenDialog(file_types, nullptr, &path);
 		
 		if(path) {
 			std::string error = scene.load_scene(false, undo, std::string(path));

@@ -11,6 +11,8 @@ Scotty4D
     rendering half-edge mesh features
     transform widgets per face/edge/vert
     half-edge mesh validation checks
+    
+    loading bars/threading for big ops
 
     // PATHTRACER
 

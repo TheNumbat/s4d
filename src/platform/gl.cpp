@@ -786,17 +786,17 @@ uniform vec2 i_screen_size;
 void main() {
 
 	ivec2 coord = ivec2(gl_FragCoord.xy);
-	float o = 1.0f / texture(depth, coord * i_screen_size).r;
+	float o = texture(depth, coord * i_screen_size).r;
 
-	float diff = 0.0f;
+	float low = 1.0f / 0.0f;
 	for (int i = -2; i <= 2; i++) {
 		for (int j = -2; j <= 2; j++) {
-			float d = 1.0f / texture(depth, (coord + ivec2(i,j)) * i_screen_size).r;
-			diff = max(diff, abs(o - d));
+			float d = texture(depth, (coord + ivec2(i,j)) * i_screen_size).r;
+			low = min(low, d);
 		}
 	}
 
-	float a = isinf(o) && isinf(diff) ? 1.0f : 0.0f;
+	float a = o != 0.0f && low == 0.0f ? 1.0f : 0.0f;
 	out_color = vec4(color * a, a);
 })";
 const std::string Effects::outline_ms_f_4 = R"(
@@ -810,17 +810,17 @@ uniform vec3 color;
 void main() {
 
 	ivec2 coord = ivec2(gl_FragCoord.xy);
-	float o = 1.0f / texelFetch(depth, coord, gl_SampleID).r;
+	float o = texelFetch(depth, coord, gl_SampleID).r;
 
-	float diff = 0.0f;
+	float low = 1.0f / 0.0f;
 	for (int i = -2; i <= 2; i++) {
 		for (int j = -2; j <= 2; j++) {
-			float d = 1.0f / texelFetch(depth, coord + ivec2(i,j), gl_SampleID).r;
-			diff = max(diff, abs(o - d));
+			float d = texelFetch(depth, coord + ivec2(i,j), gl_SampleID).r;
+			low = min(low, d);
 		}
 	}
 
-	float a = isinf(o) && isinf(diff) ? 1.0f : 0.0f;
+	float a = o != 0.0f && low == 0.0f ? 1.0f : 0.0f;
 	out_color = vec4(color * a, a);
 })";
 const std::string Effects::outline_ms_f_33 = R"(
@@ -834,17 +834,17 @@ uniform vec3 color;
 void main() {
 
 	ivec2 coord = ivec2(gl_FragCoord.xy);
-	float o = 1.0f / texelFetch(depth, coord, 0).r;
+	float o = texelFetch(depth, coord, 0).r;
 
-	float diff = 0.0f;
+	float low = 1.0f / 0.0f;
 	for (int i = -2; i <= 2; i++) {
 		for (int j = -2; j <= 2; j++) {
-			float d = 1.0f / texelFetch(depth, coord + ivec2(i,j), 0).r;
-			diff = max(diff, abs(o - d));
+			float d = texelFetch(depth, coord + ivec2(i,j), 0).r;
+			low = min(low, d);
 		}
 	}
 
-	float a = isinf(diff) ? 1.0f : 0.0f;
+	float a = o != 0.0f && low == 0.0f ? 1.0f : 0.0f;
 	out_color = vec4(color * a, a);
 })";
 const std::string Effects::resolve_f = R"(

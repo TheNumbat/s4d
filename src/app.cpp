@@ -143,19 +143,9 @@ void App::render_selected(Scene_Object& obj) {
 	if(gui.mode() == Gui::Mode::scene) {
 		
 		gui.apply_transform(obj);
+		mesh_shader.bind();
+		obj.render(view, mesh_shader);
 
-	} else if(gui.mode() == Gui::Mode::model) {
-		
-		obj.pose = {};
-		std::string err = obj.sync_meshes();
-		if(!err.empty()) gui.set_error(err);
-
-	} else assert(false);
-
-	mesh_shader.bind();
-	obj.render(view, mesh_shader);
-
-	if(gui.mode() == Gui::Mode::scene) {
 		framebuffer.clear_d();
 		obj.render(view, mesh_shader, false, true);
 
@@ -167,7 +157,20 @@ void App::render_selected(Scene_Object& obj) {
 						 	min - Vec2(3.0f / window_dim.x), 
 						 	max + Vec2(3.0f / window_dim.y));
 		GL::flush_if_nvidia();
-	}
+
+	} else if(gui.mode() == Gui::Mode::model) {
+		
+		obj.pose = {};
+		std::string err = obj.sync_meshes();
+		if(!err.empty()) gui.set_error(err);
+
+		mesh_shader.bind();
+		obj.render(view, mesh_shader);
+
+		// render halfedge, set sync if we go back
+
+	} else assert(false);
+
 	framebuffer.clear_d();
 
 	float scl = (camera.pos() - obj.pose.pos).norm() / 5.5f;

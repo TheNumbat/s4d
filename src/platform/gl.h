@@ -66,6 +66,8 @@ private:
 
 	std::vector<Vert> _verts;
 	std::vector<Index> _idxs;
+
+	friend class Instances;
 };
 
 class Instances {
@@ -78,7 +80,20 @@ public:
 	void operator=(const Instances& src) = delete;
 	void operator=(Instances&& src);
 
+	void render();
+	void add(Mat4 transform);
+	void clear();
 
+private:
+	void create();
+	void destroy();
+	void update();
+
+	GLuint vbo = 0;
+	bool dirty = false;
+
+	Mesh mesh;
+	std::vector<Mat4> transforms;
 };
 
 class Lines {
@@ -132,6 +147,7 @@ public:
 	void uniform(std::string name, Vec3 vec3) const;
 	void uniform(std::string name, Vec2 vec2) const;
 	void uniform(std::string name, GLint i) const;
+	void uniform(std::string name, GLuint i) const;
 	void uniform(std::string name, GLfloat f) const;
 	void uniform(std::string name, bool b) const;
 	void uniform(std::string name, int count, const Vec2 items[]) const;

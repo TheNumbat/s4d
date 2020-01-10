@@ -164,6 +164,7 @@ void App::render_selected(Scene_Object& obj) {
 
 		mesh_shader.bind();
 		obj.render(view, mesh_shader);
+		// TDOO(max): halfedge rendering
 
 	} else assert(false);
 

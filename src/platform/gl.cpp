@@ -186,10 +186,86 @@ BBox Mesh::bbox() const {
 }
 
 void Mesh::render() const {
-
 	glBindVertexArray(vao);
 	glDrawElements(GL_TRIANGLES, n_elem, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
+}
+
+Instances::Instances(GL::Mesh&& mesh) : mesh(std::move(mesh)) {
+	create();
+}
+
+Instances::Instances(Instances&& src) {
+	mesh = std::move(src.mesh);
+	transforms = std::move(src.transforms);
+	vbo = src.vbo; src.vbo = 0;
+	dirty = src.dirty; src.dirty = false;
+}
+
+Instances::~Instances() {
+	destroy();
+}
+
+void Instances::operator=(Instances&& src) {
+	mesh = std::move(src.mesh);
+	transforms = std::move(src.transforms);
+	vbo = src.vbo; src.vbo = 0;
+	dirty = src.dirty; src.dirty = false;
+}
+
+void Instances::create() {
+	glGenBuffers(1, &vbo);
+
+	glBindVertexArray(mesh.vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(0));
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(float) * 4));
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(float) * 8));
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(float) * 12));
+	glVertexAttribDivisor(2, 1);
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
+	glVertexAttribDivisor(5, 1);
+	
+	glBindVertexArray(0);
+}
+
+void Instances::render() {
+	
+	if(dirty) update();
+	glDrawElementsInstanced(GL_TRIANGLES, mesh.n_elem, GL_UNSIGNED_INT, nullptr, transforms.size());
+}
+
+void Instances::add(Mat4 transform) {
+	transforms.push_back(transform);
+	dirty = true;
+}
+
+void Instances::clear() {
+	transforms.clear();
+	dirty = true;
+}
+
+void Instances::update() {
+
+	glBindVertexArray(mesh.vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Mat4) * transforms.size(), transforms.data(), GL_STATIC_DRAW);
+	glBindVertexArray(0);
+
+	dirty = false;
+}
+
+void Instances::destroy() {
+	glDeleteBuffers(1, &vbo);
+	vbo = 0;
+	mesh.destroy();
 }
 
 Lines::Lines(float thickness) : thickness(thickness) {
@@ -338,6 +414,10 @@ void Shader::uniform(std::string name, Vec2 vec2) const {
 
 void Shader::uniform(std::string name, GLint i) const {
 	glUniform1i(loc(name), i);
+}
+
+void Shader::uniform(std::string name, GLuint i) const {
+	glUniform1ui(loc(name), i);
 }
 
 void Shader::uniform(std::string name, bool b) const {
@@ -918,7 +998,7 @@ void main() {
 
 uniform vec3 color;
 uniform bool solid;
-uniform int id;
+uniform uint id;
 
 layout (location = 0) out vec4 out_col;
 layout (location = 1) out vec4 out_id;
@@ -927,7 +1007,7 @@ smooth in vec3 f_norm;
 
 void main() {
 
-	out_id = vec4((id & 0xff) / 255.0f, ((id >> 8) & 0xff) / 255.0f, ((id >> 16) & 0xff) / 255.0f, 1.0f);
+	out_id = vec4((id & 0xffu) / 255.0f, ((id >> 8) & 0xffu) / 255.0f, ((id >> 16) & 0xffu) / 255.0f, 1.0f);
 
 	if(solid) {
 		out_col = vec4(color, 1.0f);

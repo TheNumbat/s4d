@@ -32,7 +32,7 @@ struct Pose {
 
 class Scene_Object {
 public:
-	typedef int ID;
+	using ID = unsigned int;
 
 	Scene_Object();
 	Scene_Object(ID id, Pose pose, GL::Mesh&& mesh, Vec3 color = {0.7f, 0.7f, 0.7f});

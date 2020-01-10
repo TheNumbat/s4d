@@ -36,6 +36,7 @@ public:
 
 	Scene_Object();
 	Scene_Object(ID id, Pose pose, GL::Mesh&& mesh, Vec3 color = {0.7f, 0.7f, 0.7f});
+	Scene_Object(ID id, Pose pose, Halfedge_Mesh&& mesh, Vec3 color = {0.7f, 0.7f, 0.7f});
 	Scene_Object(const Scene_Object& src) = delete;
 	Scene_Object(Scene_Object&& src);
 	~Scene_Object();
@@ -43,8 +44,8 @@ public:
 	void operator=(const Scene_Object& src) = delete;
 	void operator=(Scene_Object&& src);
 
-	std::string sync_meshes();
-	void render(Mat4 view, const GL::Shader& shader, bool solid = false, bool depth_only = false) const;
+	void sync_mesh();
+	void render(Mat4 view, const GL::Shader& shader, bool solid = false, bool depth_only = false);
 
 	ID id() const {return _id;}
 	const GL::Mesh& mesh() const {return _mesh;}
@@ -66,7 +67,8 @@ private:
 	GL::Mesh _mesh;
 	
 	Halfedge_Mesh halfedge;
-	bool from_mesh = false, from_halfedge = false;
+	bool mesh_dirty = false;
+	bool editable = true;
 };
 
 class Scene {

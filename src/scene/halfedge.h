@@ -146,21 +146,23 @@
 
 class Halfedge_Mesh {
 public:
+	/*
+		For code clarity, we often want to distinguish between
+		an integer that encodes an index (an "ordinal" number)
+		from an integer that encodes a size (a "cardinal" number).
+	*/
+	using Index = size_t;
+	using Size = size_t;
+
 	Halfedge_Mesh() {}
 	Halfedge_Mesh(const GL::Mesh& mesh);
+	Halfedge_Mesh(const std::vector<std::vector<Index>>& polygons, const std::vector<GL::Mesh::Vert>& verts);
 	Halfedge_Mesh(const Halfedge_Mesh& src) = delete;
 	Halfedge_Mesh(Halfedge_Mesh&& src);
 	~Halfedge_Mesh() {}
 
 	void operator=(const Halfedge_Mesh& src) = delete;
 	void operator=(Halfedge_Mesh&& src);
-
-	/// Clear mesh of all elements.
-	void clear();
-	/// Load from renderable vertex-index mesh. Returns error string.
-	std::string from_mesh(const GL::Mesh& mesh);
-	/// Export to renderable vertex-index mesh.
-	void to_mesh(GL::Mesh& mesh) const;
 
 	/*
 		A Halfedge_Mesh is comprised of four atomic element types:
@@ -170,14 +172,6 @@ public:
 	class Edge;
 	class Face;
 	class Halfedge;
-
-	/*
-		For code clarity, we often want to distinguish between
-		an integer that encodes an index (an "ordinal" number)
-		from an integer that encodes a size (a "cardinal" number).
-	*/
-	using Index = size_t;
-	using Size = size_t;
 
 	/*
 		Rather than using raw pointers to mesh elements, we store references
@@ -243,6 +237,15 @@ public:
 		EdgeRef _edge;
 		FaceRef _face;
 	};
+
+	/// Clear mesh of all elements.
+	void clear();
+	/// Export to renderable vertex-index mesh.
+	void to_mesh(GL::Mesh& mesh, bool face_normals) const;
+	/// Create mesh from polygon list
+	std::string from_poly(const std::vector<std::vector<Index>>& polygons, const std::vector<GL::Mesh::Vert>& verts);
+	/// Create mesh from renderable triangle mesh (beware of connectivity, does not de-duplicate vertices)
+	std::string from_mesh(const GL::Mesh& mesh);
 
 	/*
 		These methods delete a specified mesh element. One should think very, very carefully about
@@ -311,7 +314,6 @@ private:
 	std::list<Halfedge> halfedges;
 
 	bool check_finite() const;
-	std::string build(const std::vector<std::vector<Index>>& polygons, const std::vector<GL::Mesh::Vert>& verts);
 };
 
 /*

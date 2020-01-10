@@ -161,13 +161,9 @@ void App::render_selected(Scene_Object& obj) {
 	} else if(gui.mode() == Gui::Mode::model) {
 		
 		obj.pose = {};
-		std::string err = obj.sync_meshes();
-		if(!err.empty()) gui.set_error(err);
 
 		mesh_shader.bind();
 		obj.render(view, mesh_shader);
-
-		// render halfedge, set sync if we go back
 
 	} else assert(false);
 

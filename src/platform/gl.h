@@ -68,6 +68,19 @@ private:
 	std::vector<Index> _idxs;
 };
 
+class Instances {
+public:
+	Instances(GL::Mesh&& mesh);
+	Instances(const Instances& src) = delete;
+	Instances(Instances&& src);
+	~Instances();
+
+	void operator=(const Instances& src) = delete;
+	void operator=(Instances&& src);
+
+
+};
+
 class Lines {
 public:
 	Lines(float thickness);

@@ -62,8 +62,7 @@ Scene_Object::Scene_Object(Scene_Object&& src) :
 	_id = src._id; src._id = 0;
 	color = src.color; src.color = {};
 	pose = src.pose; src.pose = {};
-	from_mesh = src.from_mesh; src.from_mesh = false;
-	from_halfedge = src.from_halfedge; src.from_halfedge = false;
+	mesh_dirty = src.mesh_dirty; src.mesh_dirty = false;
 }
 
 Scene_Object::Scene_Object(ID id, Pose p, GL::Mesh&& m, Vec3 c) :
@@ -72,8 +71,20 @@ Scene_Object::Scene_Object(ID id, Pose p, GL::Mesh&& m, Vec3 c) :
 	_id(id),
 	_mesh(std::move(m)) {
 	
-	from_mesh = true;
-	from_halfedge = false;
+	mesh_dirty = false;
+	editable = false;
+	opt.name.reserve(max_name_len);
+	snprintf(opt.name.data(), opt.name.capacity(), "Object %d", id);
+}
+
+Scene_Object::Scene_Object(ID id, Pose p, Halfedge_Mesh&& m, Vec3 c) :
+	pose(p),
+	color(c),
+	_id(id),
+	halfedge(std::move(m)) {
+	
+	mesh_dirty = true;
+	editable = true;
 	opt.name.reserve(max_name_len);
 	snprintf(opt.name.data(), opt.name.capacity(), "Object %d", id);
 }
@@ -90,21 +101,14 @@ void Scene_Object::operator=(Scene_Object&& src) {
 	_id = src._id; src._id = 0;
 	color = src.color; src.color = {};
 	pose = src.pose; src.pose = {};
-	from_mesh = src.from_mesh; src.from_mesh = false;
-	from_halfedge = src.from_halfedge; src.from_halfedge = false;
+	mesh_dirty = src.mesh_dirty; src.mesh_dirty = false;
 }
 
-std::string Scene_Object::sync_meshes() {
-	assert(!from_mesh || !from_halfedge);
-	if(from_mesh) {
-		from_mesh = false;
-		return halfedge.from_mesh(_mesh);
+void Scene_Object::sync_mesh() {
+	if(editable && mesh_dirty) {
+		halfedge.to_mesh(_mesh, true);
+		mesh_dirty = false;
 	}
-	if(from_halfedge) {
-		from_halfedge = false;
-		halfedge.to_mesh(_mesh);
-	}
-	return "";
 }
 
 BBox Scene_Object::bbox() const {
@@ -116,7 +120,9 @@ BBox Scene_Object::bbox() const {
 	return ret;
 }
 
-void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid, bool depth_only) const {
+void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid, bool depth_only) {
+
+	sync_mesh();
 
 	Mat4 modelview = view * pose.transform();
 	Mat4 normal = Mat4::transpose(Mat4::inverse(modelview));
@@ -232,19 +238,20 @@ void Scene::load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform)
 		std::vector<GL::Mesh::Vert> verts;
 
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-			const aiVector3D* pos = &(mesh->mVertices[i]);
-			const aiVector3D* norm = &(mesh->mNormals[i]);
-
-			verts.push_back({Vec3(pos->x, pos->y, pos->z), Vec3(norm->x, norm->y, norm->z)});
+			const aiVector3D& pos = mesh->mVertices[i];
+			const aiVector3D& norm = mesh->mNormals[i];
+			verts.push_back({Vec3(pos.x, pos.y, pos.z), Vec3(norm.x, norm.y, norm.z)});
 		}
 
-		std::vector<GL::Mesh::Index> indices;
+		std::vector<std::vector<Halfedge_Mesh::Index>> polys;
 		for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
 			const aiFace& face = mesh->mFaces[i];
-			assert(face.mNumIndices == 3);
-			indices.push_back(face.mIndices[0]);
-			indices.push_back(face.mIndices[1]);
-			indices.push_back(face.mIndices[2]);
+			
+			std::vector<Halfedge_Mesh::Index> poly;
+			for(unsigned int j = 0; j < face.mNumIndices; j++) {
+				poly.push_back(face.mIndices[j]);
+			}
+			polys.push_back(poly);
 		}
 
 		aiVector3D ascale, arot, apos;
@@ -254,7 +261,7 @@ void Scene::load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform)
 		Vec3 scale(ascale.x, ascale.y, ascale.z);
 		Pose p = {pos, Degrees(rot).range(0.0f, 360.0f), scale};
 
-		Scene_Object obj(reserve_id(), p, GL::Mesh(std::move(verts), std::move(indices)));
+		Scene_Object obj(reserve_id(), p, Halfedge_Mesh(polys, verts));
 		if(mesh->mName.length) {
 			obj.opt.name = std::string(mesh->mName.C_Str());
 		}
@@ -270,7 +277,7 @@ std::string Scene::load(bool clear_first, Undo& undo, std::string file) {
 
 	if(clear_first) clear(undo);
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(file.c_str(), aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices);
+	const aiScene* scene = importer.ReadFile(file.c_str(), aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices);
 
 	if (!scene) {
 		return "Error parsing scene " + file + " : " + std::string(importer.GetErrorString());

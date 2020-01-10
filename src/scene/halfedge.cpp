@@ -8,6 +8,9 @@
 Halfedge_Mesh::Halfedge_Mesh(const GL::Mesh& mesh) {
 	from_mesh(mesh);
 }
+Halfedge_Mesh::Halfedge_Mesh(const std::vector<std::vector<Index>>& polygons, const std::vector<GL::Mesh::Vert>& verts) {
+	from_poly(polygons, verts);
+}
 Halfedge_Mesh::Halfedge_Mesh(Halfedge_Mesh&& src) {
 	halfedges = std::move(src.halfedges);
 	vertices = std::move(src.vertices);
@@ -28,34 +31,61 @@ void Halfedge_Mesh::clear() {
 	faces.clear();
 }
 
-void Halfedge_Mesh::to_mesh(GL::Mesh& mesh) const {
+void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
 
-	// Need to build this map to get vertex's linear index in O(lg n)
-	std::map<VertexCRef, Index> vref_to_idx;
-	
 	std::vector<GL::Mesh::Vert> verts;
 	std::vector<GL::Mesh::Index> idxs;
 
-	Index i = 0;
-	for (VertexCRef f = vertices_begin(); f != vertices_end(); f++, i++) {
-		verts.push_back(f->data);
-		vref_to_idx[f] = i;
-	}
+	if(face_normals) {
+		for(FaceCRef f = faces_begin(); f != faces_end(); f++) {
 
-	for (FaceCRef f = faces_begin(); f != faces_end(); f++) {
-		
-		std::vector<Index> face_verts;
-		HalfedgeCRef h = f->halfedge();
-		do {
-			face_verts.push_back(vref_to_idx[h->vertex()]);
-			h = h->next();
-		} while (h != f->halfedge());
+			std::vector<GL::Mesh::Vert> face_verts;
+			HalfedgeCRef h = f->halfedge();
+			do {
+				face_verts.push_back(h->vertex()->data);
+				h = h->next();
+			} while (h != f->halfedge());
 
-		assert(face_verts.size() >= 3);
-		for(size_t i = 1; i <= face_verts.size() - 2; i++) {
-			idxs.push_back(face_verts[0]);
-			idxs.push_back(face_verts[i]);
-			idxs.push_back(face_verts[i+1]);
+			assert(face_verts.size() >= 3);
+			for(size_t i = 1; i <= face_verts.size() - 2; i++) {
+				Vec3 v0 = face_verts[0].pos;
+				Vec3 v1 = face_verts[i].pos;
+				Vec3 v2 = face_verts[i+1].pos;
+				Vec3 n = cross(v1 - v0, v2 - v0).unit();
+				idxs.push_back(verts.size());
+				verts.push_back({v0, n});
+				idxs.push_back(verts.size());
+				verts.push_back({v1, n});
+				idxs.push_back(verts.size());
+				verts.push_back({v2, n});
+			}
+		}
+
+	} else {
+
+		// Need to build this map to get vertex's linear index in O(lg n)
+		std::map<VertexCRef, Index> vref_to_idx;
+		Index i = 0;
+		for (VertexCRef f = vertices_begin(); f != vertices_end(); f++, i++) {
+			vref_to_idx[f] = i;
+			verts.push_back(f->data);
+		}
+
+		for(FaceCRef f = faces_begin(); f != faces_end(); f++) {
+
+			std::vector<Index> face_verts;
+			HalfedgeCRef h = f->halfedge()->next()->next();
+			do {
+				face_verts.push_back(vref_to_idx[h->vertex()]);
+				h = h->next();
+			} while (h != f->halfedge()->next()->next());
+
+			assert(face_verts.size() >= 3);
+			for(size_t i = 1; i <= face_verts.size() - 2; i++) {
+				idxs.push_back(face_verts[0]);
+				idxs.push_back(face_verts[i]);
+				idxs.push_back(face_verts[i+1]);
+			}
 		}
 	}
 
@@ -79,7 +109,7 @@ std::string Halfedge_Mesh::from_mesh(const GL::Mesh& mesh) {
 		poly.push_back({idx[i], idx[i+1], idx[i+2]});
 	}
 	
-	std::string err = build(poly, mesh.verts());
+	std::string err = from_poly(poly, mesh.verts());
 	if(!err.empty()) return err;
 	
 	err = validate();
@@ -98,7 +128,7 @@ bool Halfedge_Mesh::check_finite() const {
 	return true;
 }
 
-std::string Halfedge_Mesh::build(const std::vector<std::vector<Index>>& polygons, const std::vector<GL::Mesh::Vert>& verts) {
+std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& polygons, const std::vector<GL::Mesh::Vert>& verts) {
 	
 	// This method initializes the halfedge data structure from a raw list of
 	// polygons, where each input polygon is specified as a list of vertex indices.

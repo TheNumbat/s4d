@@ -144,10 +144,10 @@ void App::render_selected(Scene_Object& obj) {
 		
 		gui.apply_transform(obj);
 		mesh_shader.bind();
-		obj.render(view, mesh_shader);
+		obj.render_mesh(view, mesh_shader);
 
 		framebuffer.clear_d();
-		obj.render(view, mesh_shader, false, true);
+		obj.render_mesh(view, mesh_shader, false, true);
 
 		Vec2 min, max;
 		obj.bbox().screen_rect(viewproj, min, max);
@@ -163,8 +163,7 @@ void App::render_selected(Scene_Object& obj) {
 		obj.pose = {};
 
 		mesh_shader.bind();
-		obj.render(view, mesh_shader);
-		// TDOO(max): halfedge rendering
+		obj.render_halfedge(view, mesh_shader);
 
 	} else assert(false);
 

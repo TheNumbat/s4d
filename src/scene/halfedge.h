@@ -198,7 +198,7 @@ public:
 	public:
 		HalfedgeRef& halfedge() {return _halfedge;}
 		HalfedgeCRef halfedge() const {return _halfedge;}
-		GL::Mesh::Vert data;
+		Vec3 pos, norm;
 	private:
 		HalfedgeRef _halfedge;
 	};

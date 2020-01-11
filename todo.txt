@@ -5,21 +5,26 @@ Scotty4D
         mesh preview in GUI
         scene graph (parenting, etc)
         changing the origin of a mesh
+        loading bars/threading for big mesh ops
+
+    General:
+        factor out widget rendering like halfedge renderer
 
     // MESHEDIT
 
     rendering half-edge mesh features
-    transform widgets per face/edge/vert
+    selecting half-edge mesh features
+    widgets per face/edge/vert
+    undo/redo
     half-edge mesh validation checks
-    
-    loading bars/threading for big ops
 
     // PATHTRACER
 
-    Mode: render
+    Mode: render (+mesh shading options)
 
     // ANIMATION
 
     Mode: rig
     Mode: animate
+    Mode: simulate
 

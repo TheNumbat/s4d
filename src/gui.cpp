@@ -97,44 +97,44 @@ void Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& me
 
 		x_trans.pose.scale = scale;
 		x_trans.pose.pos = pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
-		x_trans.render(view, mesh, true);
+		x_trans.render_mesh(view, mesh, true);
 
 		y_trans.pose.scale = scale;
 		y_trans.pose.pos = pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
-		y_trans.render(view, mesh, true);
+		y_trans.render_mesh(view, mesh, true);
 
 		z_trans.pose.scale = scale;
 		z_trans.pose.pos = pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
-		z_trans.render(view, mesh, true);
+		z_trans.render_mesh(view, mesh, true);
 
 		xy_trans.pose.scale = scale;
 		xy_trans.pose.pos = pose.pos + Vec3(0.45f * scl, 0.45f * scl, 0.0f);
-		xy_trans.render(view, mesh, true);
+		xy_trans.render_mesh(view, mesh, true);
 
 		yz_trans.pose.scale = scale;
 		yz_trans.pose.pos = pose.pos + Vec3(0.0f, 0.45f * scl, 0.45f * scl);
-		yz_trans.render(view, mesh, true);
+		yz_trans.render_mesh(view, mesh, true);
 
 		xz_trans.pose.scale = scale;
 		xz_trans.pose.pos = pose.pos + Vec3(0.45f * scl, 0.0f, 0.45f * scl);
-		xz_trans.render(view, mesh, true);
+		xz_trans.render_mesh(view, mesh, true);
 	
 	} else if(action == Action::rotate) {
 
 		if(!dragging || axis == Axis::X) {
 			x_rot.pose.scale = scale;
 			x_rot.pose.pos = pose.pos;
-			x_rot.render(view, mesh, true);
+			x_rot.render_mesh(view, mesh, true);
 		}
 		if(!dragging || axis == Axis::Y) {
 			y_rot.pose.scale = scale;
 			y_rot.pose.pos = pose.pos;
-			y_rot.render(view, mesh, true);
+			y_rot.render_mesh(view, mesh, true);
 		}
 		if(!dragging || axis == Axis::Z) {
 			z_rot.pose.scale = scale;
 			z_rot.pose.pos = pose.pos;
-			z_rot.render(view, mesh, true);
+			z_rot.render_mesh(view, mesh, true);
 		}
 
 	} else if(action == Action::scale) {
@@ -143,15 +143,15 @@ void Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& me
 
 		x_scale.pose.scale = scale;
 		x_scale.pose.pos = pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
-		x_scale.render(view, mesh, true);
+		x_scale.render_mesh(view, mesh, true);
 
 		y_scale.pose.scale = scale;
 		y_scale.pose.pos = pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
-		y_scale.render(view, mesh, true);
+		y_scale.render_mesh(view, mesh, true);
 
 		z_scale.pose.scale = scale;
 		z_scale.pose.pos = pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
-		z_scale.render(view, mesh, true);
+		z_scale.render_mesh(view, mesh, true);
 	
 	} else assert(false);
 }

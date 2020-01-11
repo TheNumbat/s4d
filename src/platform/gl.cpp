@@ -139,6 +139,9 @@ void Mesh::create() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vert), (GLvoid*)sizeof(Vec3));
 	glEnableVertexAttribArray(1);
 
+	glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(Vert), (GLvoid*)(2 * sizeof(Vec3)));
+	glEnableVertexAttribArray(2);
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	
 	glBindVertexArray(0);
@@ -982,11 +985,13 @@ void main() {
 
 layout (location = 0) in vec3 v_pos;
 layout (location = 1) in vec3 v_norm;
+layout (location = 2) in uint v_id;
 
 uniform float scale;
 uniform mat4 modelview, proj, normal;
 
 smooth out vec3 f_norm;
+flat out uint f_id;
 
 void main() {
 	
@@ -997,17 +1002,22 @@ void main() {
 #version 330 core
 
 uniform vec3 color;
-uniform bool solid;
+uniform bool solid, use_v_id;
 uniform uint id;
 
 layout (location = 0) out vec4 out_col;
 layout (location = 1) out vec4 out_id;
 
 smooth in vec3 f_norm;
+flat in uint f_id;
 
 void main() {
 
-	out_id = vec4((id & 0xffu) / 255.0f, ((id >> 8) & 0xffu) / 255.0f, ((id >> 16) & 0xffu) / 255.0f, 1.0f);
+	if(use_v_id) {
+		out_id = vec4((f_id & 0xffu) / 255.0f, ((f_id >> 8) & 0xffu) / 255.0f, ((f_id >> 16) & 0xffu) / 255.0f, 1.0f);
+	} else {
+		out_id = vec4((id & 0xffu) / 255.0f, ((id >> 8) & 0xffu) / 255.0f, ((id >> 16) & 0xffu) / 255.0f, 1.0f);
+	}
 
 	if(solid) {
 		out_col = vec4(color, 1.0f);

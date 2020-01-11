@@ -37,6 +37,7 @@ public:
 	struct Vert {
 		Vec3 pos;
 		Vec3 norm;
+		GLuint id;
 	};
 
 	Mesh();

@@ -120,13 +120,20 @@ BBox Scene_Object::bbox() const {
 	return ret;
 }
 
-void Scene_Object::render(Mat4 view, const GL::Shader& shader, bool solid, bool depth_only) {
+void Scene_Object::render_halfedge(Mat4 view, const GL::Shader& shader) {
+
+	// TODO(max): this
+	render_mesh(view, shader, false, false);
+}
+
+void Scene_Object::render_mesh(Mat4 view, const GL::Shader& shader, bool solid, bool depth_only) {
 
 	sync_mesh();
 
 	Mat4 modelview = view * pose.transform();
 	Mat4 normal = Mat4::transpose(Mat4::inverse(modelview));
 
+	shader.uniform("use_v_id", false);
 	shader.uniform("id", _id);
 	shader.uniform("modelview", modelview);
 	shader.uniform("normal", normal);
@@ -192,7 +199,7 @@ void Scene::erase(Scene_Object::ID id) {
 void Scene::render_objs(Mat4 view, const GL::Shader& shader, Scene_Object::ID selected) {
 	for(auto& obj : objs) {
 		if(obj.first != selected) 
-			obj.second.render(view, shader);
+			obj.second.render_mesh(view, shader);
 	}
 }
 

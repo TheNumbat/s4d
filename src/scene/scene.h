@@ -45,7 +45,8 @@ public:
 	void operator=(Scene_Object&& src);
 
 	void sync_mesh();
-	void render(Mat4 view, const GL::Shader& shader, bool solid = false, bool depth_only = false);
+	void render_mesh(Mat4 view, const GL::Shader& shader, bool solid = false, bool depth_only = false);
+	void render_halfedge(Mat4 view, const GL::Shader& shader);
 
 	ID id() const {return _id;}
 	const GL::Mesh& mesh() const {return _mesh;}

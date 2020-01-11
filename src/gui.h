@@ -15,7 +15,8 @@ public:
 		model,
 		// render,
 		// rig,
-		// animate
+		// animate,
+		// simulate
 	};
 	enum class Axis {
 		X, Y, Z

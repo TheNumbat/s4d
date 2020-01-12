@@ -183,7 +183,10 @@ public:
 
 	GLuint get_output(int buf) const; 
 	GLuint get_depth() const; 
-	void read(int buf, unsigned char* data) const;
+
+	bool can_read_at() const;
+	void read_at(int buf, int x, int y, GLubyte* data) const;
+	void read(int buf, GLubyte* data) const;
 	
 	void blit_to_screen(int buf, Vec2 dim) const;
 	void blit_to(int buf, const Framebuffer& fb, bool avg = true) const;

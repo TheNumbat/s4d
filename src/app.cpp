@@ -18,7 +18,7 @@ App::App(Platform& plt) :
 	framebuffer(2, window_dim, samples),
 	id_resolve(1, window_dim, 1, false) {
 
-	id_buffer = new unsigned char[(int)window_dim.x * (int)window_dim.y * 4];
+	id_buffer = new GLubyte[(int)window_dim.x * (int)window_dim.y * 4];
 	GL::global_params();
 }
 
@@ -125,13 +125,23 @@ Scene_Object::ID App::read_id(Vec2 pos) {
 	
 	int x = (int)pos.x;
 	int y = (int)(window_dim.y - pos.y - 1);
-	int idx = y * (int)window_dim.x * 4 + x * 4;
-	
-	int a = id_buffer[idx];
-	int b = id_buffer[idx + 1];
-	int c = id_buffer[idx + 2];
 
-	return a | b << 8 | c << 16;
+	if(id_resolve.can_read_at()) {
+		
+		GLubyte data[4] = {};
+		id_resolve.read_at(0, x, y, data);
+		return (int)data[0] | (int)data[1] << 8 | (int)data[2] << 16;
+
+	} else {
+		int idx = y * (int)window_dim.x * 4 + x * 4;
+	
+		int a = id_buffer[idx];
+		int b = id_buffer[idx + 1];
+		int c = id_buffer[idx + 2];
+
+		return a | b << 8 | c << 16;
+	}
+	return 0;
 }
 
 void App::render_selected(Scene_Object& obj) {
@@ -213,7 +223,9 @@ void App::render() {
 	}
 
 	framebuffer.blit_to(1, id_resolve, false);
-	id_resolve.read(0, id_buffer);
+	
+	if(!id_resolve.can_read_at())
+		id_resolve.read(0, id_buffer);
 
 	framebuffer.blit_to_screen(0, window_dim);
 
@@ -237,7 +249,7 @@ void App::apply_window_dim(Vec2 new_dim) {
 	window_dim = new_dim;
 
 	delete[] id_buffer;
-	id_buffer = new unsigned char[(int)window_dim.x * (int)window_dim.y * 4]();
+	id_buffer = new GLubyte[(int)window_dim.x * (int)window_dim.y * 4]();
 
 	camera.set_ar(window_dim);
 	gui.update_dim(window_dim);

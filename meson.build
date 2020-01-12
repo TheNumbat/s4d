@@ -44,7 +44,7 @@ if host_system == 'windows'
         deps += cc.find_library('irrXML', dirs : assimp_dir)
     endif
 
-    link += ['../src/platform/icon.res', 'Shcore.lib', 'Winmm.lib', 'Version.lib', 'Setupapi.lib']
+    link += ['../src/platform/icon.res', 'Shcore.lib', 'Winmm.lib', 'Version.lib', 'Setupapi.lib', '/ignore:4099']
     deps += cc.find_library('SDL2-static', dirs : sdl_dir)
     deps += cc.find_library('SDL2main', dirs : sdl_dir)
     deps += cc.find_library('nfd', dirs : nfd_dir)

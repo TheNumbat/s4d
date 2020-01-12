@@ -603,7 +603,17 @@ GLuint Framebuffer::get_depth() const {
 	return depth_tex;
 }
 
-void Framebuffer::read(int buf, unsigned char* data) const {
+bool Framebuffer::can_read_at() const {
+	return is_gl4 && s == 1;
+}
+
+void Framebuffer::read_at(int buf, int x, int y, GLubyte* data) const {
+	assert(can_read_at());
+	assert(buf >= 0 && buf < (int)output_textures.size());
+	glGetTextureSubImage(output_textures[buf], 0, x, y, 0, 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, 4, data);
+}
+
+void Framebuffer::read(int buf, GLubyte* data) const {
 	assert(s == 1);
 	assert(buf >= 0 && buf < (int)output_textures.size());
 	glBindTexture(GL_TEXTURE_2D, output_textures[buf]);

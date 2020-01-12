@@ -52,5 +52,5 @@ private:
 	bool settings_open = false;
 	GL::Shader mesh_shader, line_shader;
 	GL::Framebuffer framebuffer, id_resolve;
-	unsigned char* id_buffer = nullptr;
+	GLubyte* id_buffer = nullptr;
 };

@@ -1,40 +1,50 @@
 
-Scotty4D
+Addressed course_TODOs:
+    general:
+        rewrite picking code
+        rendering meshes offsets vertices by normal
+        HIDPI
+        many mesh classes
+    MeshEdit: will address more
+    Pathtracer: will address more
+        fix collada parser (assimp)
 
-    Addressed course_TODOs:
-        general:
-            rewrite picking code
-            rendering meshes offsets vertices by normal
-            HIDPI
-            many mesh classes
-        MeshEdit: will address more
-        Pathtracer: will address more
-            fix collada parser (assimp)
+TODO:
 
     Useful but low priority:
         mesh preview in GUI
         scene graph (parenting, etc)
         changing the origin of a mesh
         loading bars/threading for big mesh ops
-
     General:
         factor out widget rendering like halfedge renderer
 
-    // MESHEDIT
+    [ MESHEDIT ]
 
     rendering half-edge mesh features
-    selecting half-edge mesh features
-    widgets per face/edge/vert
-    undo/redo
-    half-edge mesh validation checks
+    selecting half-edge features
+        set widgets to individual face/edge/vert
+    undo/redo integration
+    more half-edge mesh validation checks
 
-    // PATHTRACER
+    thinking about writing contiguous memory implementation for fast iteration
+        may increase API complexity
+        definitely increases implementation complexity
+        needs tombstones/compaction after steps
+        needs custom iterators for elements and maybe for paths 
+            (otherwise have to pass next ref back through some function)
+
+    [ PATHTRACER ]
 
     Mode: render (+mesh shading options)
+    
+    Port and simplify code
+        I'd like to refactor it more like https://github.com/TheNumbat/dawn
 
-    // ANIMATION
+    [ ANIMATION ]
 
     Mode: rig
     Mode: animate
     Mode: simulate
 
+    Port and simplify code

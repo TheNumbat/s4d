@@ -306,12 +306,13 @@ void Lines::update() {
 	dirty = false;
 }
 
-void Lines::render() {
+void Lines::render(bool smooth) {
 
 	if(dirty) update();
 
 	glLineWidth(thickness);
-	glEnable(GL_LINE_SMOOTH);
+	if(smooth) glEnable(GL_LINE_SMOOTH);
+	else glDisable(GL_LINE_SMOOTH);
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_LINES, 0, vertices.size());

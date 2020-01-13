@@ -230,10 +230,6 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 
 	}  // end basic sanity checks on input
 
-	// The number of vertices in the mesh is the
-	// number of unique indices seen in the input.
-	Size nVertices = indexToVertex.size();
-
 	// The number of faces is just the number of polygons in the input.
 	Size nFaces = polygons.size();
 	faces.resize(nFaces);  // allocate storage for faces in our new mesh

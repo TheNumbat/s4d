@@ -347,7 +347,7 @@ std::string Scene::write(std::string file) {
 		ai_mesh->mNumFaces = (unsigned int)(verts.size() / 3);
 
 		int k = 0;
-		for(int i = 0; i < (verts.size() / 3); i++) {
+		for(size_t i = 0; i < (verts.size() / 3); i++) {
 			aiFace &face = ai_mesh->mFaces[i];
 			face.mIndices = new unsigned int[3];
 			face.mNumIndices = 3;

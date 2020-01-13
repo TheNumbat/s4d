@@ -633,6 +633,6 @@ void Gui::apply_transform(Scene_Object& obj) {
 	}
 }
 
-void Gui::render_base() {
-	baseplane.render();
+void Gui::render_base(bool smooth) {
+	baseplane.render(smooth);
 }

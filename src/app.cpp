@@ -77,7 +77,7 @@ void App::event(SDL_Event e) {
 
 		Vec2 p(e.button.x, e.button.y);
 
-		if(e.button.button == SDL_BUTTON_LEFT) {
+		if(e.button.button == SDL_BUTTON_RIGHT) {
 
 			Scene_Object::ID id = read_id(p);
 			if(gui.select(scene, id, camera.pos(), screen_to_world(p))) {
@@ -87,7 +87,7 @@ void App::event(SDL_Event e) {
 			} else if(cam_mode == Camera_Control::none) {
 				cam_mode = Camera_Control::move;
 			}
-		} else if(e.button.button == SDL_BUTTON_RIGHT) {
+		} else if(e.button.button == SDL_BUTTON_LEFT) {
 			if(cam_mode == Camera_Control::none) {
 				cam_mode = Camera_Control::orbit;
 			}
@@ -98,7 +98,7 @@ void App::event(SDL_Event e) {
 
 		Vec2 p(e.button.x, e.button.y);
 
-		if(e.button.button == SDL_BUTTON_LEFT) {
+		if(e.button.button == SDL_BUTTON_RIGHT) {
 			if(!IO.WantCaptureMouse && gui_capture) {
 				gui_capture = false;
 				gui.drag_to(scene, camera.pos(), screen_to_world(p));
@@ -108,8 +108,8 @@ void App::event(SDL_Event e) {
 			}
 		}
 
-		if((e.button.button == SDL_BUTTON_RIGHT && cam_mode == Camera_Control::orbit) ||
-		   (e.button.button == SDL_BUTTON_LEFT && cam_mode == Camera_Control::move)) {
+		if((e.button.button == SDL_BUTTON_LEFT && cam_mode == Camera_Control::orbit) ||
+		   (e.button.button == SDL_BUTTON_RIGHT && cam_mode == Camera_Control::move)) {
 			cam_mode = Camera_Control::none;
 		}
 
@@ -214,7 +214,7 @@ void App::render() {
 		line_shader.bind();
 		line_shader.uniform("alpha", 1.0f);
 		line_shader.uniform("viewproj", viewproj);
-		gui.render_base();
+		gui.render_base(framebuffer.is_multisampled());
 	}
 
 	auto selected = scene.get(gui.selected_id());

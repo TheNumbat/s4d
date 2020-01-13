@@ -63,6 +63,8 @@ elif host_system == 'darwin'
 
     assert(cc.get_id() == 'clang', 'Use clang on mac.')
 
+    args += ['-I/usr/local/include']
+    link += ['-L/usr/local/lib']
     deps += dependency('sdl2')
     deps += dependency('assimp')
     deps += dependency('gtk+-3.0')

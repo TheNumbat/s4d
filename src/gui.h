@@ -56,7 +56,7 @@ public:
 
 	// 3D GUI rendering
 	void render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& mesh, const Pose& pose, float scale);
-	void render_base();
+	void render_base(bool smooth);
 
 private:
 	static inline const char* file_types = "dae,obj,fbx,glb,gltf,3ds,blend";

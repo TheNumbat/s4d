@@ -180,7 +180,7 @@ void Platform::loop(App& app) {
 }
 
 Vec2 Platform::scale_mouse(Vec2 mouse) {
-	return mouse * window_size() / window_draw();
+	return mouse * window_draw() / window_size();
 }
 
 Vec2 Platform::window_size() {

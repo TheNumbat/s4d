@@ -101,14 +101,13 @@ void Platform::set_dpi() {
 	if(prev_dpi == 0.0f) prev_dpi = 1.0f;
 	
 	Vec2 size = window_dim();
-	size *= scale / prev_dpi;
 	SDL_SetWindowSize(window, (int)size.x, (int)size.y);
 
 	ImGuiStyle style;
 	style.WindowRounding = 0.0f;
 	style.ScaleAllSizes(scale);
 	ImGui::GetStyle() = style;
-	
+
 	ImGuiIO& IO = ImGui::GetIO();
 	ImFontConfig config;
 	config.FontDataOwnedByAtlas = false;

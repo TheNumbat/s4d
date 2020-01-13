@@ -9,12 +9,12 @@ namespace GL {
 static void setup_debug_proc();
 static void check_leaked_handles();
 static bool is_nvidia = false;
-static bool is_gl4 = false;
+static bool is_gl45 = false;
 
 void setup() {
 	std::string ver = version();
 	is_nvidia = ver.find("NVIDIA") != std::string::npos;
-	is_gl4 = ver.find("4.") != std::string::npos;
+	is_gl45 = ver.find("4.5") != std::string::npos;
 
 	setup_debug_proc();
 	Effects::init();
@@ -605,7 +605,7 @@ GLuint Framebuffer::get_depth() const {
 }
 
 bool Framebuffer::can_read_at() const {
-	return is_gl4 && s == 1;
+	return is_gl45 && s == 1;
 }
 
 void Framebuffer::read_at(int buf, int x, int y, GLubyte* data) const {
@@ -664,7 +664,7 @@ void Effects::init() {
 	glGenVertexArrays(1, &vao);
 	resolve_shader.load(effects_v, resolve_f);
 	outline_shader.load(effects_v, outline_f);
-	outline_shader_ms.load(effects_v, is_gl4 ? outline_ms_f_4 : outline_ms_f_33);
+	outline_shader_ms.load(effects_v, is_gl45 ? outline_ms_f_4 : outline_ms_f_33);
 }
 
 void Effects::destroy() {

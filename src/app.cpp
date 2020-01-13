@@ -77,7 +77,7 @@ void App::event(SDL_Event e) {
 
 		Vec2 p(e.button.x, e.button.y);
 
-		if(e.button.button == SDL_BUTTON_RIGHT) {
+		if(e.button.button == SDL_BUTTON_LEFT) {
 
 			Scene_Object::ID id = read_id(p);
 			if(gui.select(scene, id, camera.pos(), screen_to_world(p))) {
@@ -85,11 +85,11 @@ void App::event(SDL_Event e) {
 				plt.grab_mouse();
 				gui_capture = true;
 			} else if(cam_mode == Camera_Control::none) {
-				cam_mode = Camera_Control::move;
-			}
-		} else if(e.button.button == SDL_BUTTON_LEFT) {
-			if(cam_mode == Camera_Control::none) {
 				cam_mode = Camera_Control::orbit;
+			}
+		} else if(e.button.button == SDL_BUTTON_RIGHT) {
+			if(cam_mode == Camera_Control::none) {
+				cam_mode = Camera_Control::move;
 			}
 		}
 	} break;
@@ -98,7 +98,7 @@ void App::event(SDL_Event e) {
 
 		Vec2 p(e.button.x, e.button.y);
 
-		if(e.button.button == SDL_BUTTON_RIGHT) {
+		if(e.button.button == SDL_BUTTON_LEFT) {
 			if(!IO.WantCaptureMouse && gui_capture) {
 				gui_capture = false;
 				gui.drag_to(scene, camera.pos(), screen_to_world(p));

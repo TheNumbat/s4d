@@ -1,6 +1,16 @@
 
 Scotty4D
 
+    Addressed course_TODOs:
+        general:
+            rewrite picking code
+            rendering meshes offsets vertices by normal
+            HIDPI
+            many mesh classes
+        MeshEdit: will address more
+        Pathtracer: will address more
+            fix collada parser (assimp)
+
     Useful but low priority:
         mesh preview in GUI
         scene graph (parenting, etc)

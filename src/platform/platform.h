@@ -14,7 +14,9 @@ public:
 
 	void loop(App& app);
 
-	Vec2 window_dim();
+	Vec2 window_draw();
+	Vec2 window_size();
+	Vec2 scale_mouse(Vec2 mouse);
 
 	void capture_mouse();
 	void release_mouse();

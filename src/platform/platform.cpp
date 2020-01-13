@@ -100,9 +100,6 @@ void Platform::set_dpi() {
 	if(prev_dpi == scale) return;
 	if(prev_dpi == 0.0f) prev_dpi = 1.0f;
 	
-	Vec2 size = window_dim();
-	SDL_SetWindowSize(window, (int)size.x, (int)size.y);
-
 	ImGuiStyle style;
 	style.WindowRounding = 0.0f;
 	style.ScaleAllSizes(scale);
@@ -182,7 +179,17 @@ void Platform::loop(App& app) {
 	}
 }
 
-Vec2 Platform::window_dim() {
+Vec2 Platform::scale_mouse(Vec2 mouse) {
+	return mouse * window_size() / window_draw();
+}
+
+Vec2 Platform::window_size() {
+	int w, h;
+	SDL_GetWindowSize(window, &w, &h);
+	return Vec2((float)w, (float)h);
+}
+
+Vec2 Platform::window_draw() {
 	int w, h;
 	SDL_GL_GetDrawableSize(window, &w, &h);
 	return Vec2((float)w, (float)h);

@@ -48,7 +48,7 @@ private:
 	bool gui_capture = false;
 
 	// GL data
-	int samples = 2;
+	int samples = 4;
 	bool settings_open = false;
 	GL::Shader mesh_shader, line_shader;
 	GL::Framebuffer framebuffer, id_resolve;

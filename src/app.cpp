@@ -8,7 +8,7 @@
 #include <imgui/imgui_impl_sdl.h>
 
 App::App(Platform& plt) : 
-	window_dim(plt.window_dim()),
+	window_dim(plt.window_draw()),
 	camera(window_dim),
 	plt(plt),
 	scene(Gui::num_ids()),
@@ -51,14 +51,14 @@ void App::event(SDL_Event e) {
 		if (e.window.event == SDL_WINDOWEVENT_RESIZED ||
 			e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 
-			apply_window_dim(plt.window_dim());
+			apply_window_dim(plt.window_draw());
 		}
 	} break;
 
 	case SDL_MOUSEMOTION: {
 
 		Vec2 d(e.motion.xrel, e.motion.yrel);
-		Vec2 p(e.motion.x, e.motion.y);
+		Vec2 p = plt.scale_mouse({e.motion.x, e.motion.y});
 		
 		if(gui_capture) {
 			gui.drag_to(scene, camera.pos(), screen_to_world(p));
@@ -75,7 +75,7 @@ void App::event(SDL_Event e) {
 
 		if(IO.WantCaptureMouse) break;
 
-		Vec2 p(e.button.x, e.button.y);
+		Vec2 p = plt.scale_mouse({e.button.x, e.button.y});
 
 		if(e.button.button == SDL_BUTTON_LEFT) {
 
@@ -96,7 +96,7 @@ void App::event(SDL_Event e) {
 
 	case SDL_MOUSEBUTTONUP: {
 
-		Vec2 p(e.button.x, e.button.y);
+		Vec2 p = plt.scale_mouse({e.button.x, e.button.y});
 
 		if(e.button.button == SDL_BUTTON_LEFT) {
 			if(!IO.WantCaptureMouse && gui_capture) {

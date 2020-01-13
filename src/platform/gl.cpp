@@ -998,7 +998,6 @@ layout (location = 0) in vec3 v_pos;
 layout (location = 1) in vec3 v_norm;
 layout (location = 2) in uint v_id;
 
-uniform float scale;
 uniform mat4 modelview, proj, normal;
 
 smooth out vec3 f_norm;
@@ -1006,8 +1005,9 @@ flat out uint f_id;
 
 void main() {
 	
+	f_id = v_id;
 	f_norm = (normal * vec4(v_norm, 0.0f)).xyz;
-	gl_Position = proj * modelview * vec4(v_pos, 1.0f) + vec4(f_norm, 0.0f) * scale;
+	gl_Position = proj * modelview * vec4(v_pos, 1.0f);
 })";
 	const std::string mesh_f = R"(
 #version 330 core

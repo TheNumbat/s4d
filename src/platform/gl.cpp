@@ -296,7 +296,7 @@ Lines::~Lines() {
 	destroy();
 }
 
-void Lines::update() {
+void Lines::update() const {
 
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -306,7 +306,7 @@ void Lines::update() {
 	dirty = false;
 }
 
-void Lines::render(bool smooth) {
+void Lines::render(bool smooth) const {
 
 	if(dirty) update();
 
@@ -479,7 +479,14 @@ bool Shader::validate(GLuint program) {
 	return true;
 }
 
+Framebuffer::Framebuffer() {}
+
 Framebuffer::Framebuffer(int outputs, Vec2 dim, int samples, bool d) {
+	setup(outputs, dim, samples, d);
+}
+
+void Framebuffer::setup(int outputs, Vec2 dim, int samples, bool d) {
+	destroy();
 	assert(outputs >= 0 && outputs < 31);
 	depth = d;
 	output_textures.resize(outputs);

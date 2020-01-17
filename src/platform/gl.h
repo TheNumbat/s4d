@@ -108,7 +108,7 @@ public:
 	void operator=(Lines&& src);
 
 	/// Assumes proper shader is already bound
-	void render(bool smooth = true);
+	void render(bool smooth) const;
 	void add(Vec3 start, Vec3 end, Vec3 color);
 	void pop();
 	void clear();
@@ -116,9 +116,9 @@ public:
 private:
 	void create();
 	void destroy();
-	void update();
+	void update() const;
 
-	bool dirty = false;
+	mutable bool dirty = false;
 	float thickness = 0.0f;
 	GLuint vao = 0, vbo = 0;
 
@@ -167,6 +167,7 @@ private:
 /// textures and a floating point depth render buffer.
 class Framebuffer {
 public:
+	Framebuffer();
 	Framebuffer(int outputs, Vec2 dim, int samples = 1, bool depth = true);
 	Framebuffer(const Framebuffer& src) = delete;
 	Framebuffer(Framebuffer&& src);
@@ -177,6 +178,7 @@ public:
 
 	static void bind_screen();
 
+	void setup(int outputs, Vec2 dim, int samples, bool d);
 	void resize(Vec2 dim, int samples = 1);
 	void bind() const;
 	bool is_multisampled() const;

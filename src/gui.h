@@ -55,8 +55,8 @@ public:
 	void objs(Scene& scene, Undo& undo, float menu_height);
 
 	// 3D GUI rendering
-	void render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& mesh, const Pose& pose, float scale);
-	void render_base(bool smooth);
+	void render_widgets(Mat4 viewproj, Mat4 view, const Pose& pose, float scale);
+	void render_base(Mat4 viewproj);
 
 private:
 	static inline const char* file_types = "dae,obj,fbx,glb,gltf,3ds,blend";

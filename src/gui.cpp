@@ -1,13 +1,14 @@
 
 #include "gui.h"
 #include "scene/util.h"
+#include "scene/render.h"
 
 #include <imgui/imgui.h>
 #include <nfd/nfd.h>
 
 Gui::Gui(Vec2 dim) : 
-    baseplane(1.0f),
-    widget_lines(1.0f),
+	baseplane(1.0f),
+	widget_lines(1.0f),
 	window_dim(dim) {
 
 	x_trans = Scene_Object((Scene_Object::ID)Basic::x_trans, Pose::rotated({0.0f, 0.0f, -90.0f}), Util::arrow_mesh(), Gui::Color::red);
@@ -26,7 +27,7 @@ Gui::Gui(Vec2 dim) :
 	y_scale = Scene_Object((Scene_Object::ID)Basic::y_scale, {}, Util::scale_mesh(), Gui::Color::green);
 	z_scale = Scene_Object((Scene_Object::ID)Basic::z_scale, Pose::rotated({90.0f, 0.0f, 0.0f}), Util::scale_mesh(), Gui::Color::blue);
 
-    create_baseplane();
+	create_baseplane();
 }
 
 Gui::~Gui() {
@@ -34,11 +35,11 @@ Gui::~Gui() {
 }
 
 Scene_Object::ID Gui::num_ids() {
-    return (Scene_Object::ID)Basic::count;
+	return (Scene_Object::ID)Basic::count;
 }
 
 void Gui::update_dim(Vec2 dim) {
-    window_dim = dim;
+	window_dim = dim;
 }
 
 Vec3 Gui::Color::axis(Axis a) {
@@ -52,10 +53,10 @@ Vec3 Gui::Color::axis(Axis a) {
 }
 
 bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
-    if(key == SDLK_e && selected) {
-        action = (Gui::Action)(((int)action + 1) % 3);
+	if(key == SDLK_e && selected) {
+		action = (Gui::Action)(((int)action + 1) % 3);
 		return true;
-    }
+	}
 	if(key == SDLK_DELETE && selected) {
 		undo.del_obj(scene, selected);
 		selected = 0;
@@ -82,59 +83,57 @@ Scene_Object::ID Gui::selected_id() {
 	return selected;
 }
 
-void Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& mesh, const Pose& pose, float scl) {
+void Gui::render_widgets(Mat4 viewproj, Mat4 view, const Pose& pose, float scl) {
+
+	Renderer::reset_depth();
 
 	Vec3 scale(scl);
+	Renderer::lines(widget_lines, viewproj, 0.5f);
 
-	line.bind();
-	line.uniform("alpha", 0.5f);
-	widget_lines.render();
-
-	mesh.bind();
 	if(action == Action::move) {
 
 		if(dragging) return;
 
 		x_trans.pose.scale = scale;
 		x_trans.pose.pos = pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
-		x_trans.render_mesh(view, mesh, true);
+		x_trans.render_mesh(view, true);
 
 		y_trans.pose.scale = scale;
 		y_trans.pose.pos = pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
-		y_trans.render_mesh(view, mesh, true);
+		y_trans.render_mesh(view, true);
 
 		z_trans.pose.scale = scale;
 		z_trans.pose.pos = pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
-		z_trans.render_mesh(view, mesh, true);
+		z_trans.render_mesh(view, true);
 
 		xy_trans.pose.scale = scale;
 		xy_trans.pose.pos = pose.pos + Vec3(0.45f * scl, 0.45f * scl, 0.0f);
-		xy_trans.render_mesh(view, mesh, true);
+		xy_trans.render_mesh(view, true);
 
 		yz_trans.pose.scale = scale;
 		yz_trans.pose.pos = pose.pos + Vec3(0.0f, 0.45f * scl, 0.45f * scl);
-		yz_trans.render_mesh(view, mesh, true);
+		yz_trans.render_mesh(view, true);
 
 		xz_trans.pose.scale = scale;
 		xz_trans.pose.pos = pose.pos + Vec3(0.45f * scl, 0.0f, 0.45f * scl);
-		xz_trans.render_mesh(view, mesh, true);
+		xz_trans.render_mesh(view, true);
 	
 	} else if(action == Action::rotate) {
 
 		if(!dragging || axis == Axis::X) {
 			x_rot.pose.scale = scale;
 			x_rot.pose.pos = pose.pos;
-			x_rot.render_mesh(view, mesh, true);
+			x_rot.render_mesh(view, true);
 		}
 		if(!dragging || axis == Axis::Y) {
 			y_rot.pose.scale = scale;
 			y_rot.pose.pos = pose.pos;
-			y_rot.render_mesh(view, mesh, true);
+			y_rot.render_mesh(view, true);
 		}
 		if(!dragging || axis == Axis::Z) {
 			z_rot.pose.scale = scale;
 			z_rot.pose.pos = pose.pos;
-			z_rot.render_mesh(view, mesh, true);
+			z_rot.render_mesh(view, true);
 		}
 
 	} else if(action == Action::scale) {
@@ -143,15 +142,15 @@ void Gui::render_widgets(Mat4 view, const GL::Shader& line, const GL::Shader& me
 
 		x_scale.pose.scale = scale;
 		x_scale.pose.pos = pose.pos + Vec3(0.15f * scl, 0.0f, 0.0f);
-		x_scale.render_mesh(view, mesh, true);
+		x_scale.render_mesh(view, true);
 
 		y_scale.pose.scale = scale;
 		y_scale.pose.pos = pose.pos + Vec3(0.0f, 0.15f * scl, 0.0f);
-		y_scale.render_mesh(view, mesh, true);
+		y_scale.render_mesh(view, true);
 
 		z_scale.pose.scale = scale;
 		z_scale.pose.pos = pose.pos + Vec3(0.0f, 0.0f, 0.15f * scl);
-		z_scale.render_mesh(view, mesh, true);
+		z_scale.render_mesh(view, true);
 	
 	} else assert(false);
 }
@@ -470,8 +469,8 @@ bool Gui::to_plane(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit) {
 void Gui::end_drag(Undo& undo, Scene& scene) {
 
 	if(!dragging) return;
-    
-    Scene_Object& obj = *scene.get(selected);
+	
+	Scene_Object& obj = *scene.get(selected);
 	Pose p = obj.pose;
 
 	switch(action) {
@@ -498,7 +497,7 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 
 	if(!dragging) return;
 	
-    Scene_Object& obj = *scene.get(selected);
+	Scene_Object& obj = *scene.get(selected);
 	Vec3 pos = obj.pose.pos;
 	
 	if(action == Action::rotate) {
@@ -625,7 +624,7 @@ bool Gui::select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir) {
 }
 
 void Gui::apply_transform(Scene_Object& obj) {
-    if(dragging) {
+	if(dragging) {
 			 if(action == Gui::Action::scale)  obj.pose.scale = apply_action(obj);
 		else if(action == Gui::Action::rotate) obj.pose.euler = apply_action(obj);
 		else if(action == Gui::Action::move)   obj.pose.pos   = apply_action(obj);
@@ -633,6 +632,6 @@ void Gui::apply_transform(Scene_Object& obj) {
 	}
 }
 
-void Gui::render_base(bool smooth) {
-	baseplane.render(smooth);
+void Gui::render_base(Mat4 viewproj) {
+	Renderer::lines(baseplane, viewproj, 0.5f);
 }

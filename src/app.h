@@ -45,12 +45,7 @@ private:
 	Scene scene;
 	Gui gui;
 	Undo undo;
-	bool gui_capture = false;
 
-	// GL data
-	int samples = 4;
+	bool gui_capture = false;
 	bool settings_open = false;
-	GL::Shader mesh_shader, line_shader;
-	GL::Framebuffer framebuffer, id_resolve;
-	GLubyte* id_buffer = nullptr;
 };

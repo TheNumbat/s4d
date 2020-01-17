@@ -1,5 +1,6 @@
 
 #include "app.h"
+#include "scene/render.h"
 #include "scene/util.h"
 #include "platform/platform.h"
 
@@ -12,18 +13,14 @@ App::App(Platform& plt) :
 	camera(window_dim),
 	plt(plt),
 	scene(Gui::num_ids()),
-	gui(window_dim),
-	mesh_shader(GL::Shaders::mesh_v, GL::Shaders::mesh_f),
-	line_shader(GL::Shaders::line_v, GL::Shaders::line_f),
-	framebuffer(2, window_dim, samples),
-	id_resolve(1, window_dim, 1, false) {
+	gui(window_dim) {
 
-	id_buffer = new GLubyte[(int)window_dim.x * (int)window_dim.y * 4];
 	GL::global_params();
+	Renderer::setup(window_dim);
 }
 
 App::~App() {
-	delete[] id_buffer;
+	Renderer::shutdown();
 }
 
 void App::event(SDL_Event e) {
@@ -79,7 +76,7 @@ void App::event(SDL_Event e) {
 
 		if(e.button.button == SDL_BUTTON_LEFT) {
 
-			Scene_Object::ID id = read_id(p);
+			Scene_Object::ID id = Renderer::read_id(p);
 			if(gui.select(scene, id, camera.pos(), screen_to_world(p))) {
 				cam_mode = Camera_Control::none;
 				plt.grab_mouse();
@@ -121,29 +118,6 @@ void App::event(SDL_Event e) {
 	}
 }
 
-Scene_Object::ID App::read_id(Vec2 pos) {
-	
-	int x = (int)pos.x;
-	int y = (int)(window_dim.y - pos.y - 1);
-
-	if(id_resolve.can_read_at()) {
-		
-		GLubyte data[4] = {};
-		id_resolve.read_at(0, x, y, data);
-		return (int)data[0] | (int)data[1] << 8 | (int)data[2] << 16;
-
-	} else {
-		int idx = y * (int)window_dim.x * 4 + x * 4;
-	
-		int a = id_buffer[idx];
-		int b = id_buffer[idx + 1];
-		int c = id_buffer[idx + 2];
-
-		return a | b << 8 | c << 16;
-	}
-	return 0;
-}
-
 void App::render_selected(Scene_Object& obj) {
 
 	Vec3 prev_scale = obj.pose.scale;
@@ -153,34 +127,18 @@ void App::render_selected(Scene_Object& obj) {
 	if(gui.mode() == Gui::Mode::scene) {
 		
 		gui.apply_transform(obj);
-		mesh_shader.bind();
-		obj.render_mesh(view, mesh_shader);
-
-		framebuffer.clear_d();
-		obj.render_mesh(view, mesh_shader, false, true);
-
-		Vec2 min, max;
-		obj.bbox().screen_rect(viewproj, min, max);
-
-		GL::flush_if_nvidia();
-		GL::Effects::outline(framebuffer, framebuffer, Gui::Color::outline, 
-						 	min - Vec2(3.0f / window_dim.x), 
-						 	max + Vec2(3.0f / window_dim.y));
-		GL::flush_if_nvidia();
+		obj.render_mesh(view);
+		Renderer::outline(viewproj, view, obj);
 
 	} else if(gui.mode() == Gui::Mode::model) {
 		
 		obj.pose = {};
-
-		mesh_shader.bind();
-		obj.render_halfedge(view, mesh_shader);
+		obj.render_halfedge(view);
 
 	} else assert(false);
 
-	framebuffer.clear_d();
-
 	float scl = (camera.pos() - obj.pose.pos).norm() / 5.5f;
-	gui.render_widgets(view, line_shader, mesh_shader, obj.pose, scl);
+	gui.render_widgets(viewproj, view, obj.pose, scl);
 
 	obj.pose.scale = prev_scale;
 	obj.pose.euler = prev_rot;
@@ -200,40 +158,24 @@ void App::render() {
 	viewproj = proj * view;
 	iviewproj = Mat4::inverse(viewproj);
 
-	framebuffer.clear(0, Vec4(Gui::Color::background, 1.0f));
-	framebuffer.clear(1, {0.0f, 0.0f, 0.0f, 1.0f});
-	framebuffer.clear_d();
-	framebuffer.bind();
+	Renderer::begin();
 	if(gui.mode() == Gui::Mode::scene) {
-		mesh_shader.bind();
-		mesh_shader.uniform("proj", proj);
-
-        scene.render_objs(view, mesh_shader, gui.selected_id());
+		Renderer::proj(proj);
+        scene.render_objs(view, gui.selected_id());
 	}
-	{
-		line_shader.bind();
-		line_shader.uniform("alpha", 1.0f);
-		line_shader.uniform("viewproj", viewproj);
-		gui.render_base(framebuffer.is_multisampled());
-	}
+	gui.render_base(viewproj);
 
 	auto selected = scene.get(gui.selected_id());
 	if(selected.has_value()) {
 		render_selected(*selected);
 	}
-
-	framebuffer.blit_to(1, id_resolve, false);
-	
-	if(!id_resolve.can_read_at())
-		id_resolve.read(0, id_buffer);
-
-	framebuffer.blit_to_screen(0, window_dim);
+	Renderer::complete();
 
 	// GUI
 	float height = gui.menu(scene, undo, settings_open);
 	gui.objs(scene, undo, height);
 	gui.error();
-	settings();
+	if(settings_open) Renderer::settings_gui(&settings_open);
 }
 
 Vec3 App::screen_to_world(Vec2 mouse) {
@@ -248,34 +190,8 @@ void App::apply_window_dim(Vec2 new_dim) {
 
 	window_dim = new_dim;
 
-	delete[] id_buffer;
-	id_buffer = new GLubyte[(int)window_dim.x * (int)window_dim.y * 4]();
-
 	camera.set_ar(window_dim);
 	gui.update_dim(window_dim);
-	framebuffer.resize(window_dim, samples);
-	id_resolve.resize(window_dim);
+	Renderer::update_dim(window_dim);
 	GL::viewport(window_dim);
 }
-
-void App::settings() {
-	if(settings_open) {
-		ImGui::Begin("Display Settings", &settings_open, 
-			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
-		
-		ImGui::InputInt("Multisampling", &samples);
-		if(samples < 1) samples = 1;
-		if(samples > 16) samples = 16;
-
-		if(ImGui::Button("Apply")) {
-			framebuffer.resize(window_dim, samples);
-		}
-
-		ImGui::Separator();
-		ImGui::Text("GPU: %s", GL::renderer().c_str());
-		ImGui::Text("OpenGL: %s", GL::version().c_str());
-
-		ImGui::End();
-	}
-}
-

@@ -1,5 +1,6 @@
 
 #include "scene.h"
+#include "render.h"
 #include "../lib/log.h"
 #include "../undo.h"
 
@@ -104,7 +105,7 @@ void Scene_Object::operator=(Scene_Object&& src) {
 	mesh_dirty = src.mesh_dirty; src.mesh_dirty = false;
 }
 
-void Scene_Object::sync_mesh() {
+void Scene_Object::sync_mesh() const {
 	if(editable && mesh_dirty) {
 		halfedge.to_mesh(_mesh, true);
 		mesh_dirty = false;
@@ -120,38 +121,24 @@ BBox Scene_Object::bbox() const {
 	return ret;
 }
 
-void Scene_Object::render_halfedge(Mat4 view, const GL::Shader& shader) {
+void Scene_Object::render_halfedge(Mat4 view) const {
 
 	// TODO(max): this
-	render_mesh(view, shader, false, false);
+	render_mesh(view, false, false);
 }
 
-void Scene_Object::render_mesh(Mat4 view, const GL::Shader& shader, bool solid, bool depth_only) {
+void Scene_Object::render_mesh(Mat4 view, bool solid, bool depth_only) const {
 
 	sync_mesh();
-
-	Mat4 modelview = view * pose.transform();
-	Mat4 normal = Mat4::transpose(Mat4::inverse(modelview));
-
-	shader.uniform("use_v_id", false);
-	shader.uniform("id", _id);
-	shader.uniform("modelview", modelview);
-	shader.uniform("normal", normal);
-	shader.uniform("solid", solid);
 	
-	if(depth_only) GL::color_mask(false);
-
-	if(opt.wireframe) {
-		shader.uniform("color", Vec3());
-		GL::enable(GL::Opt::wireframe);
-		_mesh.render();
-		GL::disable(GL::Opt::wireframe);
-	}
-
-	shader.uniform("color", color);
-	_mesh.render();
-
-	if(depth_only) GL::color_mask(true);
+	Renderer::MeshOpt opt;
+	opt.modelview = view * pose.transform();
+	opt.normal = Mat4::transpose(Mat4::inverse(opt.modelview));
+	opt.id = _id;
+	opt.solid_color = solid;
+	opt.depth_only = depth_only;
+	opt.color = color;
+	Renderer::mesh(_mesh, opt);
 }
 
 Scene::Scene(Scene_Object::ID start) :
@@ -196,10 +183,10 @@ void Scene::erase(Scene_Object::ID id) {
 	objs.erase(id);
 }
 
-void Scene::render_objs(Mat4 view, const GL::Shader& shader, Scene_Object::ID selected) {
+void Scene::render_objs(Mat4 view, Scene_Object::ID selected) {
 	for(auto& obj : objs) {
 		if(obj.first != selected) 
-			obj.second.render_mesh(view, shader);
+			obj.second.render_mesh(view);
 	}
 }
 

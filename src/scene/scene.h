@@ -44,9 +44,9 @@ public:
 	void operator=(const Scene_Object& src) = delete;
 	void operator=(Scene_Object&& src);
 
-	void sync_mesh();
-	void render_mesh(Mat4 view, const GL::Shader& shader, bool solid = false, bool depth_only = false);
-	void render_halfedge(Mat4 view, const GL::Shader& shader);
+	void sync_mesh() const;
+	void render_mesh(Mat4 view, bool solid = false, bool depth_only = false) const;
+	void render_halfedge(Mat4 view) const;
 
 	ID id() const {return _id;}
 	const GL::Mesh& mesh() const {return _mesh;}
@@ -65,11 +65,11 @@ private:
 
 	Vec3 color;
 	ID _id = 0;
-	GL::Mesh _mesh;
-	
-	Halfedge_Mesh halfedge;
-	bool mesh_dirty = false;
 	bool editable = true;
+	Halfedge_Mesh halfedge;
+	
+	mutable GL::Mesh _mesh;
+	mutable bool mesh_dirty = false;
 };
 
 class Scene {
@@ -90,7 +90,7 @@ public:
 	void erase(Scene_Object::ID id);
 	void restore(Scene_Object::ID id);
 
-    void render_objs(Mat4 view, const GL::Shader& shader, Scene_Object::ID selected);
+    void render_objs(Mat4 view, Scene_Object::ID selected);
     void for_objs(std::function<void(Scene_Object&)> func);
 
     std::optional<std::reference_wrapper<Scene_Object>> get(Scene_Object::ID id);

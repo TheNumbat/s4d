@@ -9,9 +9,9 @@ namespace Util {
 		return cone_mesh(radius, radius, height);
 	}
 
-	GL::Mesh arrow_mesh() {
-		Gen::Data base = Gen::cone(0.03f, 0.03f, 0.7f);
-		Gen::Data tip = Gen::cone(0.075f, 0.005f, 0.2f);
+	GL::Mesh arrow_mesh(float rbase, float rtip, float height) {
+		Gen::Data base = Gen::cone(rbase, rbase, 0.75f * height);
+		Gen::Data tip = Gen::cone(rtip, 0.001f, 0.25f * height);
 		for(auto& v : tip.verts) v.pos.y += 0.7f;
 		for(auto& i : tip.elems) i += base.verts.size();
 		base.verts.insert(base.verts.end(), tip.verts.begin(), tip.verts.end());

@@ -51,6 +51,6 @@ private:
     GLubyte* id_buffer;
 	GL::Framebuffer framebuffer, id_resolve;
     GL::Shader mesh_shader, line_shader, inst_shader; 
-    GL::Instances spheres, cylinders;
+    GL::Instances spheres, cylinders, arrows;
     Mat4 _proj;
 };

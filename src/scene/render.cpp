@@ -2,6 +2,7 @@
 #include "render.h"
 #include "util.h"
 #include "../gui.h"
+#include "../lib/math.h"
 
 #include <imgui/imgui.h>
 
@@ -15,7 +16,8 @@ Renderer::Renderer(Vec2 dim) :
 	line_shader(GL::Shaders::line_v, GL::Shaders::line_f),
 	inst_shader(GL::Shaders::inst_v, GL::Shaders::mesh_f),
 	spheres(Util::sphere_mesh(0.1f, 1)),
-	cylinders(Util::cyl_mesh(0.1f, 1.0f))
+	cylinders(Util::cyl_mesh(0.1f, 1.0f)),
+	arrows(Util::arrow_mesh(0.1f, 0.2f, 1.0f))
 {}
 
 Renderer::~Renderer() {
@@ -202,6 +204,36 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		}
 		cylinders.add(Mat4::translate(v0) * rot * Mat4::scale({s, l, s}));
 	}
+
+	arrows.clear();
+	for(auto h = mesh.halfedges_begin(); h != mesh.halfedges_end(); h++) {
+		auto v_0 = h->vertex();
+		auto v_1 = h->twin()->vertex();
+		Vec3 v0 = v_0->pos;
+		Vec3 v1 = v_1->pos;
+		
+		Vec3 dir = v1 - v0;
+		float l = dir.norm();
+			  dir /= l;
+		float s = 0.25f * (size[v_0] + size[v_1]);
+
+		Vec3 offset = (v1 - v0) * 0.2f;
+		Vec3 face = h->face()->average();
+		Vec3 avg = 0.5f * (v0 + v1);
+		offset += (face - avg).unit() * s * 0.25f;
+
+		Mat4 rot;
+		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f});
+		Vec3 z = cross(x, dir);
+
+		if(x.norm() != 0.0f) {
+			rot = {{x, 0.0f}, {dir, 0.0f}, {z, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}};
+		} else if(dir.y == -1.0f) {
+			l = -l;
+		}
+
+		arrows.add(Mat4::translate(v0 + offset) * rot * Mat4::scale({0.6f * s, 0.6f * l, 0.6f * s}));
+	}
 }
 
 void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Renderer::HalfedgeOpt opt) {
@@ -225,4 +257,5 @@ void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Render
 
 	data->spheres.render();
 	data->cylinders.render();
+	data->arrows.render();
 }

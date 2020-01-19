@@ -34,6 +34,18 @@ void Halfedge_Mesh::clear() {
 	render_dirty_flag = true;
 }
 
+Vec3 Halfedge_Mesh::Face::average() const {
+	Vec3 c;
+	float d = 0.0f;
+	HalfedgeCRef h = _halfedge;
+	do {
+		c += h->vertex()->pos;
+		d += 1.0f;
+		h = h->next();
+	} while (h != _halfedge);
+	return c / d;
+}
+
 void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
 
 	std::vector<GL::Mesh::Vert> verts;

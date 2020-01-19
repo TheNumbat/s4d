@@ -14,7 +14,7 @@ namespace Util {
 	GL::Mesh sphere_mesh(float r, int l);
 	GL::Mesh cone_mesh(float bradius, float tradius, float height);
 
-	GL::Mesh arrow_mesh();
+	GL::Mesh arrow_mesh(float base, float tip, float height);
 	GL::Mesh scale_mesh();
 
 	namespace Gen {

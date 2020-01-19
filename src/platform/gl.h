@@ -243,5 +243,4 @@ namespace Shaders {
 	extern const std::string mesh_v, mesh_f;
 	extern const std::string inst_v;
 }
-
 }

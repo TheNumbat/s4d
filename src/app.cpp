@@ -131,6 +131,7 @@ void App::render_selected(Scene_Object& obj) {
 
 	} else if(gui.mode() == Gui::Mode::model) {
 		
+		obj.pose = {};
 		obj.render_halfedge(view);
 
 	} else assert(false);

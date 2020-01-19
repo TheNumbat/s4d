@@ -32,7 +32,7 @@ inline Vec4 clamp(Vec4 v, Vec4 min, Vec4 max) {
 #include "quat.h"
 
 template<typename T>
-T lerp(T start, T end, T t) {
+T lerp(T start, T end, float t) {
 	return start + (end - start) * t;
 }
 

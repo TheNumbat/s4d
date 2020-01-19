@@ -7,11 +7,11 @@ TODO:
         changing the origin of a mesh
         loading bars/threading for big mesh ops
 
-
     [ MESHEDIT ]
 
     set widgets to halfedge features
     moving halfedge features
+    second camera for mesh editing
 
     undo/redo integration
     more halfedge mesh validation checks
@@ -20,7 +20,7 @@ TODO:
         needs tombstones/compaction after steps
         needs custom iterators for elements and maybe for paths 
         (otherwise have to pass next ref back through some function)
-        
+
 
     [ PATHTRACER ]
 

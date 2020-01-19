@@ -215,6 +215,7 @@ public:
 		HalfedgeRef& halfedge() {return _halfedge;}
 		HalfedgeCRef halfedge() const {return _halfedge;}
 		bool is_boundary() const {return boundary;}
+		Vec3 average() const;
 	private:
 		HalfedgeRef _halfedge;
 		bool boundary = false;

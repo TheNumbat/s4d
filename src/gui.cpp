@@ -11,9 +11,9 @@ Gui::Gui(Vec2 dim) :
 	widget_lines(1.0f),
 	window_dim(dim) {
 
-	x_trans = Scene_Object((Scene_Object::ID)Basic::x_trans, Pose::rotated({0.0f, 0.0f, -90.0f}), Util::arrow_mesh(), Gui::Color::red);
-	y_trans = Scene_Object((Scene_Object::ID)Basic::y_trans, {}, Util::arrow_mesh(), Gui::Color::green);
-	z_trans = Scene_Object((Scene_Object::ID)Basic::z_trans, Pose::rotated({90.0f, 0.0f, 0.0f}), Util::arrow_mesh(), Gui::Color::blue);
+	x_trans = Scene_Object((Scene_Object::ID)Basic::x_trans, Pose::rotated({0.0f, 0.0f, -90.0f}), Util::arrow_mesh(0.03f, 0.075f, 1.0f), Gui::Color::red);
+	y_trans = Scene_Object((Scene_Object::ID)Basic::y_trans, {}, Util::arrow_mesh(0.03f, 0.075f, 1.0f), Gui::Color::green);
+	z_trans = Scene_Object((Scene_Object::ID)Basic::z_trans, Pose::rotated({90.0f, 0.0f, 0.0f}), Util::arrow_mesh(0.03f, 0.075f, 1.0f), Gui::Color::blue);
 
 	xy_trans = Scene_Object((Scene_Object::ID)Basic::xy_trans, Pose::rotated({-90.0f, 0.0f, 0.0f}), Util::square_mesh(0.1f), Gui::Color::blue);
 	yz_trans = Scene_Object((Scene_Object::ID)Basic::yz_trans, Pose::rotated({0.0f, 0.0f, -90.0f}), Util::square_mesh(0.1f), Gui::Color::red);

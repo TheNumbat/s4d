@@ -123,8 +123,10 @@ BBox Scene_Object::bbox() const {
 
 void Scene_Object::render_halfedge(Mat4 view) const {
 
-	// TODO(max): this
-	render_mesh(view, false, false);
+	Renderer::HalfedgeOpt opt;
+	opt.modelview = view * pose.transform();
+	opt.color = color;
+	Renderer::halfedge(_mesh, halfedge, opt);
 }
 
 void Scene_Object::render_mesh(Mat4 view, bool solid, bool depth_only) const {
@@ -133,7 +135,6 @@ void Scene_Object::render_mesh(Mat4 view, bool solid, bool depth_only) const {
 	
 	Renderer::MeshOpt opt;
 	opt.modelview = view * pose.transform();
-	opt.normal = Mat4::transpose(Mat4::inverse(opt.modelview));
 	opt.id = _id;
 	opt.solid_color = solid;
 	opt.depth_only = depth_only;

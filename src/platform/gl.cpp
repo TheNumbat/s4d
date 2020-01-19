@@ -218,31 +218,29 @@ void Instances::operator=(Instances&& src) {
 
 void Instances::create() {
 	glGenBuffers(1, &vbo);
-
 	glBindVertexArray(mesh.vao);
-
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(0));
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(float) * 4));
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(float) * 8));
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(float) * 12));
-	glVertexAttribDivisor(2, 1);
+	glEnableVertexAttribArray(6);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(Vec4) * 0));
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(Vec4) * 1));
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(Vec4) * 2));
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(Vec4) * 3));
 	glVertexAttribDivisor(3, 1);
 	glVertexAttribDivisor(4, 1);
 	glVertexAttribDivisor(5, 1);
-	
+	glVertexAttribDivisor(6, 1);
 	glBindVertexArray(0);
 }
 
 void Instances::render() {
 	
 	if(dirty) update();
+	glBindVertexArray(mesh.vao);
 	glDrawElementsInstanced(GL_TRIANGLES, mesh.n_elem, GL_UNSIGNED_INT, nullptr, transforms.size());
+	glBindVertexArray(0);
 }
 
 void Instances::add(Mat4 transform) {
@@ -878,11 +876,10 @@ void main() {
 const std::string Effects::outline_f = R"(
 #version 330 core
 
-out vec4 out_color;
-
 uniform sampler2D depth;
 uniform vec3 color;
 uniform vec2 i_screen_size;
+out vec4 out_color;
 
 void main() {
 
@@ -903,10 +900,9 @@ void main() {
 const std::string Effects::outline_ms_f_4 = R"(
 #version 400 core
 
-out vec4 out_color;
-
 uniform sampler2DMS depth;
 uniform vec3 color;
+out vec4 out_color;
 
 void main() {
 
@@ -927,10 +923,9 @@ void main() {
 const std::string Effects::outline_ms_f_33 = R"(
 #version 330 core
 
-out vec4 out_color;
-
 uniform sampler2DMS depth;
 uniform vec3 color;
+out vec4 out_color;
 
 void main() {
 
@@ -951,10 +946,9 @@ void main() {
 const std::string Effects::resolve_f = R"(
 #version 330 core
 
-out vec4 out_color;
-
 uniform sampler2DMS tex;
 uniform int samples;
+out vec4 out_color;
 
 void main() {
 
@@ -987,12 +981,11 @@ void main() {
 	const std::string line_f = R"(
 #version 330 core
 
-smooth in vec3 f_col;
-
-uniform float alpha;
-
 layout (location = 0) out vec4 out_col;
 layout (location = 1) out vec4 out_id;
+
+uniform float alpha;
+smooth in vec3 f_col;
 
 void main() {
 	out_id = vec4(0.0f);
@@ -1005,16 +998,33 @@ layout (location = 0) in vec3 v_pos;
 layout (location = 1) in vec3 v_norm;
 layout (location = 2) in uint v_id;
 
-uniform mat4 modelview, proj, normal;
-
+uniform mat4 mvp, normal;
 smooth out vec3 f_norm;
 flat out uint f_id;
 
 void main() {
-	
 	f_id = v_id;
 	f_norm = (normal * vec4(v_norm, 0.0f)).xyz;
-	gl_Position = proj * modelview * vec4(v_pos, 1.0f);
+	gl_Position = mvp * vec4(v_pos, 1.0f);
+})";
+	const std::string inst_v = R"(
+#version 330 core
+
+layout (location = 0) in vec3 v_pos;
+layout (location = 1) in vec3 v_norm;
+layout (location = 2) in uint v_id;
+layout (location = 3) in mat4 i_trans;
+
+uniform mat4 proj, modelview;
+smooth out vec3 f_norm;
+flat out uint f_id;
+
+void main() {
+	f_id = v_id;
+	mat4 mv = modelview * i_trans;
+	mat4 n = transpose(inverse(mv));
+	f_norm = (n * vec4(v_norm, 0.0f)).xyz;
+	gl_Position = proj * mv * vec4(v_pos, 1.0f);
 })";
 	const std::string mesh_f = R"(
 #version 330 core

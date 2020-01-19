@@ -49,8 +49,8 @@ namespace Util {
 		return GL::Mesh(std::move(square.verts), std::move(square.elems));
 	}
 
-	GL::Mesh sphere_mesh(float r) {
-		Gen::Data ico_sphere = Gen::ico_sphere(r, 3);
+	GL::Mesh sphere_mesh(float r, int i) {
+		Gen::Data ico_sphere = Gen::ico_sphere(r, i);
 		return GL::Mesh(std::move(ico_sphere.verts), std::move(ico_sphere.elems));
 	}
 
@@ -86,7 +86,7 @@ namespace Util {
 		// https://wiki.unity3d.com/index.php/ProceduralPrimitives
 		Data cone(float bradius, float tradius, float height) {
 
-			const size_t n_sides = 18, n_cap = n_sides + 1;
+			const size_t n_sides = 12, n_cap = n_sides + 1;
 			const float _2pi = PI * 2.0f;
 
 			std::vector<Vec3> vertices(n_cap + n_cap + n_sides * 2 + 2);

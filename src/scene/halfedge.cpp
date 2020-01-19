@@ -16,12 +16,14 @@ Halfedge_Mesh::Halfedge_Mesh(Halfedge_Mesh&& src) {
 	vertices = std::move(src.vertices);
 	edges = std::move(src.edges);
 	faces = std::move(src.faces);
+	render_dirty_flag = src.render_dirty_flag;
 }
 void Halfedge_Mesh::operator=(Halfedge_Mesh&& src) {
 	halfedges = std::move(src.halfedges);
 	vertices = std::move(src.vertices);
 	edges = std::move(src.edges);
 	faces = std::move(src.faces);
+	render_dirty_flag = src.render_dirty_flag;
 }
 
 void Halfedge_Mesh::clear() {
@@ -29,6 +31,7 @@ void Halfedge_Mesh::clear() {
 	vertices.clear();
 	edges.clear();
 	faces.clear();
+	render_dirty_flag = true;
 }
 
 void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
@@ -116,7 +119,7 @@ std::string Halfedge_Mesh::from_mesh(const GL::Mesh& mesh) {
 	
 	err = validate();
 	if(!err.empty()) return err;
-
+	
 	return {};
 }
 

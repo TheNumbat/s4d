@@ -11,7 +11,7 @@ namespace Util {
 	GL::Mesh square_mesh(float radius);
 	GL::Mesh cyl_mesh(float radius, float height);
 	GL::Mesh torus_mesh(float iradius, float oradius);
-	GL::Mesh sphere_mesh(float r);
+	GL::Mesh sphere_mesh(float r, int l);
 	GL::Mesh cone_mesh(float bradius, float tradius, float height);
 
 	GL::Mesh arrow_mesh();

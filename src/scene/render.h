@@ -4,6 +4,7 @@
 #include "../platform/gl.h"
 #include "scene.h"
 
+// Singleton
 class Renderer {
 public:
     static void setup(Vec2 dim);
@@ -20,7 +21,7 @@ public:
 
     struct MeshOpt {
         Scene_Object::ID id;
-        Mat4 modelview, normal;
+        Mat4 modelview;
         Vec3 color;
         bool wireframe = false;
         bool solid_color = false;
@@ -28,15 +29,28 @@ public:
         bool per_vert_id = false;
     }; 
 
+    struct HalfedgeOpt {
+        Mat4 modelview;
+        Vec3 color;
+    };
+
     static void mesh(const GL::Mesh& mesh, MeshOpt opt);
+    static void halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, HalfedgeOpt opt);
     static void lines(const GL::Lines& lines, Mat4 viewproj, float alpha);
     static void outline(Mat4 viewproj, Mat4 view, const Scene_Object& obj);
 
 private:
-	static inline GL::Framebuffer framebuffer, id_resolve;
-    static inline GL::Shader mesh_shader, line_shader; 
-    static inline Mat4 _proj;
-    static inline int samples = 4;
-    static inline GLubyte* id_buffer = nullptr;
-    static inline Vec2 window_dim;
+    void build_halfedge(const Halfedge_Mesh& mesh);
+
+    Renderer(Vec2 dim);
+    ~Renderer();
+    static inline Renderer* data = nullptr;
+
+    int samples;
+    Vec2 window_dim;
+    GLubyte* id_buffer;
+	GL::Framebuffer framebuffer, id_resolve;
+    GL::Shader mesh_shader, line_shader, inst_shader; 
+    GL::Instances spheres, cylinders;
+    Mat4 _proj;
 };

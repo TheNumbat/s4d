@@ -307,6 +307,9 @@ public:
 	/// Check if half-edge mesh is valid
 	std::string validate() const;
 
+	/// For rendering
+	mutable bool render_dirty_flag = false;
+
 private:
 	std::list<Vertex> vertices;
 	std::list<Edge> edges;

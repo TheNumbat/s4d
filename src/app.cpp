@@ -62,8 +62,7 @@ void App::event(SDL_Event e) {
 		} else if(cam_mode == Camera_Control::orbit) {
 			camera.mouse_orbit(d);
 		} else if(cam_mode == Camera_Control::move) {
-			if(gui.mode() == Gui::Mode::scene)
-				camera.mouse_move(d);
+			camera.mouse_move(d);
 		}
 
 	} break;
@@ -132,7 +131,6 @@ void App::render_selected(Scene_Object& obj) {
 
 	} else if(gui.mode() == Gui::Mode::model) {
 		
-		obj.pose = {};
 		obj.render_halfedge(view);
 
 	} else assert(false);
@@ -148,13 +146,7 @@ void App::render_selected(Scene_Object& obj) {
 void App::render() {
 
 	proj = camera.proj();
-	
-	if(gui.mode() == Gui::Mode::scene) {
-		view = camera.view();
-	} else if(gui.mode() == Gui::Mode::model) {
-		view = camera.view_origin();
-	} else assert(false);
-
+	view = camera.view();	
 	viewproj = proj * view;
 	iviewproj = Mat4::inverse(viewproj);
 

@@ -589,7 +589,7 @@ bool Gui::select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir) {
 	} break;
 	default: {
 		dragging = false;
-		selected = id; 
+		selected = id;
 	} break;
 	}
 

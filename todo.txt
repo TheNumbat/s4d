@@ -9,10 +9,12 @@ TODO:
 
     [ MESHEDIT ]
 
-    set widgets to halfedge features
-    moving halfedge features
-    second camera for mesh editing
+    !! What's up with maxplanck/beast.dae? Why does my implementation say non-manifold vert where the old one does not?
 
+    select halfedge features by ID
+    moving halfedge features with widgets
+
+    second camera for mesh editing
     undo/redo integration
     more halfedge mesh validation checks
 

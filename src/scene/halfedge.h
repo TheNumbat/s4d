@@ -261,6 +261,7 @@ public:
 	void erase(VertexRef v) { vertices.erase(v); }
 	void erase(EdgeRef e) { edges.erase(e); }
 	void erase(FaceRef f) { faces.erase(f); }
+	void erase_boundary(FaceRef f) { boundaries.erase(f); }
 
 	/*
 		These methods allocate new mesh elements, returning a pointer (i.e., iterator) to the new element.
@@ -269,7 +270,8 @@ public:
 	HalfedgeRef new_halfedge() { return halfedges.insert(halfedges.end(), Halfedge()); }
 	VertexRef new_vertex() { return vertices.insert(vertices.end(), Vertex()); }
 	EdgeRef new_edge() { return edges.insert(edges.end(), Edge()); }
-	FaceRef new_face(bool is_boundary = false) { return faces.insert(faces.end(), Face(is_boundary)); }
+	FaceRef new_face() { return faces.insert(faces.end(), Face(false)); }
+	FaceRef new_boundary() { return boundaries.insert(boundaries.end(), Face(true)); }
 
 	/*
 		These methods return iterators to the beginning and end of the lists of
@@ -304,6 +306,10 @@ public:
 	FaceCRef faces_begin() const { return faces.begin(); }
 	FaceRef faces_end() { return faces.end(); }
 	FaceCRef faces_end() const { return faces.end(); }
+	FaceRef boundaries_begin() { return boundaries.begin(); }
+	FaceCRef boundaries_begin() const { return boundaries.begin(); }
+	FaceRef boundaries_end() { return boundaries.end(); }
+	FaceCRef boundaries_end() const { return boundaries.end(); }
 
 	/// Check if half-edge mesh is valid
 	std::string validate() const;
@@ -314,7 +320,7 @@ public:
 private:
 	std::list<Vertex> vertices;
 	std::list<Edge> edges;
-	std::list<Face> faces;
+	std::list<Face> faces, boundaries;
 	std::list<Halfedge> halfedges;
 
 	bool check_finite() const;

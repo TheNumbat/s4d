@@ -228,7 +228,7 @@ void Scene::load_node(std::vector<std::string>& errors, const aiScene* scene, ai
 		const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 		
 		if(!mesh->HasNormals()) {
-			warn("Mesh has no normals, skipping.");
+			errors.push_back("Mesh has no normals.");
 			continue;
 		}
 

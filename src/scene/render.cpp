@@ -162,8 +162,10 @@ void Renderer::outline(Mat4 viewproj, Mat4 view, const Scene_Object& obj) {
 
 void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 
-	if(!mesh.render_dirty_flag) return;
+	if(loaded_mesh == &mesh && !mesh.render_dirty_flag) return;
+	
 	mesh.render_dirty_flag = false;
+	loaded_mesh = &mesh;
 
 	std::map<Halfedge_Mesh::VertexCRef, float> size;
 
@@ -174,17 +176,12 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		// Sphere size ~ 0.1 * min incident edge length
 		float d = FLT_MAX;
 		auto he = v->halfedge();
-		bool bound = false;
 		do {
-			bound = bound || !he->face()->is_boundary();
 			Vec3 n = he->twin()->vertex()->pos;
 			float e = (n-v->pos).norm();
 			d = d > e ? e : d;
 			he = he->twin()->next();
 		} while(he != v->halfedge());
-
-		// Somehow, all adjacent faces are boundaries
-		if(!bound) continue;
 
 		size[v] = d;
 		spheres.add(Mat4::translate(v->pos) * Mat4::scale(d));
@@ -194,10 +191,6 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 	cylinders.clear();
 	for(auto e = mesh.edges_begin(); e != mesh.edges_end(); e++) {
 		
-		// Somehow, both faces are boundaries
-		if(e->halfedge()->face()->is_boundary() && 
-		   e->halfedge()->twin()->face()->is_boundary()) continue;
-
 		auto v_0 = e->halfedge()->vertex();
 		auto v_1 = e->halfedge()->twin()->vertex();
 		Vec3 v0 = v_0->pos;

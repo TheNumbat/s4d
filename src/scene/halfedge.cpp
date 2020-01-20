@@ -16,6 +16,7 @@ Halfedge_Mesh::Halfedge_Mesh(Halfedge_Mesh&& src) {
 	vertices = std::move(src.vertices);
 	edges = std::move(src.edges);
 	faces = std::move(src.faces);
+	boundaries = std::move(src.boundaries);
 	render_dirty_flag = src.render_dirty_flag;
 }
 void Halfedge_Mesh::operator=(Halfedge_Mesh&& src) {
@@ -23,6 +24,7 @@ void Halfedge_Mesh::operator=(Halfedge_Mesh&& src) {
 	vertices = std::move(src.vertices);
 	edges = std::move(src.edges);
 	faces = std::move(src.faces);
+	boundaries = std::move(src.boundaries);
 	render_dirty_flag = src.render_dirty_flag;
 }
 
@@ -31,6 +33,7 @@ void Halfedge_Mesh::clear() {
 	vertices.clear();
 	edges.clear();
 	faces.clear();
+	boundaries.clear();
 	render_dirty_flag = true;
 }
 
@@ -379,7 +382,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 		// element using the halfedge structure, or (ii) global traversal of all
 		// faces (or boundary loops).
 		if (h->twin() == halfedges.end()) {
-			FaceRef b = new_face(true);
+			FaceRef b = new_boundary();
 			// keep a list of halfedges along the boundary, so we can link them together
 			std::vector<HalfedgeRef> boundaryHalfedges;  
 
@@ -470,7 +473,8 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 			h = h->twin()->next();
 		} while (h != v->halfedge());
 
-		if (count != vertexDegree[v]) {
+		Size cmp = vertexDegree[v];
+		if (count != cmp) {
 			return "At least one of the vertices is nonmanifold.";
 		}
 	}  // end loop over vertices

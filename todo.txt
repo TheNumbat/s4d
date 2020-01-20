@@ -9,6 +9,7 @@ TODO:
 
     [ MESHEDIT ]
 
+    FIX: sometimes not getting right vertex scale
     mesh files: validate against scotty3D
 
     select halfedge features by ID

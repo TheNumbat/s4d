@@ -96,7 +96,7 @@ public:
     std::optional<std::reference_wrapper<Scene_Object>> get(Scene_Object::ID id);
 
 private:
-	void load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform);
+	void load_node(std::vector<std::string>& errors, const aiScene* scene, aiNode* node, aiMatrix4x4 transform);
 
 	std::map<Scene_Object::ID, Scene_Object> objs;
 	std::map<Scene_Object::ID, Scene_Object> erased;

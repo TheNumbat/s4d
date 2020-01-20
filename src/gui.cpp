@@ -322,7 +322,7 @@ void Gui::error() {
 	if(error_shown) {
 		Vec2 center = window_dim / 2.0f;
 		ImGui::SetNextWindowPos(ImVec2{center.x, center.y}, 0, ImVec2{0.5f, 0.5f});
-		ImGui::Begin("Error", &error_shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize);
+		ImGui::Begin("Errors", &error_shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize);
 		ImGui::Text("%s", error_msg.c_str());
 		if(ImGui::Button("Close")) {
 			error_shown = false;

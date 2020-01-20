@@ -8,6 +8,8 @@
 #include <assimp/Exporter.hpp>
 #include <assimp/postprocess.h>
 
+#include <sstream>
+
 Mat4 Pose::transform() const {
 	return Mat4::translate(pos) * 
 		   rotation_mat() *
@@ -218,7 +220,7 @@ void Scene::clear(Undo& undo) {
 	undo.reset();
 }
 
-void Scene::load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform) {
+void Scene::load_node(std::vector<std::string>& errors, const aiScene* scene, aiNode* node, aiMatrix4x4 transform) {
 
 	transform = transform * node->mTransformation;
 
@@ -256,15 +258,21 @@ void Scene::load_node(const aiScene* scene, aiNode* node, aiMatrix4x4 transform)
 		Vec3 scale(ascale.x, ascale.y, ascale.z);
 		Pose p = {pos, Degrees(rot).range(0.0f, 360.0f), scale};
 
-		Scene_Object obj(reserve_id(), p, Halfedge_Mesh(polys, verts));
-		if(mesh->mName.length) {
-			obj.opt.name = std::string(mesh->mName.C_Str());
+		Halfedge_Mesh hemesh;
+		std::string err = hemesh.from_poly(polys, verts);
+		if(!err.empty()) {
+			errors.push_back(err);
+		} else {
+			Scene_Object obj(reserve_id(), p, std::move(hemesh));
+			if(mesh->mName.length) {
+				obj.opt.name = std::string(mesh->mName.C_Str());
+			}
+			add(std::move(obj));
 		}
-		add(std::move(obj));
 	}
 
 	for(unsigned int i = 0; i < node->mNumChildren; i++) {
-		load_node(scene, node->mChildren[i], transform);
+		load_node(errors, scene, node->mChildren[i], transform);
 	}
 }
 
@@ -275,11 +283,17 @@ std::string Scene::load(bool clear_first, Undo& undo, std::string file) {
 	const aiScene* scene = importer.ReadFile(file.c_str(), aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices);
 
 	if (!scene) {
-		return "Error parsing scene " + file + " : " + std::string(importer.GetErrorString());
+		return "Parsing scene " + file + ": " + std::string(importer.GetErrorString());
 	}
 
-	load_node(scene, scene->mRootNode, aiMatrix4x4());
-	return {};
+	std::vector<std::string> errors;
+	load_node(errors, scene, scene->mRootNode, aiMatrix4x4());
+	
+	std::stringstream stream;
+	for(int i = 0; i < errors.size(); i++) {
+		stream << "Loading mesh " << i << ": " << errors[i] << std::endl;
+	}
+	return stream.str();
 }
 
 std::string Scene::write(std::string file) {

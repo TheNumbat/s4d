@@ -118,7 +118,7 @@ std::string Halfedge_Mesh::validate() const {
 	// TODO(max): many more validation checks (run after student op)
 	// so we can return an error instead of crashing
 
-	if(!check_finite()) return "You set a vertex position to a non-finite value.";
+	if(!check_finite()) return "A vertex position or normal has a non-finite value.";
 	return {};
 }
 
@@ -142,8 +142,9 @@ std::string Halfedge_Mesh::from_mesh(const GL::Mesh& mesh) {
 bool Halfedge_Mesh::check_finite() const {
 
 	for (VertexCRef v = vertices_begin(); v != vertices_end(); v++) {
-		Vec3 position = v->pos;
-		bool finite = std::isfinite(position.x) && std::isfinite(position.y) && std::isfinite(position.z);
+		Vec3 p = v->pos, n = v->norm;
+		bool finite = std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z);
+		finite = finite && std::isfinite(n.x) && std::isfinite(n.y) && std::isfinite(n.z);
 		if(!finite) return false;
 	}
 	return true;
@@ -206,7 +207,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 			// enforcing this stricterrequirementon the input will help simplify code
 			// further downstream, since it can be certain it doesn't have to check for
 			// these rather degenerate cases.)
-			return "Error converting polygons to halfedge mesh: each polygon must have at least three vertices.";
+			return "Each polygon must have at least three vertices.";
 		}
 
 		// We want to count the number of distinct vertex indices in this
@@ -236,8 +237,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 		Size degree = p->size();  // number of vertices in this polygon
 		if (polygonIndices.size() < degree) {
 			std::stringstream stream;
-			stream << "Error converting polygons to halfedge mesh: one of the input "
-					"polygons does not have distinct vertices!"
+			stream << "One of the input polygons does not have distinct vertices!"
 				<< std::endl;
 			stream << "(vertex indices:";
 			for (IndexListCIter i = p->begin(); i != p->end(); i++) {
@@ -280,8 +280,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 			// check if this halfedge already exists; if so, we have a problem!
 			if (pairToHalfedge.find(ab) != pairToHalfedge.end()) {
 				std::stringstream stream;
-				stream << "Error converting polygons to halfedge mesh: found multiple "
-						"oriented edges with indices ("
+				stream << "Found multiple oriented edges with indices ("
 					<< a << ", " << b << ")." << std::endl;
 				stream << "This means that either (i) more than two faces contain this "
 						"edge (hence the surface is nonmanifold), or"
@@ -454,7 +453,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 		// First check that this vertex is not a "floating" vertex;
 		// if it is then we do not have a valid 2-manifold surface.
 		if (v->halfedge() == halfedges.end()) {
-			return "Error converting polygons to halfedge mesh: some vertices are not referenced by any polygon.";
+			return "Some vertices are not referenced by any polygon.";
 		}
 
 		// Next, check that the number of halfedges emanating from this vertex in
@@ -472,7 +471,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 		} while (h != v->halfedge());
 
 		if (count != vertexDegree[v]) {
-			return "Error converting polygons to halfedge mesh: at least one of the vertices is nonmanifold.";
+			return "At least one of the vertices is nonmanifold.";
 		}
 	}  // end loop over vertices
 
@@ -480,8 +479,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 	// positions into member variables of the individual vertices.
 	if (verts.size() < vertices.size()) {
 		std::stringstream stream;
-		stream << "Error converting polygons to halfedge mesh: number of vertex "
-				"positions is different from the number of distinct vertices!"
+		stream << "The number of vertex positions is different from the number of distinct vertices!"
 			<< std::endl;
 		stream << "(number of positions in input: " << verts.size() << ")"
 			<< std::endl;
@@ -505,5 +503,5 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 		v->norm = verts[i].norm;
 		i++;
 	}
-	return "";
+	return {};
 }

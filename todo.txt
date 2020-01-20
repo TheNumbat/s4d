@@ -9,7 +9,7 @@ TODO:
 
     [ MESHEDIT ]
 
-    !! What's up with maxplanck/beast.dae? Why does my implementation say non-manifold vert where the old one does not?
+    mesh files: validate against scotty3D
 
     select halfedge features by ID
     moving halfedge features with widgets

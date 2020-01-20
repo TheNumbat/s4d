@@ -178,8 +178,8 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		auto he = v->halfedge();
 		do {
 			Vec3 n = he->twin()->vertex()->pos;
-			float e = (n-v->pos).norm();
-			d = d > e ? e : d;
+			float e = (n - v->pos).norm();
+			d = std::min(d, e);
 			he = he->twin()->next();
 		} while(he != v->halfedge());
 

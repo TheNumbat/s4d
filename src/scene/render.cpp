@@ -167,22 +167,37 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 
 	std::map<Halfedge_Mesh::VertexCRef, float> size;
 
+	// Create sphere for each vertex
 	spheres.clear();
 	for(auto v = mesh.vertices_begin(); v != mesh.vertices_end(); v++) {
+		
+		// Sphere size ~ 0.1 * min incident edge length
 		float d = FLT_MAX;
 		auto he = v->halfedge();
+		bool bound = false;
 		do {
+			bound = bound || !he->face()->is_boundary();
 			Vec3 n = he->twin()->vertex()->pos;
 			float e = (n-v->pos).norm();
 			d = d > e ? e : d;
 			he = he->twin()->next();
 		} while(he != v->halfedge());
+
+		// Somehow, all adjacent faces are boundaries
+		if(!bound) continue;
+
 		size[v] = d;
 		spheres.add(Mat4::translate(v->pos) * Mat4::scale(d));
 	}
 
+	// Create cylinder for each edge
 	cylinders.clear();
 	for(auto e = mesh.edges_begin(); e != mesh.edges_end(); e++) {
+		
+		// Somehow, both faces are boundaries
+		if(e->halfedge()->face()->is_boundary() && 
+		   e->halfedge()->twin()->face()->is_boundary()) continue;
+
 		auto v_0 = e->halfedge()->vertex();
 		auto v_1 = e->halfedge()->twin()->vertex();
 		Vec3 v0 = v_0->pos;
@@ -191,22 +206,28 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		Vec3 dir = v1 - v0;
 		float l = dir.norm();
 			  dir /= l;
-		float s = 0.25f * (size[v_0] + size[v_1]);
+		// Cylinder width; 0.5 * min vertex scale
+		float s = 0.5f * std::min(size[v_0], size[v_1]);
 
+		// Create rotated coordinate frame to align edge
 		Mat4 rot;
 		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f});
 		Vec3 z = cross(x, dir);
-
 		if(x.norm() != 0.0f) {
 			rot = {{x, 0.0f}, {dir, 0.0f}, {z, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}};
 		} else if(dir.y == -1.0f) {
 			l = -l;
 		}
+
 		cylinders.add(Mat4::translate(v0) * rot * Mat4::scale({s, l, s}));
 	}
 
+	// Create arrow for each halfedge
 	arrows.clear();
 	for(auto h = mesh.halfedges_begin(); h != mesh.halfedges_end(); h++) {
+
+		if(h->face()->is_boundary()) continue;
+
 		auto v_0 = h->vertex();
 		auto v_1 = h->twin()->vertex();
 		Vec3 v0 = v_0->pos;
@@ -215,17 +236,19 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		Vec3 dir = v1 - v0;
 		float l = dir.norm();
 			  dir /= l;
-		float s = 0.25f * (size[v_0] + size[v_1]);
+		// Same width as edge
+		float s = 0.5f * std::min(size[v_0], size[v_1]);
 
+		// Move to center of edge and towards center of face
 		Vec3 offset = (v1 - v0) * 0.2f;
 		Vec3 face = h->face()->average();
 		Vec3 avg = 0.5f * (v0 + v1);
 		offset += (face - avg).unit() * s * 0.25f;
 
+		// Align edge
 		Mat4 rot;
 		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f});
 		Vec3 z = cross(x, dir);
-
 		if(x.norm() != 0.0f) {
 			rot = {{x, 0.0f}, {dir, 0.0f}, {z, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}};
 		} else if(dir.y == -1.0f) {
@@ -250,7 +273,7 @@ void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Render
 	data->inst_shader.bind();
 	data->inst_shader.uniform("use_v_id", false);
 	data->inst_shader.uniform("solid", false);
-	data->inst_shader.uniform("id", 0);
+	data->inst_shader.uniform("id", 0u);
 	data->inst_shader.uniform("proj", data->_proj);
 	data->inst_shader.uniform("modelview", opt.modelview);
 	data->inst_shader.uniform("color", opt.color);

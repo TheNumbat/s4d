@@ -52,8 +52,10 @@ void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
 	std::vector<GL::Mesh::Index> idxs;
 
 	if(face_normals) {
-		GLuint face_id = 0;
+		GLuint face_id = 1;
 		for(FaceCRef f = faces_begin(); f != faces_end(); f++, face_id++) {
+
+			if(f->is_boundary()) continue;
 
 			std::vector<GL::Mesh::Vert> face_verts;
 			HalfedgeCRef h = f->halfedge();
@@ -90,12 +92,14 @@ void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
 
 		for(FaceCRef f = faces_begin(); f != faces_end(); f++) {
 
+			if(f->is_boundary()) continue;
+			
 			std::vector<Index> face_verts;
-			HalfedgeCRef h = f->halfedge()->next()->next();
+			HalfedgeCRef h = f->halfedge();
 			do {
 				face_verts.push_back(vref_to_idx[h->vertex()]);
 				h = h->next();
-			} while (h != f->halfedge()->next()->next());
+			} while (h != f->halfedge());
 
 			assert(face_verts.size() >= 3);
 			for(size_t i = 1; i <= face_verts.size() - 2; i++) {

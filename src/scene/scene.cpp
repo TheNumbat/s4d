@@ -287,6 +287,7 @@ std::string Scene::load(bool clear_first, Undo& undo, std::string file) {
 	}
 
 	std::vector<std::string> errors;
+	scene->mRootNode->mTransformation = aiMatrix4x4();
 	load_node(errors, scene, scene->mRootNode, aiMatrix4x4());
 	
 	std::stringstream stream;

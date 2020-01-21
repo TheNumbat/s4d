@@ -152,8 +152,9 @@ void App::render() {
 	iviewproj = Mat4::inverse(viewproj);
 
 	Renderer::begin();
+	Renderer::proj(proj);
+	
 	if(gui.mode() == Gui::Mode::scene) {
-		Renderer::proj(proj);
         scene.render_objs(view, gui.selected_id());
 	}
 	gui.render_base(viewproj);

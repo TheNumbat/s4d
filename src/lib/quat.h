@@ -156,8 +156,7 @@ struct Quat {
 
 	/// Are all members real numbers?
 	bool valid() const {
-		return !(std::isinf(x) || std::isinf(y) || std::isinf(z) || std::isinf(w) ||
-				 std::isnan(x) || std::isnan(y) || std::isnan(z) || std::isnan(w));
+		return !(std::isinf(x) || std::isinf(y) || std::isinf(z) || std::isinf(w));
 	}
 
 	union {

@@ -15,9 +15,9 @@ Renderer::Renderer(Vec2 dim) :
     mesh_shader(GL::Shaders::mesh_v, GL::Shaders::mesh_f),
 	line_shader(GL::Shaders::line_v, GL::Shaders::line_f),
 	inst_shader(GL::Shaders::inst_v, GL::Shaders::mesh_f),
-	spheres(Util::sphere_mesh(0.1f, 1)),
-	cylinders(Util::cyl_mesh(0.1f, 1.0f)),
-	arrows(Util::arrow_mesh(0.1f, 0.2f, 1.0f))
+	spheres(Util::sphere_mesh(0.05f, 1)),
+	cylinders(Util::cyl_mesh(0.05f, 1.0f)),
+	arrows(Util::arrow_mesh(0.05f, 0.1f, 1.0f))
 {}
 
 Renderer::~Renderer() {
@@ -173,7 +173,7 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 	spheres.clear();
 	for(auto v = mesh.vertices_begin(); v != mesh.vertices_end(); v++) {
 		
-		// Sphere size ~ 0.1 * min incident edge length
+		// Sphere size ~ 0.05 * min incident edge length
 		float d = FLT_MAX;
 		auto he = v->halfedge();
 		do {

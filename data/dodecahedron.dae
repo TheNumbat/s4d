@@ -5,43 +5,108 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.80.75 commit date:2019-07-29, commit time:14:47, hash:f6cb5f54494e</authoring_tool>
     </contributor>
-    <created>2020-01-20T17:13:55</created>
-    <modified>2020-01-20T17:13:55</modified>
+    <created>2020-01-26T00:00:52</created>
+    <modified>2020-01-26T00:00:52</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
+  <library_cameras>
+    <camera id="Camera-camera" name="Camera">
+      <optics>
+        <technique_common>
+          <perspective>
+            <xfov sid="xfov">39.59775</xfov>
+            <aspect_ratio>1.777778</aspect_ratio>
+            <znear sid="znear">0.1</znear>
+            <zfar sid="zfar">100</zfar>
+          </perspective>
+        </technique_common>
+      </optics>
+      <extra>
+        <technique profile="blender">
+          <shiftx sid="shiftx" type="float">0</shiftx>
+          <shifty sid="shifty" type="float">0</shifty>
+          <dof_distance sid="dof_distance" type="float">10</dof_distance>
+        </technique>
+      </extra>
+    </camera>
+  </library_cameras>
+  <library_lights>
+    <light id="Light-light" name="Light">
+      <technique_common>
+        <point>
+          <color sid="color">1000 1000 1000</color>
+          <constant_attenuation>1</constant_attenuation>
+          <linear_attenuation>0</linear_attenuation>
+          <quadratic_attenuation>0.00111109</quadratic_attenuation>
+        </point>
+      </technique_common>
+      <extra>
+        <technique profile="blender">
+          <type sid="type" type="int">0</type>
+          <flag sid="flag" type="int">0</flag>
+          <mode sid="mode" type="int">1</mode>
+          <gamma sid="blender_gamma" type="float">1</gamma>
+          <red sid="red" type="float">1</red>
+          <green sid="green" type="float">1</green>
+          <blue sid="blue" type="float">1</blue>
+          <shadow_r sid="blender_shadow_r" type="float">0</shadow_r>
+          <shadow_g sid="blender_shadow_g" type="float">0</shadow_g>
+          <shadow_b sid="blender_shadow_b" type="float">0</shadow_b>
+          <energy sid="blender_energy" type="float">1000</energy>
+          <dist sid="blender_dist" type="float">29.99998</dist>
+          <spotsize sid="spotsize" type="float">75</spotsize>
+          <spotblend sid="spotblend" type="float">0.15</spotblend>
+          <att1 sid="att1" type="float">0</att1>
+          <att2 sid="att2" type="float">1</att2>
+          <falloff_type sid="falloff_type" type="int">2</falloff_type>
+          <clipsta sid="clipsta" type="float">0.04999995</clipsta>
+          <clipend sid="clipend" type="float">30.002</clipend>
+          <bias sid="bias" type="float">1</bias>
+          <soft sid="soft" type="float">3</soft>
+          <bufsize sid="bufsize" type="int">2880</bufsize>
+          <samp sid="samp" type="int">3</samp>
+          <buffers sid="buffers" type="int">1</buffers>
+          <area_shape sid="area_shape" type="int">1</area_shape>
+          <area_size sid="area_size" type="float">0.1</area_size>
+          <area_sizey sid="area_sizey" type="float">0.1</area_sizey>
+          <area_sizez sid="area_sizez" type="float">1</area_sizez>
+        </technique>
+      </extra>
+    </light>
+  </library_lights>
   <library_images/>
   <library_geometries>
-    <geometry id="Mesh1_002-mesh" name="Dodecahedron">
+    <geometry id="Mesh1-mesh" name="Mesh1">
       <mesh>
-        <source id="Mesh1_002-mesh-positions">
-          <float_array id="Mesh1_002-mesh-positions-array" count="60">-0.598316 0.5538839 0.5958951 -0.377788 -0.02346622 0.952717 0.556385 0.5538839 0.5958951 -0.02096557 0.9107059 0.3753671 0.335857 -0.02346622 0.952717 -0.955138 0.333356 0.01854515 -0.598316 -0.6008161 0.5958949 -0.955138 -0.380288 0.01854503 -0.598316 0.5538841 -0.5588049 -0.02096557 0.9107061 -0.3382769 0.556385 -0.6008161 0.5958949 -0.02096557 -0.9576381 0.3753668 -0.598316 -0.6008159 -0.5588051 -0.377788 -0.02346593 -0.915627 0.556385 0.5538841 -0.5588049 0.913207 0.333356 0.01854515 0.913207 -0.380288 0.01854503 0.335857 -0.02346593 -0.915627 -0.02096557 -0.957638 -0.3382772 0.556385 -0.6008159 -0.5588051</float_array>
+        <source id="Mesh1-mesh-positions">
+          <float_array id="Mesh1-mesh-positions-array" count="60">-0.598316 0.595895 -0.553884 -0.377788 0.952717 0.02346605 0.556385 0.595895 -0.553884 -0.02096557 0.375367 -0.910706 0.335857 0.952717 0.02346605 -0.955138 0.01854509 -0.333356 -0.598316 0.595895 0.600816 -0.955138 0.01854509 0.380288 -0.598316 -0.558805 -0.553884 -0.02096557 -0.338277 -0.910706 0.556385 0.595895 0.600816 -0.02096557 0.375367 0.957638 -0.598316 -0.558805 0.600816 -0.377788 -0.915627 0.02346605 0.556385 -0.558805 -0.553884 0.913207 0.01854509 -0.333356 0.913207 0.01854509 0.380288 0.335857 -0.915627 0.02346605 -0.02096557 -0.338277 0.957638 0.556385 -0.558805 0.600816</float_array>
           <technique_common>
-            <accessor source="#Mesh1_002-mesh-positions-array" count="20" stride="3">
+            <accessor source="#Mesh1-mesh-positions-array" count="20" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
             </accessor>
           </technique_common>
         </source>
-        <source id="Mesh1_002-mesh-normals">
-          <float_array id="Mesh1_002-mesh-normals-array" count="36">0 0.525731 0.8506509 -0.8506508 0 0.5257311 -0.525731 0.8506509 1.53056e-7 0 -0.5257313 0.8506509 -0.8506509 0 -0.5257311 0.5257309 0.850651 1.72915e-7 0.8506508 0 0.5257312 0 0.5257312 -0.8506508 -0.525731 -0.850651 -1.70062e-7 0.5257309 -0.850651 -1.70062e-7 0.8506509 0 -0.5257312 0 -0.525731 -0.850651</float_array>
+        <source id="Mesh1-mesh-normals">
+          <float_array id="Mesh1-mesh-normals-array" count="60">-0.356796 0.9341824 0 0.356796 0.9341824 0 0.5773503 0.5773503 -0.5773503 0 0.356796 -0.9341824 -0.5773503 0.5773503 -0.5773503 -0.9341824 0 -0.356796 -0.9341824 0 0.356796 -0.5773503 0.5773503 0.5773503 0 -0.356796 -0.9341824 -0.5773503 -0.5773503 -0.5773503 0 0.356796 0.9341824 0.5773503 0.5773503 0.5773503 -0.356796 -0.9341824 0 -0.5773503 -0.5773503 0.5773503 0.9341824 0 -0.356796 0.5773503 -0.5773503 -0.5773503 0.9341824 0 0.356796 0.356796 -0.9341824 0 0 -0.356796 0.9341824 0.5773503 -0.5773503 0.5773503</float_array>
           <technique_common>
-            <accessor source="#Mesh1_002-mesh-normals-array" count="12" stride="3">
+            <accessor source="#Mesh1-mesh-normals-array" count="20" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
             </accessor>
           </technique_common>
         </source>
-        <vertices id="Mesh1_002-mesh-vertices">
-          <input semantic="POSITION" source="#Mesh1_002-mesh-positions"/>
+        <vertices id="Mesh1-mesh-vertices">
+          <input semantic="POSITION" source="#Mesh1-mesh-positions"/>
         </vertices>
         <polylist count="12">
-          <input semantic="VERTEX" source="#Mesh1_002-mesh-vertices" offset="0"/>
-          <input semantic="NORMAL" source="#Mesh1_002-mesh-normals" offset="1"/>
+          <input semantic="VERTEX" source="#Mesh1-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#Mesh1-mesh-normals" offset="1"/>
           <vcount>5 5 5 5 5 5 5 5 5 5 5 5 </vcount>
-          <p>1 0 4 0 2 0 3 0 0 0 5 1 7 1 6 1 1 1 0 1 3 2 9 2 8 2 5 2 0 2 6 3 11 3 10 3 4 3 1 3 8 4 13 4 12 4 7 4 5 4 2 5 15 5 14 5 9 5 3 5 10 6 16 6 15 6 2 6 4 6 17 7 13 7 8 7 9 7 14 7 18 8 11 8 6 8 7 8 12 8 16 9 10 9 11 9 18 9 19 9 17 10 14 10 15 10 16 10 19 10 18 11 12 11 13 11 17 11 19 11</p>
+          <p>1 0 4 1 2 2 3 3 0 4 5 5 7 6 6 7 1 0 0 4 3 3 9 8 8 9 5 5 0 4 6 7 11 10 10 11 4 1 1 0 8 9 13 12 12 13 7 6 5 5 2 2 15 14 14 15 9 8 3 3 10 11 16 16 15 14 2 2 4 1 17 17 13 12 8 9 9 8 14 15 18 18 11 10 6 7 7 6 12 13 16 16 10 11 11 10 18 18 19 19 17 17 14 15 15 14 16 16 19 19 18 18 12 13 13 12 17 17 19 19</p>
         </polylist>
       </mesh>
     </geometry>
@@ -50,7 +115,15 @@
     <visual_scene id="Scene" name="Scene">
       <node id="Node1" name="Node1" type="NODE">
         <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#Mesh1_002-mesh" name="Node1"/>
+        <instance_geometry url="#Mesh1-mesh" name="Node1"/>
+      </node>
+      <node id="Camera" name="Camera" type="NODE">
+        <matrix sid="transform">0.6859207 0.6515582 0.3240135 7.358891 0 0.4452714 -0.8953956 4.958309 -0.7276763 0.6141704 0.3054208 6.925791 0 0 0 1</matrix>
+        <instance_camera url="#Camera-camera"/>
+      </node>
+      <node id="Light" name="Light" type="NODE">
+        <matrix sid="transform">-0.2908646 0.5663932 0.7711008 4.076245 -0.05518906 0.7946723 -0.6045247 5.903862 -0.9551712 -0.2183912 -0.1998834 -1.005454 0 0 0 1</matrix>
+        <instance_light url="#Light-light"/>
       </node>
     </visual_scene>
   </library_visual_scenes>

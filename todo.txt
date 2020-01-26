@@ -1,6 +1,11 @@
 
 TODO:
 
+    Exporting meshes from blender:
+        Main: Global Oreintation: -Z Forward, Y Up, Apply Global Oreintation
+        Geom: NO Triangulate
+        View: Smooth Shaded
+
     Low priority:
         mesh preview in GUI
         scene graph (parenting, etc)
@@ -8,9 +13,6 @@ TODO:
         loading bars/threading for big mesh ops
 
     [ MESHEDIT ]
-
-    FIX: sometimes not getting right vertex scale
-    mesh files: validate against scotty3D
 
     select halfedge features by ID
     moving halfedge features with widgets

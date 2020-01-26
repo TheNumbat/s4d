@@ -184,7 +184,7 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		} while(he != v->halfedge());
 
 		size[v] = d;
-		spheres.add(Mat4::translate(v->pos) * Mat4::scale(d));
+		spheres.add(Mat4::translate(v->pos + 0.1f * v->norm) * Mat4::scale(d));
 	}
 
 	// Create cylinder for each edge
@@ -207,7 +207,7 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f});
 		Vec3 z = cross(x, dir);
 		if(x.norm() != 0.0f) {
-			rot = {{x, 0.0f}, {dir, 0.0f}, {z, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}};
+			rot = Mat4::axes(x, dir, z);
 		} else if(dir.y == -1.0f) {
 			l = -l;
 		}
@@ -236,14 +236,14 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		Vec3 offset = (v1 - v0) * 0.2f;
 		Vec3 face = h->face()->average();
 		Vec3 avg = 0.5f * (v0 + v1);
-		offset += (face - avg).unit() * s * 0.25f;
+		offset += (face - avg).unit() * s * 0.125f;
 
 		// Align edge
 		Mat4 rot;
 		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f});
 		Vec3 z = cross(x, dir);
 		if(x.norm() != 0.0f) {
-			rot = {{x, 0.0f}, {dir, 0.0f}, {z, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}};
+			rot = Mat4::axes(x, dir, z);
 		} else if(dir.y == -1.0f) {
 			l = -l;
 		}

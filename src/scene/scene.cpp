@@ -280,7 +280,13 @@ std::string Scene::load(bool clear_first, Undo& undo, std::string file) {
 
 	if(clear_first) clear(undo);
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(file.c_str(), aiProcess_GenSmoothNormals);
+	const aiScene* scene = importer.ReadFile(file.c_str(), 
+		aiProcess_GenSmoothNormals |
+		aiProcess_ValidateDataStructure |
+		aiProcess_OptimizeMeshes |
+		aiProcess_FindInstances |                  
+		aiProcess_FindDegenerates |
+        aiProcess_FindInvalidData);
 
 	if (!scene) {
 		return "Parsing scene " + file + ": " + std::string(importer.GetErrorString());

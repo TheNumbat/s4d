@@ -207,7 +207,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 			// Refuse to build the mesh if any of the polygons have fewer than three
 			// vertices.(Note that if we omit this check the code will still
 			// constructsomething fairlymeaningful for 1- and 2-point polygons, but
-			// enforcing this stricterrequirementon the input will help simplify code
+			// enforcing this stricter requirement on the input will help simplify code
 			// further downstream, since it can be certain it doesn't have to check for
 			// these rather degenerate cases.)
 			return "Each polygon must have at least three vertices.";

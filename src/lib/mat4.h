@@ -25,6 +25,8 @@ struct Mat4 {
 	static Mat4 rotate(float t, Vec3 axis);
 	/// Return transformation matrix for given scale factors
 	static Mat4 scale(Vec3 s);
+	/// Return transformation matrix with given axes
+	static Mat4 axes(Vec3 x, Vec3 y, Vec3 z);
 
 	/// Return transformation matrix for viewing a scene from $pos looking at $at,
 	/// where straight up is defined as $up
@@ -290,6 +292,10 @@ inline Mat4 Mat4::inverse(Mat4 m) {
 	r[3][3] = m[0][1]*m[1][2]*m[2][0] - m[0][2]*m[1][1]*m[2][0] + m[0][2]*m[1][0]*m[2][1] - m[0][0]*m[1][2]*m[2][1] - m[0][1]*m[1][0]*m[2][2] + m[0][0]*m[1][1]*m[2][2];
 	r /= m.det();
 	return r;
+}
+
+inline Mat4 Mat4::axes(Vec3 x, Vec3 y, Vec3 z) {
+	return {{x, 0.0f}, {y, 0.0f}, {z, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}};
 }
 
 inline Mat4 Mat4::translate(Vec3 t) {

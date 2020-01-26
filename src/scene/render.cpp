@@ -184,7 +184,7 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		} while(he != v->halfedge());
 
 		size[v] = d;
-		spheres.add(Mat4::translate(v->pos + 0.1f * v->norm) * Mat4::scale(d));
+		spheres.add(Mat4::translate(v->pos) * Mat4::scale(d));
 	}
 
 	// Create cylinder for each edge

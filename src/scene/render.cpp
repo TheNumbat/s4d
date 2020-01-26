@@ -169,6 +169,9 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 
 	std::map<Halfedge_Mesh::VertexCRef, float> size;
 
+	faces = mesh.n_faces();
+	verts = faces;
+
 	// Create sphere for each vertex
 	spheres.clear();
 	for(auto v = mesh.vertices_begin(); v != mesh.vertices_end(); v++) {
@@ -184,8 +187,10 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		} while(he != v->halfedge());
 
 		size[v] = d;
-		spheres.add(Mat4::translate(v->pos) * Mat4::scale(d));
+		spheres.add(Mat4::translate(v->pos) * Mat4::scale(d), verts++);
 	}
+
+	edges = verts;
 
 	// Create cylinder for each edge
 	cylinders.clear();
@@ -212,8 +217,10 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 			l = -l;
 		}
 
-		cylinders.add(Mat4::translate(v0) * rot * Mat4::scale({s, l, s}));
+		cylinders.add(Mat4::translate(v0) * rot * Mat4::scale({s, l, s}), edges++);
 	}
+
+	halfedges = edges;
 
 	// Create arrow for each halfedge
 	arrows.clear();
@@ -248,7 +255,7 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 			l = -l;
 		}
 
-		arrows.add(Mat4::translate(v0 + offset) * rot * Mat4::scale({0.6f * s, 0.6f * l, 0.6f * s}));
+		arrows.add(Mat4::translate(v0 + offset) * rot * Mat4::scale({0.6f * s, 0.6f * l, 0.6f * s}), halfedges++);
 	}
 }
 
@@ -260,11 +267,12 @@ void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Render
 	MeshOpt fopt;
 	fopt.modelview = opt.modelview;
 	fopt.color = opt.color;
-	fopt.id = 0;
+	fopt.per_vert_id = true;
 	Renderer::mesh(faces, fopt);
 
 	data->inst_shader.bind();
-	data->inst_shader.uniform("use_v_id", false);
+	data->inst_shader.uniform("use_v_id", true);
+	data->inst_shader.uniform("use_i_id", true);
 	data->inst_shader.uniform("solid", false);
 	data->inst_shader.uniform("id", 0u);
 	data->inst_shader.uniform("proj", data->_proj);

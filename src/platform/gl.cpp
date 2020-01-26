@@ -176,6 +176,10 @@ void Mesh::update(std::vector<Vert>&& vertices, std::vector<Index>&& indices) {
 	n_elem = _idxs.size();
 }
 
+GLuint Mesh::tris() const {
+	return n_elem / 3;
+}
+
 const std::vector<Mesh::Vert>& Mesh::verts() const {
 	return _verts;
 }
@@ -200,7 +204,7 @@ Instances::Instances(GL::Mesh&& mesh) : mesh(std::move(mesh)) {
 
 Instances::Instances(Instances&& src) {
 	mesh = std::move(src.mesh);
-	transforms = std::move(src.transforms);
+	data = std::move(src.data);
 	vbo = src.vbo; src.vbo = 0;
 	dirty = src.dirty; src.dirty = false;
 }
@@ -211,7 +215,7 @@ Instances::~Instances() {
 
 void Instances::operator=(Instances&& src) {
 	mesh = std::move(src.mesh);
-	transforms = std::move(src.transforms);
+	data = std::move(src.data);
 	vbo = src.vbo; src.vbo = 0;
 	dirty = src.dirty; src.dirty = false;
 }
@@ -220,18 +224,17 @@ void Instances::create() {
 	glGenBuffers(1, &vbo);
 	glBindVertexArray(mesh.vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
 	glEnableVertexAttribArray(3);
-	glEnableVertexAttribArray(4);
-	glEnableVertexAttribArray(5);
-	glEnableVertexAttribArray(6);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(Vec4) * 0));
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(Vec4) * 1));
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(Vec4) * 2));
-	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Mat4), (void*)(sizeof(Vec4) * 3));
+	glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, sizeof(Info), (GLvoid*)0);
 	glVertexAttribDivisor(3, 1);
-	glVertexAttribDivisor(4, 1);
-	glVertexAttribDivisor(5, 1);
-	glVertexAttribDivisor(6, 1);
+
+	const int base_idx = 4;
+	for(int i = 0; i < 4; i++) {
+		glEnableVertexAttribArray(base_idx + i);
+		glVertexAttribPointer(base_idx + i, 4, GL_FLOAT, GL_FALSE, sizeof(Info), (void*)(sizeof(GLuint) + sizeof(Vec4) * i));
+		glVertexAttribDivisor(base_idx + i, 1);
+	}
 	glBindVertexArray(0);
 }
 
@@ -239,17 +242,17 @@ void Instances::render() {
 	
 	if(dirty) update();
 	glBindVertexArray(mesh.vao);
-	glDrawElementsInstanced(GL_TRIANGLES, mesh.n_elem, GL_UNSIGNED_INT, nullptr, transforms.size());
+	glDrawElementsInstanced(GL_TRIANGLES, mesh.n_elem, GL_UNSIGNED_INT, nullptr, data.size());
 	glBindVertexArray(0);
 }
 
-void Instances::add(Mat4 transform) {
-	transforms.push_back(transform);
+void Instances::add(Mat4 transform, GLuint id) {
+	data.push_back({id, transform});
 	dirty = true;
 }
 
 void Instances::clear() {
-	transforms.clear();
+	data.clear();
 	dirty = true;
 }
 
@@ -257,7 +260,7 @@ void Instances::update() {
 
 	glBindVertexArray(mesh.vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Mat4) * transforms.size(), transforms.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Mat4) * data.size(), data.data(), GL_STATIC_DRAW);
 	glBindVertexArray(0);
 
 	dirty = false;
@@ -1013,14 +1016,17 @@ void main() {
 layout (location = 0) in vec3 v_pos;
 layout (location = 1) in vec3 v_norm;
 layout (location = 2) in uint v_id;
-layout (location = 3) in mat4 i_trans;
 
+layout (location = 3) in uint i_id;
+layout (location = 4) in mat4 i_trans;
+
+uniform bool use_i_id;
 uniform mat4 proj, modelview;
 smooth out vec3 f_norm;
 flat out uint f_id;
 
 void main() {
-	f_id = v_id;
+	f_id = use_i_id ? i_id : v_id;
 	mat4 mv = modelview * i_trans;
 	mat4 n = transpose(inverse(mv));
 	f_norm = (n * vec4(v_norm, 0.0f)).xyz;

@@ -56,6 +56,7 @@ public:
 	BBox bbox() const;
 	const std::vector<Vert>& verts() const;
 	const std::vector<Index>& indices() const;
+	GLuint tris() const;
 
 private:
 	void create();
@@ -82,7 +83,7 @@ public:
 	void operator=(Instances&& src);
 
 	void render();
-	void add(Mat4 transform);
+	void add(Mat4 transform, GLuint id = 0);
 	void clear();
 
 private:
@@ -94,7 +95,13 @@ private:
 	bool dirty = false;
 
 	Mesh mesh;
-	std::vector<Mat4> transforms;
+
+	// NOTE(max): densely packed; alignof(mat4) = 4
+	struct Info {
+		GLuint id;
+		Mat4 transform;
+	};
+	std::vector<Info> data;
 };
 
 class Lines {

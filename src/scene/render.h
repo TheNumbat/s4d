@@ -52,6 +52,8 @@ private:
 	GL::Framebuffer framebuffer, id_resolve;
     GL::Shader mesh_shader, line_shader, inst_shader; 
     GL::Instances spheres, cylinders, arrows;
-    const Halfedge_Mesh* loaded_mesh = nullptr;
+    
     Mat4 _proj;
+    const Halfedge_Mesh* loaded_mesh = nullptr;
+    unsigned int faces = 0, verts = 0, edges = 0, halfedges = 0;
 };

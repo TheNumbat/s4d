@@ -317,6 +317,11 @@ public:
 	/// For rendering
 	mutable bool render_dirty_flag = false;
 
+	Size n_vertices() const {return vertices.size();};
+	Size n_edges() const {return edges.size();};
+	Size n_faces() const {return faces.size();};
+	Size n_halfedges() const {return halfedges.size();};
+
 private:
 	std::list<Vertex> vertices;
 	std::list<Edge> edges;

@@ -260,7 +260,7 @@ void Instances::update() {
 
 	glBindVertexArray(mesh.vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Mat4) * data.size(), data.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Info) * data.size(), data.data(), GL_STATIC_DRAW);
 	glBindVertexArray(0);
 
 	dirty = false;

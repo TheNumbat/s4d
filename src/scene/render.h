@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <variant>
+
 #include "../platform/gl.h"
 #include "scene.h"
 
@@ -36,7 +38,11 @@ public:
     };
 
     static void halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, HalfedgeOpt opt);
-    static void sel_comp_id(unsigned int id);
+    
+    static void set_he_select(unsigned int id);
+    static unsigned int get_he_select();
+    // NOTE(max): O(n) if changed
+    static std::optional<Halfedge_Mesh::ElementCRef> he_selected();
 
     static void mesh(const GL::Mesh& mesh, MeshOpt opt);
     static void lines(const GL::Lines& lines, Mat4 viewproj, float alpha);
@@ -57,7 +63,9 @@ private:
     GL::Instances spheres, cylinders, arrows;
     
     Mat4 _proj;
+    unsigned int selected_compo = -1;
     const Halfedge_Mesh* loaded_mesh = nullptr;
     unsigned int faces = 0, verts = 0, edges = 0, halfedges = 0;
-    unsigned int selected_compo = -1;
+    bool element_dirty = true;
+    std::optional<Halfedge_Mesh::ElementCRef> sel_cache;
 };

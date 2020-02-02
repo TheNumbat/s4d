@@ -153,6 +153,31 @@ bool Halfedge_Mesh::check_finite() const {
 	return true;
 }
 
+Halfedge_Mesh::VertexCRef Halfedge_Mesh::vert_by_idx(unsigned int idx) const {
+	auto itr = vertices.begin();
+	std::advance(itr, idx);
+	return itr;
+}
+
+Halfedge_Mesh::EdgeCRef Halfedge_Mesh::edge_by_idx(unsigned int idx) const {
+	auto itr = edges.begin();
+	std::advance(itr, idx);
+	return itr;
+}
+
+Halfedge_Mesh::HalfedgeCRef Halfedge_Mesh::halfedge_by_idx(unsigned int idx) const {
+	auto itr = halfedges.begin();
+	std::advance(itr, idx);
+	return itr;
+}
+
+Halfedge_Mesh::FaceCRef Halfedge_Mesh::face_by_idx(unsigned int idx) const {
+	auto itr = faces.begin();
+	std::advance(itr, idx);
+	return itr;
+}
+
+
 std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& polygons, const std::vector<GL::Mesh::Vert>& verts) {
 	
 	// This method initializes the halfedge data structure from a raw list of

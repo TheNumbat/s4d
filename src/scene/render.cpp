@@ -174,7 +174,7 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 
 	std::map<Halfedge_Mesh::VertexCRef, float> size;
 
-	faces = mesh.n_faces();
+	faces = mesh.n_faces() + 1;
 	verts = faces;
 
 	// Create sphere for each vertex
@@ -264,15 +264,39 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 	}
 }
 
-void Renderer::sel_comp_id(unsigned int id) {
+void Renderer::set_he_select(unsigned int id) {
+	assert(data);
 	data->selected_compo = id;
+	data->element_dirty = true;
+}
+
+unsigned int Renderer::get_he_select() {
+	assert(data);
+	return data->selected_compo;
+}
+
+std::optional<Halfedge_Mesh::ElementCRef> Renderer::he_selected() {
+	
+	assert(data);
+	if(!data->loaded_mesh) {
+		data->sel_cache = std::nullopt;
+	} else if(data->element_dirty) {
+		unsigned int id = data->selected_compo;
+		if(id == 0) data->sel_cache = std::nullopt;
+		else if(id < data->faces) data->sel_cache = data->loaded_mesh->face_by_idx(id);
+		else if(id < data->verts) data->sel_cache = data->loaded_mesh->vert_by_idx(id - data->faces);
+		else if(id < data->edges) data->sel_cache = data->loaded_mesh->edge_by_idx(id - data->verts);
+		else if(id < data->halfedges) data->sel_cache = data->loaded_mesh->halfedge_by_idx(id - data->edges);
+		data->element_dirty = false;
+	}
+	return data->sel_cache;
 }
 
 void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Renderer::HalfedgeOpt opt) {
 
+	assert(data);
 	data->build_halfedge(mesh);
 
-	assert(data);
 	MeshOpt fopt;
 	fopt.modelview = opt.modelview;
 	fopt.color = opt.color;

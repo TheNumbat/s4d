@@ -140,6 +140,7 @@
 
 #include <list>
 #include <vector>
+#include <variant>
 #include <string>
 
 #include "../platform/gl.h"
@@ -182,6 +183,7 @@ public:
 	using EdgeRef = std::list<Edge>::iterator;
 	using FaceRef = std::list<Face>::iterator;
 	using HalfedgeRef = std::list<Halfedge>::iterator;
+	using ElementRef = std::variant<VertexRef, EdgeRef, HalfedgeRef, FaceRef>;
 
 	/*
 		We also need "const" iterator types, for situations where a method takes
@@ -193,6 +195,7 @@ public:
 	using EdgeCRef = std::list<Edge>::const_iterator;
 	using FaceCRef = std::list<Face>::const_iterator;
 	using HalfedgeCRef = std::list<Halfedge>::const_iterator;
+	using ElementCRef = std::variant<VertexCRef, EdgeCRef, HalfedgeCRef, FaceCRef>;
 
 	class Vertex {
 	public:
@@ -321,6 +324,11 @@ public:
 	Size n_edges() const {return edges.size();};
 	Size n_faces() const {return faces.size();};
 	Size n_halfedges() const {return halfedges.size();};
+
+	VertexCRef vert_by_idx(unsigned int idx) const;
+	EdgeCRef edge_by_idx(unsigned int idx) const;
+	HalfedgeCRef halfedge_by_idx(unsigned int idx) const;
+	FaceCRef face_by_idx(unsigned int idx) const;
 
 private:
 	std::list<Vertex> vertices;

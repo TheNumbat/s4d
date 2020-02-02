@@ -6,6 +6,9 @@
 #include <imgui/imgui.h>
 #include <nfd/nfd.h>
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
 Gui::Gui(Vec2 dim) : 
 	baseplane(1.0f),
 	widget_lines(1.0f),
@@ -236,6 +239,7 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 
 		if(!scene.empty())
 			ImGui::Separator();
+
 	}
 
 	size_t i = 0;
@@ -311,6 +315,36 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 	if(to_delete) {
 		undo.del_obj(scene, to_delete);
 		if(to_delete == selected_mesh) selected_mesh = 0;
+	}
+
+	if(_mode == Mode::model) {
+
+		auto sel = Renderer::he_selected();
+		if(sel.has_value()) {
+			ImGui::Separator();
+			std::visit(overloaded {
+				[&](Halfedge_Mesh::VertexCRef vert) {
+					ImGui::Text("Vertex Info");
+					if(ImGui::Button("Halfedge"));
+				},
+				[&](Halfedge_Mesh::EdgeCRef edge) {
+					ImGui::Text("Edge Info");
+					if(ImGui::Button("Halfedge"));
+				},
+				[&](Halfedge_Mesh::FaceCRef face) {
+					ImGui::Text("Face Info");
+					if(ImGui::Button("Halfedge"));
+				},
+				[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
+					ImGui::Text("Halfedge Info");
+					if(ImGui::Button("Vertex"));
+					if(wrap_button("Edge"));
+					if(wrap_button("Face"));
+					if(ImGui::Button("Twin"));
+					if(wrap_button("Next"));
+				}
+			}, *sel);
+		}
 	}
 
 	ImGui::End();
@@ -605,7 +639,9 @@ void Gui::clear_select() {
 	
 	switch(_mode) {
 	case Mode::scene: selected_mesh = 0; break;
-	case Mode::model: selected_compo = 0; break;
+	case Mode::model: {
+		Renderer::set_he_select(0);
+	} break;
 	default: assert(false);
 	}
 }
@@ -613,8 +649,7 @@ void Gui::clear_select() {
 bool Gui::select_model(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir) {
 
 	if(click != 0) {
-		selected_compo = click;
-		Renderer::sel_comp_id((unsigned int)selected_compo);
+		Renderer::set_he_select((unsigned int)click);
 	}
 	return dragging;
 }

@@ -102,7 +102,6 @@ private:
 	void create_baseplane();
 	void generate_widget_lines(const Scene_Object& obj);
 	Scene_Object::ID selected_mesh = (Scene_Object::ID)Basic::none;
-	Scene_Object::ID selected_compo = (Scene_Object::ID)Basic::none;
 	Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot;
 	Scene_Object x_scale, z_scale, y_scale, xy_trans, yz_trans, xz_trans;
 	

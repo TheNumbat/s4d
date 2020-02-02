@@ -2,10 +2,10 @@
 #pragma once
 
 #include "lib/math.h"
-#include "scene/scene.h"
-
-#include "undo.h"
 #include <SDL2/SDL.h>
+
+#include "scene/scene.h"
+#include "undo.h"
 
 // GUI
 class Gui {
@@ -44,6 +44,8 @@ public:
 
 	// Object interaction
 	bool select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir);
+	void clear_select();
+
 	void drag_to(Scene& scene, Vec3 cam, Vec3 dir);
 	void end_drag(Undo& undo, Scene& scene);
 	void apply_transform(Scene_Object& obj);
@@ -66,6 +68,9 @@ private:
 	Vec3 apply_action(const Scene_Object& obj);
 	bool to_axis(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit);
 	bool to_plane(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit);
+
+	bool select_scene(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir);
+	bool select_model(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir);
 
 	// Error handling
 	bool error_shown = false;
@@ -96,7 +101,8 @@ private:
 	GL::Lines baseplane, widget_lines;
 	void create_baseplane();
 	void generate_widget_lines(const Scene_Object& obj);
-	Scene_Object::ID selected = (Scene_Object::ID)Basic::none;
+	Scene_Object::ID selected_mesh = (Scene_Object::ID)Basic::none;
+	Scene_Object::ID selected_compo = (Scene_Object::ID)Basic::none;
 	Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot;
 	Scene_Object x_scale, z_scale, y_scale, xy_trans, yz_trans, xz_trans;
 	

@@ -34,8 +34,10 @@ public:
         Vec3 color;
     };
 
-    static void mesh(const GL::Mesh& mesh, MeshOpt opt);
     static void halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, HalfedgeOpt opt);
+    static void sel_comp_id(unsigned int id);
+
+    static void mesh(const GL::Mesh& mesh, MeshOpt opt);
     static void lines(const GL::Lines& lines, Mat4 viewproj, float alpha);
     static void outline(Mat4 viewproj, Mat4 view, const Scene_Object& obj);
 
@@ -56,4 +58,5 @@ private:
     Mat4 _proj;
     const Halfedge_Mesh* loaded_mesh = nullptr;
     unsigned int faces = 0, verts = 0, edges = 0, halfedges = 0;
+    unsigned int selected_compo = -1;
 };

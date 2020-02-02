@@ -1002,11 +1002,14 @@ layout (location = 1) in vec3 v_norm;
 layout (location = 2) in uint v_id;
 
 uniform mat4 mvp, normal;
-smooth out vec3 f_norm;
+uniform vec3 color;
+
+smooth out vec3 f_norm, f_color;
 flat out uint f_id;
 
 void main() {
 	f_id = v_id;
+	f_color = color;
 	f_norm = (normal * vec4(v_norm, 0.0f)).xyz;
 	gl_Position = mvp * vec4(v_pos, 1.0f);
 })";
@@ -1022,11 +1025,16 @@ layout (location = 4) in mat4 i_trans;
 
 uniform bool use_i_id;
 uniform mat4 proj, modelview;
-smooth out vec3 f_norm;
+
+uniform uint sel_id;
+uniform vec3 color, sel_color;
+
+smooth out vec3 f_norm, f_color;
 flat out uint f_id;
 
 void main() {
 	f_id = use_i_id ? i_id : v_id;
+	f_color = sel_id == f_id ? sel_color : color;
 	mat4 mv = modelview * i_trans;
 	mat4 n = transpose(inverse(mv));
 	f_norm = (n * vec4(v_norm, 0.0f)).xyz;
@@ -1035,13 +1043,13 @@ void main() {
 	const std::string mesh_f = R"(
 #version 330 core
 
-uniform vec3 color;
 uniform bool solid, use_v_id;
 uniform uint id;
 
 layout (location = 0) out vec4 out_col;
 layout (location = 1) out vec4 out_id;
 
+smooth in vec3 f_color;
 smooth in vec3 f_norm;
 flat in uint f_id;
 
@@ -1054,11 +1062,11 @@ void main() {
 	}
 
 	if(solid) {
-		out_col = vec4(color, 1.0f);
+		out_col = vec4(f_color, 1.0f);
 	} else {
 		float ndotl = max(normalize(f_norm).z, 0.0f);
 		float light = clamp(0.2f + ndotl, 0.0f, 1.0f);
-		out_col = vec4(light * color, 1.0f);
+		out_col = vec4(light * f_color, 1.0f);
 	}
 })"; 
 

@@ -80,9 +80,13 @@ void App::event(SDL_Event e) {
 				cam_mode = Camera_Control::none;
 				plt.grab_mouse();
 				gui_capture = true;
+			} else if(id) {
+				selection_changed = true;
 			} else if(cam_mode == Camera_Control::none) {
 				cam_mode = Camera_Control::orbit;
 			}
+			mouse_press = Vec2(e.button.x, e.button.y);
+
 		} else if(e.button.button == SDL_BUTTON_RIGHT) {
 			if(cam_mode == Camera_Control::none) {
 				cam_mode = Camera_Control::move;
@@ -101,6 +105,12 @@ void App::event(SDL_Event e) {
 				gui.end_drag(undo, scene);
 				plt.ungrab_mouse();
 				break;
+			} else {
+				Vec2 diff = mouse_press - Vec2(e.button.x, e.button.y);
+				if(!selection_changed && diff.norm() <= 3) {
+					gui.clear_select();
+				}
+				selection_changed = false;
 			}
 		}
 

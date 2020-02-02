@@ -8,7 +8,7 @@ TODO:
 
 	[ MESHEDIT ]
 
-	select halfedge features by ID
+	highlighting selected faces
 	moving halfedge features with widgets
 
 	second camera for mesh editing

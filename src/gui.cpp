@@ -53,13 +53,13 @@ Vec3 Gui::Color::axis(Axis a) {
 }
 
 bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
-	if(key == SDLK_e && selected) {
+	if(key == SDLK_e && selected_mesh) {
 		action = (Gui::Action)(((int)action + 1) % 3);
 		return true;
 	}
-	if(key == SDLK_DELETE && selected) {
-		undo.del_obj(scene, selected);
-		selected = 0;
+	if(key == SDLK_DELETE && selected_mesh) {
+		undo.del_obj(scene, selected_mesh);
+		selected_mesh = 0;
 	}
 	return false;
 }
@@ -80,10 +80,13 @@ void Gui::generate_widget_lines(const Scene_Object& obj) {
 }
 
 Scene_Object::ID Gui::selected_id() {
-	return selected;
+	return selected_mesh;
 }
 
 void Gui::render_widgets(Mat4 viewproj, Mat4 view, const Pose& pose, float scl) {
+
+	// TODO(max): this
+	if(_mode != Mode::scene) return;
 
 	Renderer::reset_depth();
 
@@ -245,11 +248,11 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 		std::string& name = obj.opt.name;
 		ImGui::InputText("##name", name.data(), name.capacity());
 		
-		bool is_selected = obj.id() == selected;
+		bool is_selected = obj.id() == selected_mesh;
 		ImGui::SameLine();
 		if(ImGui::Checkbox("##selected", &is_selected)) {
-			if(is_selected) selected = obj.id();
-			else 		    selected = 0;
+			if(is_selected) selected_mesh = obj.id();
+			else 		    selected_mesh = 0;
 		}
 
 		auto check_undo = [&](Action act, Vec3& old, const Vec3& newv) {
@@ -307,7 +310,7 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 
 	if(to_delete) {
 		undo.del_obj(scene, to_delete);
-		if(to_delete == selected) selected = 0;
+		if(to_delete == selected_mesh) selected_mesh = 0;
 	}
 
 	ImGui::End();
@@ -470,7 +473,7 @@ void Gui::end_drag(Undo& undo, Scene& scene) {
 
 	if(!dragging) return;
 	
-	Scene_Object& obj = *scene.get(selected);
+	Scene_Object& obj = *scene.get(selected_mesh);
 	Pose p = obj.pose;
 
 	switch(action) {
@@ -497,7 +500,7 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 
 	if(!dragging) return;
 	
-	Scene_Object& obj = *scene.get(selected);
+	Scene_Object& obj = *scene.get(selected_mesh);
 	Vec3 pos = obj.pose.pos;
 	
 	if(action == Action::rotate) {
@@ -529,8 +532,6 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 }
 
 bool Gui::select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir) {
-	
-	if(_mode != Mode::scene) return false;
 
 	dragging = true;
 	drag_plane = false;
@@ -589,26 +590,53 @@ bool Gui::select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir) {
 	} break;
 	default: {
 		dragging = false;
-		selected = id;
 	} break;
 	}
 
+	switch(_mode) {
+	case Mode::scene: return select_scene(scene, id, cam, dir);
+	case Mode::model: return select_model(scene, id, cam, dir);
+	default: assert(false);
+	}
+	return dragging;
+}
+
+void Gui::clear_select() {
+	
+	switch(_mode) {
+	case Mode::scene: selected_mesh = 0; break;
+	case Mode::model: selected_compo = 0; break;
+	default: assert(false);
+	}
+}
+
+bool Gui::select_model(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir) {
+
+	if(click != 0) {
+		selected_compo = click;
+		Renderer::sel_comp_id((unsigned int)selected_compo);
+	}
+	return dragging;
+}
+
+bool Gui::select_scene(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir) {
+
 	if(dragging) {
-		Scene_Object& obj = *scene.get(selected);
+		Scene_Object& obj = *scene.get(selected_mesh);
 		Vec3 hit;
 		if(action == Action::rotate) {
 			if(to_plane(obj, cam, dir, hit)) {
 				drag_start = (hit - obj.pose.pos).unit();
 				drag_end = {0.0f};
 			}
-			return selected;
+			return dragging;
 		}
 
 		bool good;
 		if(drag_plane) good = to_plane(obj, cam, dir, hit);
 		else           good = to_axis(obj, cam, dir, hit);
 
-		if(!good) return selected;
+		if(!good) return dragging;
 
 		if(action == Action::move) {
 			
@@ -619,8 +647,12 @@ bool Gui::select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir) {
 			drag_end = {1.0f};
 		}
 		generate_widget_lines(obj);
+
+	} else if(click != 0) {
+		selected_mesh = click;
 	}
-	return selected;
+
+	return dragging;
 }
 
 void Gui::apply_transform(Scene_Object& obj) {

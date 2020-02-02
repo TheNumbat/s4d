@@ -123,13 +123,15 @@ Scene_Object::ID Renderer::read_id(Vec2 pos) {
 	int y = (int)(data->window_dim.y - pos.y - 1);
 
 	if(data->id_resolve.can_read_at()) {
-		
+
 		GLubyte read[4] = {};
 		data->id_resolve.read_at(0, x, y, read);
 		return (int)read[0] | (int)read[1] << 8 | (int)read[2] << 16;
 
 	} else {
+		
 		int idx = y * (int)data->window_dim.x * 4 + x * 4;
+		assert(data && idx > 0 && idx <= data->window_dim.x * data->window_dim.y * 4);
 	
 		int a = data->id_buffer[idx];
 		int b = data->id_buffer[idx + 1];
@@ -164,6 +166,7 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 
 	if(loaded_mesh == &mesh && !mesh.render_dirty_flag) return;
 	
+	selected_compo = 0;
 	mesh.render_dirty_flag = false;
 	loaded_mesh = &mesh;
 
@@ -259,6 +262,10 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 	}
 }
 
+void Renderer::sel_comp_id(unsigned int id) {
+	data->selected_compo = id;
+}
+
 void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Renderer::HalfedgeOpt opt) {
 
 	data->build_halfedge(mesh);
@@ -278,6 +285,8 @@ void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Render
 	data->inst_shader.uniform("proj", data->_proj);
 	data->inst_shader.uniform("modelview", opt.modelview);
 	data->inst_shader.uniform("color", opt.color);
+	data->inst_shader.uniform("sel_color", Gui::Color::outline);
+	data->inst_shader.uniform("sel_id", data->selected_compo);
 
 	data->spheres.render();
 	data->cylinders.render();

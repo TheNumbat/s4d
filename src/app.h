@@ -35,7 +35,8 @@ private:
         orbit,
         move
     };
-	Vec2 window_dim;
+	Vec2 window_dim, mouse_press;
+	bool selection_changed = false;
 	Camera_Control cam_mode = Camera_Control::none;
 	Camera camera;
 	Mat4 view, proj, viewproj, iviewproj;

@@ -1,45 +1,39 @@
 
 TODO:
 
-    Exporting meshes from blender:
-        Main: Global Oreintation: -Z Forward, Y Up, Apply Global Oreintation
-        Geom: NO Triangulate
-        View: Smooth Shaded
+	Exporting meshes from blender:
+		Main: Global Oreintation: -Z Forward, Y Up, Apply Global Oreintation
+		Geom: NO Triangulate
+		View: Smooth Shaded
 
-    Low priority:
-        mesh preview in GUI
-        scene graph (parenting, etc)
-        changing the origin of a mesh
-        loading bars/threading for big mesh ops
+	[ MESHEDIT ]
 
-    [ MESHEDIT ]
+	select halfedge features by ID
+	moving halfedge features with widgets
 
-    torus mesh is missing elements ????
-    select halfedge features by ID
-    moving halfedge features with widgets
+	second camera for mesh editing
+	undo/redo integration
+	more halfedge mesh validation checks
 
-    second camera for mesh editing
-    undo/redo integration
-    more halfedge mesh validation checks
+	[ PATHTRACER ]
 
-    thinking about writing contiguous memory implementation for fast iteration
-        needs tombstones/compaction after steps
-        needs custom iterators for elements and maybe for paths 
-        (otherwise have to pass next ref back through some function)
+	Mode: render (+mesh shading options)
+	
+	Port and simplify code
+		I'd like to refactor it more like https://github.com/TheNumbat/dawn
 
+	[ ANIMATION ]
 
-    [ PATHTRACER ]
+	Mode: rig
+	Mode: animate
+	Mode: simulate
 
-    Mode: render (+mesh shading options)
-    
-    Port and simplify code
-        I'd like to refactor it more like https://github.com/TheNumbat/dawn
+	Port and simplify code
 
+	[ UX ]
 
-    [ ANIMATION ]
+	mesh preview in GUI
+	scene graph (parenting, etc)
+	changing the origin of a mesh
+	loading bars/threading for big mesh ops
 
-    Mode: rig
-    Mode: animate
-    Mode: simulate
-
-    Port and simplify code

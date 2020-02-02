@@ -284,8 +284,9 @@ std::string Scene::load(bool clear_first, Undo& undo, std::string file) {
 		aiProcess_GenSmoothNormals |
 		aiProcess_ValidateDataStructure |
 		aiProcess_OptimizeMeshes |
-		aiProcess_FindInstances |                  
+		aiProcess_FindInstances |
 		aiProcess_FindDegenerates |
+		aiProcess_JoinIdenticalVertices |
         aiProcess_FindInvalidData);
 
 	if (!scene) {

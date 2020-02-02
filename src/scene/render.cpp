@@ -82,6 +82,8 @@ void Renderer::mesh(const GL::Mesh& mesh, Renderer::MeshOpt opt) {
 	data->mesh_shader.uniform("mvp", data->_proj * opt.modelview);
 	data->mesh_shader.uniform("normal", Mat4::transpose(Mat4::inverse(opt.modelview)));
 	data->mesh_shader.uniform("solid", opt.solid_color);
+	data->mesh_shader.uniform("sel_color", opt.sel_color);
+	data->mesh_shader.uniform("sel_id", opt.sel_id);
 	
 	if(opt.depth_only) GL::color_mask(false);
 
@@ -275,13 +277,14 @@ void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Render
 	fopt.modelview = opt.modelview;
 	fopt.color = opt.color;
 	fopt.per_vert_id = true;
+	fopt.sel_color = Gui::Color::outline;
+	fopt.sel_id = data->selected_compo;
 	Renderer::mesh(faces, fopt);
 
 	data->inst_shader.bind();
 	data->inst_shader.uniform("use_v_id", true);
 	data->inst_shader.uniform("use_i_id", true);
 	data->inst_shader.uniform("solid", false);
-	data->inst_shader.uniform("id", 0u);
 	data->inst_shader.uniform("proj", data->_proj);
 	data->inst_shader.uniform("modelview", opt.modelview);
 	data->inst_shader.uniform("color", opt.color);

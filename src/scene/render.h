@@ -22,7 +22,8 @@ public:
     struct MeshOpt {
         Scene_Object::ID id;
         Mat4 modelview;
-        Vec3 color;
+        Vec3 color, sel_color;
+        unsigned int sel_id = 0;
         bool wireframe = false;
         bool solid_color = false;
         bool depth_only = false;

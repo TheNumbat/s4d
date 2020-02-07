@@ -1,22 +1,32 @@
 
-TODO:
+Exporting meshes from blender:
+	Main: Global Oreintation: -Z Forward, Y Up, Apply Global Oreintation
+	Geom: NO Triangulate
+	View: Smooth Shaded
 
-	Exporting meshes from blender:
-		Main: Global Oreintation: -Z Forward, Y Up, Apply Global Oreintation
-		Geom: NO Triangulate
-		View: Smooth Shaded
+TODO:
+	General:
+		swap to cmake build system
+		refactor gui.cpp to better separate the controls/GUI/selection info
+		for the different edit modes (scene, model)
+		document app/gui/scene code
+
+	UX Features:
+		changing the origin of a mesh
+		scene graph (parenting, etc)
+		mesh rest pose preview in GUI
+		loading bars/threading for big mesh ops
 
 	[ MESHEDIT ]
 
-	halfedge UI
-		information (degree, sides, etc.)
-		moving halfedge features with widgets
+	moving halfedge features with widgets
 
 	second camera for mesh editing
 		snap/zoom to selected element
-		
+
 	undo/redo integration
-	more halfedge mesh validation checks
+	
+	more halfedge mesh validation checks after student ops
 
 	[ PATHTRACER ]
 
@@ -32,11 +42,3 @@ TODO:
 	Mode: simulate
 
 	Port and simplify code
-
-	[ UX ]
-
-	mesh preview in GUI
-	scene graph (parenting, etc)
-	changing the origin of a mesh
-	loading bars/threading for big mesh ops
-

@@ -71,7 +71,11 @@ bool Halfedge_Mesh::Edge::on_boundary() const {
 	return _halfedge->is_boundary() || _halfedge->twin()->is_boundary();
 }
 
-Vec3 Halfedge_Mesh::Face::average() const {
+Vec3 Halfedge_Mesh::Edge::center() const {
+	return 0.5f * (_halfedge->vertex()->pos + _halfedge->twin()->vertex()->pos);
+}
+
+Vec3 Halfedge_Mesh::Face::center() const {
 	Vec3 c;
 	float d = 0.0f;
 	HalfedgeCRef h = _halfedge;

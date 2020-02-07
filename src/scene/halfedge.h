@@ -216,6 +216,7 @@ public:
 		HalfedgeCRef halfedge() const {return _halfedge;}
 		unsigned int id() const {return _id;}
 		bool on_boundary() const;
+		Vec3 center() const;
 	private:
 		unsigned int _id = 0;
 		HalfedgeRef _halfedge;
@@ -227,7 +228,7 @@ public:
 		HalfedgeRef& halfedge() {return _halfedge;}
 		HalfedgeCRef halfedge() const {return _halfedge;}
 		bool is_boundary() const {return boundary;}
-		Vec3 average() const;
+		Vec3 center() const;
 		unsigned int degree() const;
 		unsigned int id() const {return _id;}
 	private:

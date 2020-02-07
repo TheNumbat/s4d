@@ -274,7 +274,7 @@ void Renderer::build_halfedge(Halfedge_Mesh& mesh) {
 
 		// Move to center of edge and towards center of face
 		Vec3 offset = (v1 - v0) * 0.2f;
-		Vec3 face = h->face()->average();
+		Vec3 face = h->face()->center();
 		Vec3 avg = 0.5f * (v0 + v1);
 		offset += (face - avg).unit() * s * 0.125f;
 

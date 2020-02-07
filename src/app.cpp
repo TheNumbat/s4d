@@ -149,22 +149,9 @@ void App::render_selected(Scene_Object& obj) {
 
 		auto elem = Renderer::he_selected();
 		if(elem.has_value()) {
-			Vec3 pos;
-			bool render = true;
-			std::visit(overloaded {
-				[&](Halfedge_Mesh::VertexCRef vert) {
-					pos = vert->pos;
-				},
-				[&](Halfedge_Mesh::EdgeCRef edge) {
-					pos = edge->center();
-				},
-				[&](Halfedge_Mesh::FaceCRef face) {
-					pos = face->center();
-				},
-				[&](auto) {render = false;}
-			}, *elem);
-
-			if(render) {
+			auto e = *elem;
+			Vec3 pos = Halfedge_Mesh::center_of(e);
+			if(!std::holds_alternative<Halfedge_Mesh::HalfedgeCRef>(e)) {
  				float scl = (camera.pos() - pos).norm() / 5.5f;
 				gui.render_widgets(viewproj, view, pos, scl);
 			}

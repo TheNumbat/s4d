@@ -350,6 +350,8 @@ public:
 	HalfedgeCRef halfedge_by_idx(unsigned int idx) const;
 	FaceCRef face_by_idx(unsigned int idx) const;
 
+	static Vec3 center_of(ElementCRef elem);
+
 private:
 	std::list<Vertex> vertices;
 	std::list<Edge> edges;
@@ -388,3 +390,6 @@ inline bool operator<(const Halfedge_Mesh::EdgeCRef& i, const Halfedge_Mesh::Edg
 inline bool operator<(const Halfedge_Mesh::FaceCRef& i, const Halfedge_Mesh::FaceCRef& j) {
   return &*i < &*j;
 }
+
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;

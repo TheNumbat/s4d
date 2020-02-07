@@ -97,10 +97,10 @@ bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
 	return false;
 }
 
-void Gui::generate_widget_lines(const Scene_Object& obj) {
+void Gui::generate_widget_lines(Vec3 pos) {
 	auto add_axis = [&](int axis) {
-		Vec3 start = obj.pose.pos; start[axis] -= 10000.0f;
-		Vec3 end = obj.pose.pos; end[axis] += 10000.0f;
+		Vec3 start = pos; start[axis] -= 10000.0f;
+		Vec3 end = pos; end[axis] += 10000.0f;
 		Vec3 color = Color::axis((Axis)axis);
 		widget_lines.add(start, end, color);
 	};
@@ -301,9 +301,9 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 
 		auto fake_display = [&](Action act, std::string label, Vec3& data, float sens) {
 			if(is_selected && dragging && action == act) {
-				Vec3 fake = apply_action(obj);
-				if(action == Action::rotate) fake = fake.range(0.0f, 360.0f);
-				ImGui::DragFloat3(label.c_str(), fake.data);
+				Pose fake = apply_action(obj.pose);
+				if(action == Action::rotate) fake.euler = fake.euler.range(0.0f, 360.0f);
+				ImGui::DragFloat3(label.c_str(), fake.euler.data);
 			} else if(ImGui::DragFloat3(label.c_str(), data.data, sens)) {
 				if(is_selected) {
 					action = act;
@@ -495,26 +495,27 @@ void Gui::create_baseplane() {
 	}
 }
 
-Vec3 Gui::apply_action(const Scene_Object& obj) {
+Pose Gui::apply_action(const Pose& pose) {
 
-	Vec3 result, vaxis;
+	Pose result = pose;
+	Vec3 vaxis;
 	vaxis[(int)axis] = 1.0f;
 
 	switch(action) {
 	case Action::move: {
-		result = obj.pose.pos + drag_end - drag_start;
+		result.pos = pose.pos + drag_end - drag_start;
 	} break;
 	case Action::rotate: {
 		Quat rot = Quat::axis_angle(vaxis, drag_end[(int)axis]);
-		Quat combined = rot * obj.pose.rotation_quat();
-		result = combined.to_euler();
+		Quat combined = rot * pose.rotation_quat();
+		result.euler = combined.to_euler();
 	} break;
 	case Action::scale: {
-		result = {1.0f};
-		result[(int)axis] = drag_end[(int)axis];
-		Mat4 rot = obj.pose.rotation_mat();
-		Mat4 trans = Mat4::transpose(rot) * Mat4::scale(result) * rot * Mat4::scale(obj.pose.scale);
-		result = Vec3(trans[0][0], trans[1][1], trans[2][2]);
+		result.scale = {1.0f};
+		result.scale[(int)axis] = drag_end[(int)axis];
+		Mat4 rot = pose.rotation_mat();
+		Mat4 trans = Mat4::transpose(rot) * Mat4::scale(result.scale) * rot * Mat4::scale(pose.scale);
+		result.scale = Vec3(trans[0][0], trans[1][1], trans[2][2]);
 	} break;
 	default: assert(false);
 	}
@@ -522,17 +523,16 @@ Vec3 Gui::apply_action(const Scene_Object& obj) {
 	return result;
 }
 
-bool Gui::to_axis(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit) {
+bool Gui::to_axis(Vec3 obj_pos, Vec3 cam_pos, Vec3 dir, Vec3& hit) {
 	
 	Vec3 axis1; axis1[(int)axis] = 1.0f;
 	Vec3 axis2; axis2[((int)axis + 1) % 3] = 1.0f;
 	Vec3 axis3; axis3[((int)axis + 2) % 3] = 1.0f;
 	
-	Vec3 opos = obj.pose.pos;
-	Line select(pos, dir);
-	Line target(opos, axis1);
-	Plane l(opos, axis2);
-	Plane r(opos, axis3);
+	Line select(cam_pos, dir);
+	Line target(obj_pos, axis1);
+	Plane l(obj_pos, axis2);
+	Plane r(obj_pos, axis3);
 
 	Vec3 hit1, hit2;
 	bool hl = l.hit(select, hit1);
@@ -540,58 +540,87 @@ bool Gui::to_axis(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit) {
 	if(!hl && !hr) return false;
 	else if(!hl) hit = hit2;
 	else if(!hr) hit = hit1;
-	else hit = (hit1 - pos).norm() > (hit2 - pos).norm() ? hit2 : hit1;
+	else hit = (hit1 - cam_pos).norm() > (hit2 - cam_pos).norm() ? hit2 : hit1;
 	
 	hit = target.closest(hit);
 	return hit.valid();
  }
 
-bool Gui::to_plane(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit) {
+bool Gui::to_plane(Vec3 obj_pos, Vec3 cam_pos, Vec3 dir, Vec3& hit) {
 
-	Line look(pos, dir);
+	Line look(cam_pos, dir);
 	Vec3 vaxis; vaxis[(int)axis] = 1.0f;
-	Plane p(obj.pose.pos, vaxis);
+	Plane p(obj_pos, vaxis);
 	return p.hit(look, hit);
+}
+
+bool Gui::start_drag(Vec3 pos, Vec3 cam, Vec3 dir) {
+	
+	Vec3 hit;
+	if(action == Action::rotate) {
+		if(to_plane(pos, cam, dir, hit)) {
+			drag_start = (hit - pos).unit();
+			drag_end = {0.0f};
+		}
+		return dragging;
+	}
+
+	bool good;
+	if(drag_plane) good = to_plane(pos, cam, dir, hit);
+	else           good = to_axis(pos, cam, dir, hit);
+
+	if(!good) return dragging;
+
+	if(action == Action::move) {
+		
+		drag_start = drag_end = hit;
+
+	} else {
+		drag_start = hit;
+		drag_end = {1.0f};
+	}
+	generate_widget_lines(pos);
+	return dragging;
 }
 
 void Gui::end_drag(Undo& undo, Scene& scene) {
 
 	if(!dragging) return;
 	
-	Scene_Object& obj = *scene.get(selected_mesh);
-	Pose p = obj.pose;
+	if(_mode == Mode::scene) {
+		
+		Scene_Object& obj = *scene.get(selected_mesh);
+		Pose p = apply_action(obj.pose);
+		undo.update_obj(scene, obj.id(), p);
+	
+	} else if(_mode == Mode::model) {
 
-	switch(action) {
-	case Action::scale: {
-		p.scale = apply_action(obj);
-	} break;
-	case Action::rotate: {
-		p.euler = apply_action(obj); 
-	} break;
-	case Action::move: {
-		p.pos = apply_action(obj);
-	} break;
-	default: assert(false);
+		// TODO(max): this
 	}
 
 	widget_lines.clear();
 	drag_start = drag_end = {};
 	dragging = false;
-
-	undo.update_obj(scene, obj.id(), p);
 }
 
 void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 
 	if(!dragging) return;
 	
-	Scene_Object& obj = *scene.get(selected_mesh);
-	Vec3 pos = obj.pose.pos;
+	Vec3 pos;
+	if(_mode == Mode::scene) {
+		Scene_Object& obj = *scene.get(selected_mesh);
+		pos = obj.pose.pos;
+	} else {
+		auto elem = Renderer::he_selected();
+		assert(elem.has_value());
+		pos = Halfedge_Mesh::center_of(*elem);
+	}
 	
 	if(action == Action::rotate) {
 	
 		Vec3 hit;
-		if(!to_plane(obj, cam, dir, hit)) return;
+		if(!to_plane(pos, cam, dir, hit)) return;
 
 		Vec3 ang = (hit - pos).unit();
 		float sgn = sign(cross(drag_start, ang)[(int)axis]);
@@ -603,8 +632,8 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 
 	Vec3 hit; 
 	bool good;
-	if(drag_plane) good = to_plane(obj, cam, dir, hit);
-	else 	       good = to_axis(obj, cam, dir, hit);
+	if(drag_plane) good = to_plane(pos, cam, dir, hit);
+	else 	       good = to_axis(pos, cam, dir, hit);
 
 	if(!good) return;
 
@@ -699,7 +728,11 @@ void Gui::clear_select() {
 
 bool Gui::select_model(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir) {
 
-	if(click > num_ids()) {
+	if(dragging) {
+		auto e = Renderer::he_selected();
+		if(e.has_value() && !std::holds_alternative<Halfedge_Mesh::HalfedgeCRef>(*e))
+			return start_drag(Halfedge_Mesh::center_of(*e), cam, dir);
+	} else if(click >= num_ids()) {
 		Renderer::set_he_select((unsigned int)click);
 	}
 	return dragging;
@@ -709,43 +742,18 @@ bool Gui::select_scene(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir)
 
 	if(dragging) {
 		Scene_Object& obj = *scene.get(selected_mesh);
-		Vec3 hit;
-		if(action == Action::rotate) {
-			if(to_plane(obj, cam, dir, hit)) {
-				drag_start = (hit - obj.pose.pos).unit();
-				drag_end = {0.0f};
-			}
-			return dragging;
-		}
-
-		bool good;
-		if(drag_plane) good = to_plane(obj, cam, dir, hit);
-		else           good = to_axis(obj, cam, dir, hit);
-
-		if(!good) return dragging;
-
-		if(action == Action::move) {
-			
-			drag_start = drag_end = hit;
-
-		} else {
-			drag_start = hit;
-			drag_end = {1.0f};
-		}
-		generate_widget_lines(obj);
-
-	} else if(click != 0) {
+		return start_drag(obj.pose.pos, cam, dir);
+	} else if(click >= num_ids()) {
 		selected_mesh = click;
 	}
-
 	return dragging;
 }
 
 void Gui::apply_transform(Scene_Object& obj) {
 	if(dragging) {
-			 if(action == Gui::Action::scale)  obj.pose.scale = apply_action(obj);
-		else if(action == Gui::Action::rotate) obj.pose.euler = apply_action(obj);
-		else if(action == Gui::Action::move)   obj.pose.pos   = apply_action(obj);
+			 if(action == Gui::Action::scale)  obj.pose = apply_action(obj.pose);
+		else if(action == Gui::Action::rotate) obj.pose = apply_action(obj.pose);
+		else if(action == Gui::Action::move)   obj.pose = apply_action(obj.pose);
 		else assert(false);
 	}
 }

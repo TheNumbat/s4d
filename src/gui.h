@@ -49,6 +49,7 @@ public:
 
 	void drag_to(Scene& scene, Vec3 cam, Vec3 dir);
 	void end_drag(Undo& undo, Scene& scene);
+	bool start_drag(Vec3 pos, Vec3 cam, Vec3 dir);
 	void apply_transform(Scene_Object& obj);
 	Scene_Object::ID selected_id();
 
@@ -66,9 +67,9 @@ private:
 	void load_scene(Scene& scene, Undo& undo);
 	void write_scene(Scene& scene);
 
-	Vec3 apply_action(const Scene_Object& obj);
-	bool to_axis(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit);
-	bool to_plane(const Scene_Object& obj, Vec3 pos, Vec3 dir, Vec3& hit);
+	Pose apply_action(const Pose& pose);
+	bool to_axis(Vec3 obj_pos, Vec3 cam_pos, Vec3 dir, Vec3& hit);
+	bool to_plane(Vec3 obj_pos, Vec3 cam_pos, Vec3 dir, Vec3& hit);
 
 	bool select_scene(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir);
 	bool select_model(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir);
@@ -101,7 +102,7 @@ private:
 	};
 	GL::Lines baseplane, widget_lines;
 	void create_baseplane();
-	void generate_widget_lines(const Scene_Object& obj);
+	void generate_widget_lines(Vec3 pos);
 	Scene_Object::ID selected_mesh = (Scene_Object::ID)Basic::none;
 	Scene_Object x_trans, y_trans, z_trans, x_rot, y_rot, z_rot;
 	Scene_Object x_scale, z_scale, y_scale, xy_trans, yz_trans, xz_trans;

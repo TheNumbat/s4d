@@ -9,11 +9,12 @@ TODO:
 	[ MESHEDIT ]
 
 	halfedge UI
-		mesh navigation
 		information (degree, sides, etc.)
-	moving halfedge features with widgets
+		moving halfedge features with widgets
 
 	second camera for mesh editing
+		snap/zoom to selected element
+		
 	undo/redo integration
 	more halfedge mesh validation checks
 

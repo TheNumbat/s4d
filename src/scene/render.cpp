@@ -6,6 +6,9 @@
 
 #include <imgui/imgui.h>
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
 Renderer::Renderer(Vec2 dim) :
 	samples(4),
 	window_dim(dim),
@@ -84,6 +87,8 @@ void Renderer::mesh(const GL::Mesh& mesh, Renderer::MeshOpt opt) {
 	data->mesh_shader.uniform("solid", opt.solid_color);
 	data->mesh_shader.uniform("sel_color", opt.sel_color);
 	data->mesh_shader.uniform("sel_id", opt.sel_id);
+	data->mesh_shader.uniform("hov_color", opt.hov_color);
+	data->mesh_shader.uniform("hov_id", opt.hov_id);
 	
 	if(opt.depth_only) GL::color_mask(false);
 
@@ -144,6 +149,28 @@ Scene_Object::ID Renderer::read_id(Vec2 pos) {
 	return 0;
 }
 
+void Renderer::set_he_select(Halfedge_Mesh::ElementCRef elem) {
+	std::visit(overloaded {
+		[&](Halfedge_Mesh::VertexCRef vert) {
+			data->selected_compo = data->v_to_idx[vert];
+		},
+		[&](Halfedge_Mesh::EdgeCRef edge) {
+			data->selected_compo = data->e_to_idx[edge];
+		},
+		[&](Halfedge_Mesh::FaceCRef face) {
+			data->selected_compo = data->f_to_idx[face];
+		},
+		[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
+			data->selected_compo = data->he_to_idx[halfedge];
+		}
+	}, elem);
+}
+
+void Renderer::set_he_hover(Vec2 mouse) {
+	assert(data);
+	data->hover_compo = read_id(mouse);
+}
+
 void Renderer::reset_depth() {
 	assert(data);
 	data->framebuffer.clear_d();
@@ -171,14 +198,21 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 	selected_compo = 0;
 	mesh.render_dirty_flag = false;
 	loaded_mesh = &mesh;
+	idx_to_elm.clear();
 
 	std::map<Halfedge_Mesh::VertexCRef, float> size;
 
-	faces = mesh.n_faces() + 1;
+	faces = 1;
+	f_to_idx.clear();
+	for(auto f = mesh.faces_begin(); f != mesh.faces_end(); f++) {
+		idx_to_elm[faces] = f;
+		f_to_idx[f] = faces++;
+	}
 	verts = faces;
 
 	// Create sphere for each vertex
 	spheres.clear();
+	v_to_idx.clear();
 	for(auto v = mesh.vertices_begin(); v != mesh.vertices_end(); v++) {
 		
 		// Sphere size ~ 0.05 * min incident edge length
@@ -192,6 +226,8 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 		} while(he != v->halfedge());
 
 		size[v] = d;
+		v_to_idx[v] = verts;
+		idx_to_elm[verts] = v;
 		spheres.add(Mat4::translate(v->pos) * Mat4::scale(d), verts++);
 	}
 
@@ -199,6 +235,7 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 
 	// Create cylinder for each edge
 	cylinders.clear();
+	e_to_idx.clear();
 	for(auto e = mesh.edges_begin(); e != mesh.edges_end(); e++) {
 		
 		auto v_0 = e->halfedge()->vertex();
@@ -222,6 +259,8 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 			l = -l;
 		}
 
+		e_to_idx[e] = edges;
+		idx_to_elm[edges] = e;
 		cylinders.add(Mat4::translate(v0) * rot * Mat4::scale({s, l, s}), edges++);
 	}
 
@@ -229,6 +268,7 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 
 	// Create arrow for each halfedge
 	arrows.clear();
+	he_to_idx.clear();
 	for(auto h = mesh.halfedges_begin(); h != mesh.halfedges_end(); h++) {
 
 		if(h->face()->is_boundary()) continue;
@@ -260,6 +300,8 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 			l = -l;
 		}
 
+		he_to_idx[h] = halfedges;
+		idx_to_elm[halfedges] = h;
 		arrows.add(Mat4::translate(v0 + offset) * rot * Mat4::scale({0.6f * s, 0.6f * l, 0.6f * s}), halfedges++);
 	}
 }
@@ -267,7 +309,6 @@ void Renderer::build_halfedge(const Halfedge_Mesh& mesh) {
 void Renderer::set_he_select(unsigned int id) {
 	assert(data);
 	data->selected_compo = id;
-	data->element_dirty = true;
 }
 
 unsigned int Renderer::get_he_select() {
@@ -278,18 +319,11 @@ unsigned int Renderer::get_he_select() {
 std::optional<Halfedge_Mesh::ElementCRef> Renderer::he_selected() {
 	
 	assert(data);
-	if(!data->loaded_mesh) {
-		data->sel_cache = std::nullopt;
-	} else if(data->element_dirty) {
-		unsigned int id = data->selected_compo;
-		if(id == 0) data->sel_cache = std::nullopt;
-		else if(id < data->faces) data->sel_cache = data->loaded_mesh->face_by_idx(id);
-		else if(id < data->verts) data->sel_cache = data->loaded_mesh->vert_by_idx(id - data->faces);
-		else if(id < data->edges) data->sel_cache = data->loaded_mesh->edge_by_idx(id - data->verts);
-		else if(id < data->halfedges) data->sel_cache = data->loaded_mesh->halfedge_by_idx(id - data->edges);
-		data->element_dirty = false;
-	}
-	return data->sel_cache;
+	if(!data->loaded_mesh) return std::nullopt;
+
+	unsigned int id = data->selected_compo;
+	if(id == 0) return std::nullopt;
+	return data->idx_to_elm[id];
 }
 
 void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Renderer::HalfedgeOpt opt) {
@@ -303,6 +337,8 @@ void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Render
 	fopt.per_vert_id = true;
 	fopt.sel_color = Gui::Color::outline;
 	fopt.sel_id = data->selected_compo;
+	fopt.hov_color = Gui::Color::hover;
+	fopt.hov_id = data->hover_compo;
 	Renderer::mesh(faces, fopt);
 
 	data->inst_shader.bind();
@@ -313,7 +349,9 @@ void Renderer::halfedge(const GL::Mesh& faces, const Halfedge_Mesh& mesh, Render
 	data->inst_shader.uniform("modelview", opt.modelview);
 	data->inst_shader.uniform("color", opt.color);
 	data->inst_shader.uniform("sel_color", Gui::Color::outline);
+	data->inst_shader.uniform("hov_color", Gui::Color::hover);
 	data->inst_shader.uniform("sel_id", data->selected_compo);
+	data->inst_shader.uniform("hov_id", data->hover_compo);
 
 	data->spheres.render();
 	data->cylinders.render();

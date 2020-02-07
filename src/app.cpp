@@ -63,6 +63,8 @@ void App::event(SDL_Event e) {
 			camera.mouse_orbit(d);
 		} else if(cam_mode == Camera_Control::move) {
 			camera.mouse_move(d);
+		} else if(gui.mode() == Gui::Mode::model) {
+			Renderer::set_he_hover(p);
 		}
 
 	} break;

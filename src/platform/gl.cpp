@@ -1002,14 +1002,12 @@ layout (location = 1) in vec3 v_norm;
 layout (location = 2) in uint v_id;
 
 uniform mat4 mvp, normal;
-uniform vec3 color;
 
-smooth out vec3 f_norm, f_color;
+smooth out vec3 f_norm;
 flat out uint f_id;
 
 void main() {
 	f_id = v_id;
-	f_color = color;
 	f_norm = (normal * vec4(v_norm, 0.0f)).xyz;
 	gl_Position = mvp * vec4(v_pos, 1.0f);
 })";
@@ -1026,7 +1024,7 @@ layout (location = 4) in mat4 i_trans;
 uniform bool use_i_id;
 uniform mat4 proj, modelview;
 
-smooth out vec3 f_norm, f_color;
+smooth out vec3 f_norm;
 flat out uint f_id;
 
 void main() {
@@ -1040,13 +1038,12 @@ void main() {
 #version 330 core
 
 uniform bool solid, use_v_id;
-uniform uint id, sel_id;
-uniform vec3 color, sel_color;
+uniform uint id, sel_id, hov_id;
+uniform vec3 color, sel_color, hov_color;
 
 layout (location = 0) out vec4 out_col;
 layout (location = 1) out vec4 out_id;
 
-smooth in vec3 f_color;
 smooth in vec3 f_norm;
 flat in uint f_id;
 
@@ -1055,10 +1052,10 @@ void main() {
 	vec3 use_color;
 	if(use_v_id) {
 		out_id = vec4((f_id & 0xffu) / 255.0f, ((f_id >> 8) & 0xffu) / 255.0f, ((f_id >> 16) & 0xffu) / 255.0f, 1.0f);
-		use_color = f_id == sel_id ? sel_color : color;
+		use_color = f_id == sel_id ? sel_color : (f_id == hov_id ? hov_color : color);
 	} else {
 		out_id = vec4((id & 0xffu) / 255.0f, ((id >> 8) & 0xffu) / 255.0f, ((id >> 16) & 0xffu) / 255.0f, 1.0f);
-		use_color = id == sel_id ? sel_color : color;
+		use_color = id == sel_id ? sel_color : (id == hov_id ? hov_color : color);
 	}
 
 	if(solid) {

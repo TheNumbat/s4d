@@ -28,6 +28,7 @@ public:
 		static inline const Vec3 red = Vec3(163.0f, 66.0f, 81.0f) / 255.0f;
 		static inline const Vec3 green = Vec3(124.0f, 172.0f, 40.0f) / 255.0f;
 		static inline const Vec3 blue = Vec3(64.0f, 127.0f, 193.0f) / 255.0f;
+		static inline const Vec3 hover = Vec3(102.0f, 102.0f, 204.0f) / 255.0f;
 		static Vec3 axis(Axis a);
 	};
 	static Scene_Object::ID num_ids();

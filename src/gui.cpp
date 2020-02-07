@@ -325,23 +325,39 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 			std::visit(overloaded {
 				[&](Halfedge_Mesh::VertexCRef vert) {
 					ImGui::Text("Vertex Info");
-					if(ImGui::Button("Halfedge"));
+					if(ImGui::Button("Halfedge")) {
+						Renderer::set_he_select(vert->halfedge());
+					}
 				},
 				[&](Halfedge_Mesh::EdgeCRef edge) {
 					ImGui::Text("Edge Info");
-					if(ImGui::Button("Halfedge"));
+					if(ImGui::Button("Halfedge")) {
+						Renderer::set_he_select(edge->halfedge());
+					}
 				},
 				[&](Halfedge_Mesh::FaceCRef face) {
 					ImGui::Text("Face Info");
-					if(ImGui::Button("Halfedge"));
+					if(ImGui::Button("Halfedge")) {
+						Renderer::set_he_select(face->halfedge());
+					}
 				},
 				[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
 					ImGui::Text("Halfedge Info");
-					if(ImGui::Button("Vertex"));
-					if(wrap_button("Edge"));
-					if(wrap_button("Face"));
-					if(ImGui::Button("Twin"));
-					if(wrap_button("Next"));
+					if(ImGui::Button("Vertex")) {
+						Renderer::set_he_select(halfedge->vertex());
+					}
+					if(wrap_button("Edge")) {
+						Renderer::set_he_select(halfedge->edge());
+					}
+					if(wrap_button("Face")) {
+						Renderer::set_he_select(halfedge->face());
+					}
+					if(ImGui::Button("Twin")) {
+						Renderer::set_he_select(halfedge->twin());
+					}
+					if(wrap_button("Next")) {
+						Renderer::set_he_select(halfedge->next());
+					}
 				}
 			}, *sel);
 		}

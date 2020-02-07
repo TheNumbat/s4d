@@ -6,9 +6,6 @@
 
 #include <imgui/imgui.h>
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
-
 Renderer::Renderer(Vec2 dim) :
 	samples(4),
 	window_dim(dim),
@@ -158,10 +155,12 @@ void Renderer::set_he_select(Halfedge_Mesh::ElementCRef elem) {
 			data->selected_compo = edge->id();
 		},
 		[&](Halfedge_Mesh::FaceCRef face) {
-			data->selected_compo = face->id();
+			if(!face->is_boundary())
+				data->selected_compo = face->id();
 		},
 		[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
-			data->selected_compo = halfedge->id();
+			if(!halfedge->is_boundary())
+				data->selected_compo = halfedge->id();
 		}
 	}, elem);
 }

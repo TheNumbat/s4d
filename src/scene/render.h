@@ -6,6 +6,9 @@
 #include "../platform/gl.h"
 #include "scene.h"
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
 // Singleton
 class Renderer {
 public:

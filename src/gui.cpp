@@ -6,9 +6,6 @@
 #include <imgui/imgui.h>
 #include <nfd/nfd.h>
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
-
 Gui::Gui(Vec2 dim) : 
 	baseplane(1.0f),
 	widget_lines(1.0f),
@@ -63,6 +60,39 @@ bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
 	if(key == SDLK_DELETE && selected_mesh) {
 		undo.del_obj(scene, selected_mesh);
 		selected_mesh = 0;
+	}
+	if(_mode == Mode::model) {
+		auto sel = Renderer::he_selected();
+		if(sel.has_value()) {
+			if(key == SDLK_h) {
+				std::visit(overloaded {
+					[&](Halfedge_Mesh::VertexCRef vert) {
+						Renderer::set_he_select(vert->halfedge());
+					},
+					[&](Halfedge_Mesh::EdgeCRef edge) {
+						Renderer::set_he_select(edge->halfedge());
+					},
+					[&](Halfedge_Mesh::FaceCRef face) {
+						Renderer::set_he_select(face->halfedge());
+					},
+					[&](auto) {}
+				}, *sel);
+			} else if(key == SDLK_t) {
+				std::visit(overloaded {
+					[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
+						Renderer::set_he_select(halfedge->twin());
+					},
+					[&](auto) {}
+				}, *sel);
+			} else if(key == SDLK_n) {
+				std::visit(overloaded {
+					[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
+						Renderer::set_he_select(halfedge->next());
+					},
+					[&](auto) {}
+				}, *sel);
+			}
+		}
 	}
 	return false;
 }
@@ -324,25 +354,33 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 			ImGui::Separator();
 			std::visit(overloaded {
 				[&](Halfedge_Mesh::VertexCRef vert) {
-					ImGui::Text("Vertex Info");
+					ImGui::Text("Navigate to:");
 					if(ImGui::Button("Halfedge")) {
 						Renderer::set_he_select(vert->halfedge());
 					}
+					ImGui::Separator();
+					ImGui::Text("Degree: %d", vert->degree());
+					ImGui::Text("Position: (%f,%f,%f)", vert->pos.x, vert->pos.y, vert->pos.z);
+					ImGui::Text(vert->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
 				},
 				[&](Halfedge_Mesh::EdgeCRef edge) {
-					ImGui::Text("Edge Info");
+					ImGui::Text("Navigate to:");
 					if(ImGui::Button("Halfedge")) {
 						Renderer::set_he_select(edge->halfedge());
 					}
+					ImGui::Separator();
+					ImGui::Text(edge->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
 				},
 				[&](Halfedge_Mesh::FaceCRef face) {
-					ImGui::Text("Face Info");
+					ImGui::Text("Navigate to:");
 					if(ImGui::Button("Halfedge")) {
 						Renderer::set_he_select(face->halfedge());
 					}
+					ImGui::Separator();
+					ImGui::Text("Degree: %d", face->degree());
 				},
 				[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
-					ImGui::Text("Halfedge Info");
+					ImGui::Text("Navigate to:");
 					if(ImGui::Button("Vertex")) {
 						Renderer::set_he_select(halfedge->vertex());
 					}

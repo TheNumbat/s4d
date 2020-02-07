@@ -37,6 +37,40 @@ void Halfedge_Mesh::clear() {
 	render_dirty_flag = true;
 }
 
+unsigned int Halfedge_Mesh::Vertex::degree() const {
+	unsigned int d = 0;
+	HalfedgeCRef h = _halfedge;
+	do {
+		d++;
+		h = h->twin()->next();
+	} while (h != _halfedge);
+	return d;
+}
+
+unsigned int Halfedge_Mesh::Face::degree() const {
+	unsigned int d = 0;
+	HalfedgeCRef h = _halfedge;
+	do {
+		d++;
+		h = h->next();
+	} while (h != _halfedge);
+	return d;
+}
+
+bool Halfedge_Mesh::Vertex::on_boundary() const {
+	bool bound = false;
+	HalfedgeCRef h = _halfedge;
+	do {
+		bound = bound || h->is_boundary();
+		h = h->twin()->next();
+	} while (h != _halfedge);
+	return bound;
+}
+
+bool Halfedge_Mesh::Edge::on_boundary() const {
+	return _halfedge->is_boundary() || _halfedge->twin()->is_boundary();
+}
+
 Vec3 Halfedge_Mesh::Face::average() const {
 	Vec3 c;
 	float d = 0.0f;

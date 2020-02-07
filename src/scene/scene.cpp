@@ -107,7 +107,7 @@ void Scene_Object::operator=(Scene_Object&& src) {
 	mesh_dirty = src.mesh_dirty; src.mesh_dirty = false;
 }
 
-void Scene_Object::sync_mesh() const {
+void Scene_Object::sync_mesh() {
 	if(editable && mesh_dirty) {
 		halfedge.to_mesh(_mesh, true);
 		mesh_dirty = false;
@@ -123,15 +123,15 @@ BBox Scene_Object::bbox() const {
 	return ret;
 }
 
-void Scene_Object::render_halfedge(Mat4 view) const {
+void Scene_Object::render_halfedge(Mat4 view) {
 
 	Renderer::HalfedgeOpt opt;
 	opt.modelview = view * pose.transform();
 	opt.color = color;
-	Renderer::halfedge(_mesh, halfedge, opt);
+	Renderer::halfedge(halfedge, opt);
 }
 
-void Scene_Object::render_mesh(Mat4 view, bool solid, bool depth_only) const {
+void Scene_Object::render_mesh(Mat4 view, bool solid, bool depth_only) {
 
 	sync_mesh();
 	

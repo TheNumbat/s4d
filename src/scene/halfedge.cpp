@@ -49,14 +49,26 @@ Vec3 Halfedge_Mesh::Face::average() const {
 	return c / d;
 }
 
+void Halfedge_Mesh::index(unsigned int base) {
+
+	unsigned int id = base;
+	for(FaceRef f = faces_begin(); f != faces_end(); f++)
+		f->_id = id++;
+	for(VertexRef v = vertices_begin(); v != vertices_end(); v++)
+		v->_id = id++;
+	for(EdgeRef e = edges_begin(); e != edges_end(); e++)
+		e->_id = id++;
+	for(HalfedgeRef h = halfedges_begin(); h != halfedges_end(); h++)
+		h->_id = id++;
+}
+
 void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
 
 	std::vector<GL::Mesh::Vert> verts;
 	std::vector<GL::Mesh::Index> idxs;
 
 	if(face_normals) {
-		GLuint face_id = 1;
-		for(FaceCRef f = faces_begin(); f != faces_end(); f++, face_id++) {
+		for(FaceCRef f = faces_begin(); f != faces_end(); f++) {
 
 			if(f->is_boundary()) continue;
 
@@ -64,7 +76,7 @@ void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
 			HalfedgeCRef h = f->halfedge();
 			do {
 				VertexCRef v = h->vertex();
-				face_verts.push_back({v->pos, v->norm, 0});
+				face_verts.push_back({v->pos, {}, 0});
 				h = h->next();
 			} while (h != f->halfedge());
 
@@ -75,11 +87,11 @@ void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
 				Vec3 v2 = face_verts[i+1].pos;
 				Vec3 n = cross(v1 - v0, v2 - v0).unit();
 				idxs.push_back(verts.size());
-				verts.push_back({v0, n, face_id});
+				verts.push_back({v0, n, f->_id});
 				idxs.push_back(verts.size());
-				verts.push_back({v1, n, face_id});
+				verts.push_back({v1, n, f->_id});
 				idxs.push_back(verts.size());
-				verts.push_back({v2, n, face_id});
+				verts.push_back({v2, n, f->_id});
 			}
 		}
 
@@ -90,7 +102,7 @@ void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
 		Index i = 0;
 		for (VertexCRef f = vertices_begin(); f != vertices_end(); f++, i++) {
 			vref_to_idx[f] = i;
-			verts.push_back({f->pos, f->norm, 0});
+			verts.push_back({f->pos, f->norm, f->_id});
 		}
 
 		for(FaceCRef f = faces_begin(); f != faces_end(); f++) {

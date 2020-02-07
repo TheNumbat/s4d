@@ -686,6 +686,7 @@ void Effects::destroy() {
 
 void Effects::outline(const Framebuffer& from, const Framebuffer& to, Vec3 color, Vec2 min, Vec2 max) {
 
+	flush_if_nvidia();
 	to.bind();
 
 	Vec2 quad[] = {
@@ -715,6 +716,8 @@ void Effects::outline(const Framebuffer& from, const Framebuffer& to, Vec3 color
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glEnable(GL_DEPTH_TEST);
 	glBindVertexArray(0);
+	
+	flush_if_nvidia();
 }
 
 void Effects::resolve_to_screen(int buf, const Framebuffer& framebuffer) {

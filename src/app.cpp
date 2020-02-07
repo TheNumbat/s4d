@@ -131,9 +131,7 @@ void App::event(SDL_Event e) {
 
 void App::render_selected(Scene_Object& obj) {
 
-	Vec3 prev_scale = obj.pose.scale;
-	Vec3 prev_rot = obj.pose.euler;
-	Vec3 prev_pos = obj.pose.pos;
+	Pose prev_pose = obj.pose;
 
 	if(gui.mode() == Gui::Mode::scene) {
 		
@@ -151,9 +149,7 @@ void App::render_selected(Scene_Object& obj) {
 	float scl = (camera.pos() - obj.pose.pos).norm() / 5.5f;
 	gui.render_widgets(viewproj, view, obj.pose, scl);
 
-	obj.pose.scale = prev_scale;
-	obj.pose.euler = prev_rot;
-	obj.pose.pos = prev_pos;
+	obj.pose = prev_pose;
 }
 
 void App::render() {

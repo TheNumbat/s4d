@@ -44,9 +44,9 @@ public:
 	void operator=(const Scene_Object& src) = delete;
 	void operator=(Scene_Object&& src);
 
-	void sync_mesh() const;
-	void render_mesh(Mat4 view, bool solid = false, bool depth_only = false) const;
-	void render_halfedge(Mat4 view) const;
+	void sync_mesh();
+	void render_mesh(Mat4 view, bool solid = false, bool depth_only = false);
+	void render_halfedge(Mat4 view);
 
 	ID id() const {return _id;}
 	const GL::Mesh& mesh() const {return _mesh;}
@@ -68,8 +68,8 @@ private:
 	bool editable = true;
 	Halfedge_Mesh halfedge;
 	
-	mutable GL::Mesh _mesh;
-	mutable bool mesh_dirty = false;
+	GL::Mesh _mesh;
+	bool mesh_dirty = false;
 };
 
 class Scene {

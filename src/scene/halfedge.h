@@ -201,16 +201,22 @@ public:
 	public:
 		HalfedgeRef& halfedge() {return _halfedge;}
 		HalfedgeCRef halfedge() const {return _halfedge;}
+		unsigned int id() const {return _id;}
 		Vec3 pos, norm;
 	private:
+		unsigned int _id = 0;
 		HalfedgeRef _halfedge;
+		friend class Halfedge_Mesh;
 	};
 	class Edge {
 	public:
 		HalfedgeRef& halfedge() {return _halfedge;}
 		HalfedgeCRef halfedge() const {return _halfedge;}
+		unsigned int id() const {return _id;}
 	private:
+		unsigned int _id = 0;
 		HalfedgeRef _halfedge;
+		friend class Halfedge_Mesh;
 	};
 	class Face {
 	public:
@@ -219,9 +225,12 @@ public:
 		HalfedgeCRef halfedge() const {return _halfedge;}
 		bool is_boundary() const {return boundary;}
 		Vec3 average() const;
+		unsigned int id() const {return _id;}
 	private:
+		unsigned int _id = 0;
 		HalfedgeRef _halfedge;
 		bool boundary = false;
+		friend class Halfedge_Mesh;
 	};
 	class Halfedge {
 	public:
@@ -235,16 +244,21 @@ public:
 		EdgeCRef edge() const {return _edge;}
 		FaceRef& face() {return _face;}
 		FaceCRef face() const {return _face;}
+		unsigned int id() const {return _id;}
 	private:
+		unsigned int _id = 0;
 		HalfedgeRef _twin, _next;
 		VertexRef _vertex;
 		EdgeRef _edge;
 		FaceRef _face;
+		friend class Halfedge_Mesh;
 	};
 
 	/// Clear mesh of all elements.
 	void clear();
-	/// Export to renderable vertex-index mesh.
+	/// Assigns every element an unique index >= base 
+	void index(unsigned int base);
+	/// Export to renderable vertex-index mesh. Indexes the mesh.
 	void to_mesh(GL::Mesh& mesh, bool face_normals) const;
 	/// Create mesh from polygon list
 	std::string from_poly(const std::vector<std::vector<Index>>& polygons, const std::vector<GL::Mesh::Vert>& verts);
@@ -318,7 +332,7 @@ public:
 	std::string validate() const;
 
 	/// For rendering
-	mutable bool render_dirty_flag = false;
+	bool render_dirty_flag = false;
 
 	Size n_vertices() const {return vertices.size();};
 	Size n_edges() const {return edges.size();};

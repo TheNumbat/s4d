@@ -1,5 +1,5 @@
 
-#include "render.h"
+#include "mesh_render.h"
 #include "util.h"
 #include "../gui.h"
 #include "../lib/math.h"
@@ -146,21 +146,38 @@ Scene_Object::ID Renderer::read_id(Vec2 pos) {
 	return 0;
 }
 
-void Renderer::set_he_select(Halfedge_Mesh::ElementCRef elem) {
+void Renderer::set_he_select(Halfedge_Mesh::ElementRef elem) {
 	std::visit(overloaded {
-		[&](Halfedge_Mesh::VertexCRef vert) {
+		[&](Halfedge_Mesh::VertexRef vert) {
 			data->selected_compo = vert->id();
 		},
-		[&](Halfedge_Mesh::EdgeCRef edge) {
+		[&](Halfedge_Mesh::EdgeRef edge) {
 			data->selected_compo = edge->id();
 		},
-		[&](Halfedge_Mesh::FaceCRef face) {
+		[&](Halfedge_Mesh::FaceRef face) {
 			if(!face->is_boundary())
 				data->selected_compo = face->id();
 		},
-		[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
+		[&](Halfedge_Mesh::HalfedgeRef halfedge) {
 			if(!halfedge->is_boundary())
 				data->selected_compo = halfedge->id();
+		}
+	}, elem);
+}
+
+void Renderer::apply_transform(Pose delta) {
+	assert(data);
+	auto elem = *he_selected();
+	std::visit(overloaded {
+		[&](Halfedge_Mesh::VertexRef vert) {
+			vert->pos += delta.pos;
+			data->loaded_mesh->render_dirty_flag = true;
+		},
+		[&](Halfedge_Mesh::EdgeRef edge) {
+		},
+		[&](Halfedge_Mesh::FaceRef face) {
+		},
+		[&](Halfedge_Mesh::HalfedgeRef halfedge) {
 		}
 	}, elem);
 }
@@ -190,10 +207,11 @@ void Renderer::outline(Mat4 viewproj, Mat4 view, Scene_Object& obj) {
 
 void Renderer::build_halfedge(Halfedge_Mesh& mesh) {
 
-	if(loaded_mesh == &mesh && !mesh.render_dirty_flag) return;
+	if(loaded_mesh != &mesh) {
+		selected_compo = 0;
+		hover_compo = 0;
+	} else if(!mesh.render_dirty_flag) return;
 	
-	selected_compo = 0;
-	hover_compo = 0;
 	mesh.render_dirty_flag = false;
 	loaded_mesh = &mesh;
 
@@ -201,7 +219,7 @@ void Renderer::build_halfedge(Halfedge_Mesh& mesh) {
 	mesh.to_mesh(face_mesh, true);
 
 	idx_to_elm.clear();
-	std::map<Halfedge_Mesh::VertexCRef, float> size;
+	std::map<Halfedge_Mesh::VertexRef, float> size;
 
 	for(auto f = mesh.faces_begin(); f != mesh.faces_end(); f++) {
 		idx_to_elm[f->id()] = f;
@@ -303,7 +321,7 @@ unsigned int Renderer::get_he_select() {
 	return data->selected_compo;
 }
 
-std::optional<Halfedge_Mesh::ElementCRef> Renderer::he_selected() {
+std::optional<Halfedge_Mesh::ElementRef> Renderer::he_selected() {
 	
 	assert(data);
 	if(!data->loaded_mesh) return std::nullopt;

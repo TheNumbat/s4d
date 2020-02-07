@@ -1,7 +1,7 @@
 
 #include "gui.h"
 #include "scene/util.h"
-#include "scene/render.h"
+#include "scene/mesh_render.h"
 
 #include <imgui/imgui.h>
 #include <nfd/nfd.h>
@@ -66,27 +66,27 @@ bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
 		if(sel.has_value()) {
 			if(key == SDLK_h) {
 				std::visit(overloaded {
-					[&](Halfedge_Mesh::VertexCRef vert) {
+					[&](Halfedge_Mesh::VertexRef vert) {
 						Renderer::set_he_select(vert->halfedge());
 					},
-					[&](Halfedge_Mesh::EdgeCRef edge) {
+					[&](Halfedge_Mesh::EdgeRef edge) {
 						Renderer::set_he_select(edge->halfedge());
 					},
-					[&](Halfedge_Mesh::FaceCRef face) {
+					[&](Halfedge_Mesh::FaceRef face) {
 						Renderer::set_he_select(face->halfedge());
 					},
 					[&](auto) {}
 				}, *sel);
 			} else if(key == SDLK_t) {
 				std::visit(overloaded {
-					[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
+					[&](Halfedge_Mesh::HalfedgeRef halfedge) {
 						Renderer::set_he_select(halfedge->twin());
 					},
 					[&](auto) {}
 				}, *sel);
 			} else if(key == SDLK_n) {
 				std::visit(overloaded {
-					[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
+					[&](Halfedge_Mesh::HalfedgeRef halfedge) {
 						Renderer::set_he_select(halfedge->next());
 					},
 					[&](auto) {}
@@ -350,7 +350,7 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 		if(sel.has_value()) {
 			ImGui::Separator();
 			std::visit(overloaded {
-				[&](Halfedge_Mesh::VertexCRef vert) {
+				[&](Halfedge_Mesh::VertexRef vert) {
 					ImGui::Text("Navigate to:");
 					if(ImGui::Button("Halfedge")) {
 						Renderer::set_he_select(vert->halfedge());
@@ -360,7 +360,7 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 					ImGui::Text("Position: (%f,%f,%f)", vert->pos.x, vert->pos.y, vert->pos.z);
 					ImGui::Text(vert->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
 				},
-				[&](Halfedge_Mesh::EdgeCRef edge) {
+				[&](Halfedge_Mesh::EdgeRef edge) {
 					ImGui::Text("Navigate to:");
 					if(ImGui::Button("Halfedge")) {
 						Renderer::set_he_select(edge->halfedge());
@@ -368,7 +368,7 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 					ImGui::Separator();
 					ImGui::Text(edge->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
 				},
-				[&](Halfedge_Mesh::FaceCRef face) {
+				[&](Halfedge_Mesh::FaceRef face) {
 					ImGui::Text("Navigate to:");
 					if(ImGui::Button("Halfedge")) {
 						Renderer::set_he_select(face->halfedge());
@@ -376,7 +376,7 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 					ImGui::Separator();
 					ImGui::Text("Degree: %d", face->degree());
 				},
-				[&](Halfedge_Mesh::HalfedgeCRef halfedge) {
+				[&](Halfedge_Mesh::HalfedgeRef halfedge) {
 					ImGui::Text("Navigate to:");
 					if(ImGui::Button("Vertex")) {
 						Renderer::set_he_select(halfedge->vertex());
@@ -595,7 +595,8 @@ void Gui::end_drag(Undo& undo, Scene& scene) {
 	
 	} else if(_mode == Mode::model) {
 
-		// TODO(max): this
+		Pose p = apply_action({});
+		Renderer::apply_transform(p);
 	}
 
 	widget_lines.clear();
@@ -719,9 +720,7 @@ void Gui::clear_select() {
 	
 	switch(_mode) {
 	case Mode::scene: selected_mesh = 0; break;
-	case Mode::model: {
-		Renderer::set_he_select(0);
-	} break;
+	case Mode::model: Renderer::set_he_select(0); break;
 	default: assert(false);
 	}
 }
@@ -730,7 +729,7 @@ bool Gui::select_model(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir)
 
 	if(dragging) {
 		auto e = Renderer::he_selected();
-		if(e.has_value() && !std::holds_alternative<Halfedge_Mesh::HalfedgeCRef>(*e))
+		if(e.has_value() && !std::holds_alternative<Halfedge_Mesh::HalfedgeRef>(*e))
 			return start_drag(Halfedge_Mesh::center_of(*e), cam, dir);
 	} else if(click >= num_ids()) {
 		Renderer::set_he_select((unsigned int)click);

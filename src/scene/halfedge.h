@@ -350,7 +350,7 @@ public:
 	HalfedgeCRef halfedge_by_idx(unsigned int idx) const;
 	FaceCRef face_by_idx(unsigned int idx) const;
 
-	static Vec3 center_of(ElementCRef elem);
+	static Vec3 center_of(ElementRef elem);
 
 private:
 	std::list<Vertex> vertices;

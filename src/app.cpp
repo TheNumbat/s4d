@@ -1,6 +1,6 @@
 
 #include "app.h"
-#include "scene/render.h"
+#include "scene/mesh_render.h"
 #include "scene/util.h"
 #include "platform/platform.h"
 
@@ -151,7 +151,7 @@ void App::render_selected(Scene_Object& obj) {
 		if(elem.has_value()) {
 			auto e = *elem;
 			Vec3 pos = Halfedge_Mesh::center_of(e);
-			if(!std::holds_alternative<Halfedge_Mesh::HalfedgeCRef>(e)) {
+			if(!std::holds_alternative<Halfedge_Mesh::HalfedgeRef>(e)) {
  				float scl = (camera.pos() - pos).norm() / 5.5f;
 				gui.render_widgets(viewproj, view, pos, scl);
 			}

@@ -16,7 +16,7 @@ sources = [
     'src/gui.cpp',
     'src/undo.cpp',
     'src/scene/scene.cpp',
-    'src/scene/render.cpp',
+    'src/scene/mesh_render.cpp',
     'src/scene/halfedge.cpp',
     'src/scene/util.cpp',
     'src/main.cpp']

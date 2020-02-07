@@ -41,10 +41,11 @@ public:
     static void halfedge(Halfedge_Mesh& mesh, HalfedgeOpt opt);
     
     static void set_he_select(unsigned int id);
-    static void set_he_select(Halfedge_Mesh::ElementCRef elem);
+    static void set_he_select(Halfedge_Mesh::ElementRef elem);
     static void set_he_hover(Vec2 mouse);
+    static void apply_transform(Pose delta);
     static unsigned int get_he_select();
-    static std::optional<Halfedge_Mesh::ElementCRef> he_selected();
+    static std::optional<Halfedge_Mesh::ElementRef> he_selected();
 
     static void mesh(const GL::Mesh& mesh, MeshOpt opt);
     static void lines(const GL::Lines& lines, Mat4 viewproj, float alpha);
@@ -66,7 +67,7 @@ private:
     GL::Mesh face_mesh;
     
     Mat4 _proj;
-    const Halfedge_Mesh* loaded_mesh = nullptr;
+    Halfedge_Mesh* loaded_mesh = nullptr;
     
     // This all needs to be updated when the mesh connectivity changes
     unsigned int selected_compo = -1, hover_compo = -1;
@@ -76,5 +77,5 @@ private:
     // be updated (along with the instance data) by build_halfedge whenever
     // the mesh changes its connectivity. Note that build_halfedge also
     // re-indexes the mesh elements in the provided half-edge mesh.
-    std::map<unsigned int, Halfedge_Mesh::ElementCRef> idx_to_elm;
+    std::map<unsigned int, Halfedge_Mesh::ElementRef> idx_to_elm;
 };

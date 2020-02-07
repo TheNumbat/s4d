@@ -19,12 +19,13 @@ TODO:
 
 	[ MESHEDIT ]
 
-	moving halfedge features with widgets
+	finish moving halfedge features with widgets
+		update during drag
+		fix edge width getting small?
+		undo/redo integration
 
 	second camera for mesh editing
 		snap/zoom to selected element
-
-	undo/redo integration
 	
 	more halfedge mesh validation checks after student ops
 

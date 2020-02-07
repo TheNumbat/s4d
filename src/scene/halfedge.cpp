@@ -87,16 +87,16 @@ Vec3 Halfedge_Mesh::Face::center() const {
 	return c / d;
 }
 
-Vec3 Halfedge_Mesh::center_of(Halfedge_Mesh::ElementCRef elem) {
+Vec3 Halfedge_Mesh::center_of(Halfedge_Mesh::ElementRef elem) {
 	Vec3 pos;
 	std::visit(overloaded {
-		[&](Halfedge_Mesh::VertexCRef vert) {
+		[&](Halfedge_Mesh::VertexRef vert) {
 			pos = vert->pos;
 		},
-		[&](Halfedge_Mesh::EdgeCRef edge) {
+		[&](Halfedge_Mesh::EdgeRef edge) {
 			pos = edge->center();
 		},
-		[&](Halfedge_Mesh::FaceCRef face) {
+		[&](Halfedge_Mesh::FaceRef face) {
 			pos = face->center();
 		},
 		[&](auto) {}

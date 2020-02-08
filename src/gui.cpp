@@ -77,20 +77,19 @@ bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
 					},
 					[&](auto) {}
 				}, *sel);
-			} else if(key == SDLK_t) {
-				std::visit(overloaded {
-					[&](Halfedge_Mesh::HalfedgeRef halfedge) {
-						Renderer::set_he_select(halfedge->twin());
-					},
-					[&](auto) {}
-				}, *sel);
-			} else if(key == SDLK_n) {
-				std::visit(overloaded {
-					[&](Halfedge_Mesh::HalfedgeRef halfedge) {
-						Renderer::set_he_select(halfedge->next());
-					},
-					[&](auto) {}
-				}, *sel);
+			} else if(std::holds_alternative<Halfedge_Mesh::HalfedgeRef>(*sel)) {
+				auto h = std::get<Halfedge_Mesh::HalfedgeRef>(*sel);
+				if(key == SDLK_n) {
+					Renderer::set_he_select(h->next());
+				} else if(key == SDLK_t) {
+					Renderer::set_he_select(h->twin());
+				} else if(key == SDLK_v) {
+					Renderer::set_he_select(h->vertex());
+				} else if(key == SDLK_e) {
+					Renderer::set_he_select(h->edge());
+				} else if(key == SDLK_f) {
+					Renderer::set_he_select(h->face());
+				}
 			}
 		}
 	}
@@ -596,7 +595,10 @@ void Gui::end_drag(Undo& undo, Scene& scene) {
 	} else if(_mode == Mode::model) {
 
 		Pose p = apply_action({});
-		Renderer::apply_transform(p);
+		if(Renderer::apply_transform(action, p)) {
+			Scene_Object& obj = *scene.get(selected_mesh);
+			obj.set_mesh_dirty();
+		}
 	}
 
 	widget_lines.clear();

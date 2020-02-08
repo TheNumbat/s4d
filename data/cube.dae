@@ -73,7 +73,7 @@
   <library_visual_scenes>
     <visual_scene id="Scene" name="Scene">
       <node id="Cube_Cube_005" name="Cube_Cube.005" type="NODE">
-        <matrix sid="transform">1 0 0 0 0 -1.62921e-7 -1 0 0 1 -1.62921e-7 0 0 0 0 1</matrix>
+        <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
         <instance_geometry url="#Cube_Cube_005-mesh" name="Cube_Cube.005">
           <bind_material>
             <technique_common>

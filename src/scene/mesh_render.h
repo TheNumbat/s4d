@@ -5,6 +5,7 @@
 
 #include "../platform/gl.h"
 #include "scene.h"
+#include "../gui.h"
 
 // Singleton
 class Renderer {
@@ -43,7 +44,7 @@ public:
     static void set_he_select(unsigned int id);
     static void set_he_select(Halfedge_Mesh::ElementRef elem);
     static void set_he_hover(Vec2 mouse);
-    static void apply_transform(Pose delta);
+    static bool apply_transform(Gui::Action action, Pose delta);
     static unsigned int get_he_select();
     static std::optional<Halfedge_Mesh::ElementRef> he_selected();
 

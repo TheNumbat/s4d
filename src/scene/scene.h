@@ -52,6 +52,7 @@ public:
 	const GL::Mesh& mesh() const {return _mesh;}
 	
 	BBox bbox() const;
+	void set_mesh_dirty();
 	
 	struct Options {
 		std::string name;

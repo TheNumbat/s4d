@@ -114,6 +114,10 @@ void Scene_Object::sync_mesh() {
 	}
 }
 
+void Scene_Object::set_mesh_dirty() {
+	mesh_dirty = true;
+}
+
 BBox Scene_Object::bbox() const {
 
 	Mat4 t = pose.transform();

@@ -165,21 +165,40 @@ void Renderer::set_he_select(Halfedge_Mesh::ElementRef elem) {
 	}, elem);
 }
 
-void Renderer::apply_transform(Pose delta) {
+bool Renderer::apply_transform(Gui::Action action, Pose delta) {
 	assert(data);
 	auto elem = *he_selected();
+	bool dirty = false;
 	std::visit(overloaded {
 		[&](Halfedge_Mesh::VertexRef vert) {
-			vert->pos += delta.pos;
-			data->loaded_mesh->render_dirty_flag = true;
+			if(action == Gui::Action::move) {
+				vert->pos += delta.pos;
+				dirty = true;
+			}
 		},
 		[&](Halfedge_Mesh::EdgeRef edge) {
+			if(action == Gui::Action::move)  {
+				edge->halfedge()->vertex()->pos += delta.pos;
+				edge->halfedge()->twin()->vertex()->pos += delta.pos;
+				dirty = true;
+			}
 		},
 		[&](Halfedge_Mesh::FaceRef face) {
+			if(action == Gui::Action::move) {
+				auto h = face->halfedge();
+				do {
+					h->vertex()->pos += delta.pos;
+					h = h->next();
+				} while(h != face->halfedge());
+				dirty = true;
+			}
 		},
-		[&](Halfedge_Mesh::HalfedgeRef halfedge) {
-		}
+		[&](auto) {}
 	}, elem);
+	if(dirty) {
+		data->loaded_mesh->render_dirty_flag = true;
+	}
+	return dirty;
 }
 
 void Renderer::set_he_hover(Vec2 mouse) {
@@ -222,7 +241,8 @@ void Renderer::build_halfedge(Halfedge_Mesh& mesh) {
 	std::map<Halfedge_Mesh::VertexRef, float> size;
 
 	for(auto f = mesh.faces_begin(); f != mesh.faces_end(); f++) {
-		idx_to_elm[f->id()] = f;
+		if(!f->is_boundary())
+			idx_to_elm[f->id()] = f;
 	}
 
 	// Create sphere for each vertex
@@ -277,7 +297,7 @@ void Renderer::build_halfedge(Halfedge_Mesh& mesh) {
 	arrows.clear();
 	for(auto h = mesh.halfedges_begin(); h != mesh.halfedges_end(); h++) {
 
-		if(h->face()->is_boundary()) continue;
+		if(h->is_boundary()) continue;
 
 		auto v_0 = h->vertex();
 		auto v_1 = h->twin()->vertex();

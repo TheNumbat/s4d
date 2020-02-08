@@ -21,6 +21,9 @@ public:
 	enum class Axis {
 		X, Y, Z
 	};
+	enum class Action {
+		move, rotate, scale
+	};
 	struct Color {
 		static inline const Vec3 outline = Vec3(242.0f, 153.0f, 41.0f) / 255.0f;
 		static inline const Vec3 baseplane = Vec3(71.0f) / 255.0f;
@@ -82,9 +85,6 @@ private:
 	Mode _mode = Mode::scene;
 
 	// Object transform actions
-	enum class Action {
-		move, rotate, scale
-	};
 	Axis axis = Axis::X;
 	Action action = Action::move;
 	bool dragging = false, drag_plane = false;

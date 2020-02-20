@@ -7,15 +7,24 @@ Exporting meshes from blender:
 TODO:
 	General:
 		swap to cmake build system
-		refactor gui.cpp to better separate the controls/GUI/selection info
-		for the different edit modes (scene, model)
+		refactor gui.cpp to better separate the controls/GUI/selection info for the different edit modes (scene, model)
 		document app/gui/scene code
 
 	UX Features:
 		changing the origin of a mesh
 		scene graph (parenting, etc)
-		mesh rest pose preview in GUI
+		mesh rest pose preview in GUI sidebar
 		loading bars/threading for big mesh ops
+
+
+	[ RASTERIZER ]
+
+	Designing replacement for DrawSVG
+		- transforms, depth & projection
+		- triangle rasterizer
+		- real-time rendering pipeline
+		- basic modern GPU programming (shader)
+
 
 	[ MESHEDIT ]
 
@@ -24,22 +33,22 @@ TODO:
 		fix edge width getting small?
 		undo/redo integration
 
+	stub & bind student mesh ops
+
 	second camera for mesh editing
 		snap/zoom to selected element
-	
-	more halfedge mesh validation checks after student ops
+
 
 	[ PATHTRACER ]
 
 	Mode: render (+mesh shading options)
-	
 	Port and simplify code
 		I'd like to refactor it more like https://github.com/TheNumbat/dawn
+
 
 	[ ANIMATION ]
 
 	Mode: rig
 	Mode: animate
 	Mode: simulate
-
 	Port and simplify code

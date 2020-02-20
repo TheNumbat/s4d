@@ -155,7 +155,7 @@ void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
 		// Need to build this map to get vertex's linear index in O(lg n)
 		std::map<VertexCRef, Index> vref_to_idx;
 		Index i = 0;
-		for (VertexCRef f = vertices_begin(); f != vertices_end(); f++, i++) {
+		for(VertexCRef f = vertices_begin(); f != vertices_end(); f++, i++) {
 			vref_to_idx[f] = i;
 			verts.push_back({f->pos, f->norm, f->_id});
 		}
@@ -185,10 +185,72 @@ void Halfedge_Mesh::to_mesh(GL::Mesh& mesh, bool face_normals) const {
 
 std::string Halfedge_Mesh::validate() const {
 	
-	// TODO(max): many more validation checks (run after student op)
-	// so we can return an error instead of crashing
-
 	if(!check_finite()) return "A vertex position or normal has a non-finite value.";
+
+	std::map<HalfedgeCRef, bool> permutation;
+
+	// Check valid halfedge manifold connectivity
+	for(HalfedgeCRef h = halfedges_begin(); h != halfedges_end(); h++) {
+		
+		if (h->twin() == h) {
+			return "A halfedge's twin points to itself!";
+		}
+		if (h->twin()->twin() != h) {
+			return "A halfedge's twin's twin does not point to itself!";
+		}
+
+		// Check whether each halfedge's next points to a unique halfedge
+		if (permutation.find(h->next()) == permutation.end()) {
+			permutation[h->next()] = true;
+		} else {
+			return "A halfedge is the next of more than one halfedge!";
+		}
+	}
+
+	// Check whether each halfedge incident on a vertex points to that vertex
+	for(VertexCRef v = vertices_begin(); v != vertices_end(); v++) {
+		HalfedgeCRef h = v->halfedge();
+		do {
+			if (h->vertex() != v) {
+				return "A halfedge does not point to its vertex!";
+			}
+			h = h->twin()->next();
+		} while (h != v->halfedge());
+	}
+
+	// Check whether each halfedge incident on an edge points to that edge
+	for(EdgeCRef e = edges_begin(); e != edges_end(); e++) {
+		HalfedgeCRef h = e->halfedge();
+		do {
+			if (h->edge() != e) {
+				return "A halfedge does not point to its edge!";
+			}
+			h = h->twin();
+		} while (h != e->halfedge());
+	}
+
+	// Check whether each halfedge incident on a face points to that face
+	for(FaceCRef f = faces_begin(); f != faces_end(); f++) {
+		HalfedgeCRef h = f->halfedge();
+		do {
+			if (h->face() != f) {
+				return "A halfedge not point to its face!";
+			}
+			h = h->next();
+		} while (h != f->halfedge());
+	}
+
+	// Check whether each halfedge incident on a boundary loop points to that boundary loop
+	for(FaceCRef b = boundaries_begin(); b != boundaries_end(); b++) {
+		HalfedgeCRef h = b->halfedge();
+		do {
+			if (h->face() != b) {
+				return "A halfedge does not point to its boundary loop!";
+			}
+			h = h->next();
+		} while (h != b->halfedge());
+	}
+
 	return {};
 }
 
@@ -211,7 +273,7 @@ std::string Halfedge_Mesh::from_mesh(const GL::Mesh& mesh) {
 
 bool Halfedge_Mesh::check_finite() const {
 
-	for (VertexCRef v = vertices_begin(); v != vertices_end(); v++) {
+	for(VertexCRef v = vertices_begin(); v != vertices_end(); v++) {
 		Vec3 p = v->pos, n = v->norm;
 		bool finite = std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z);
 		finite = finite && std::isfinite(n.x) && std::isfinite(n.y) && std::isfinite(n.z);
@@ -265,9 +327,9 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 
 	// define some types, to improve readability
 	typedef std::vector<Index> IndexList;
-	typedef IndexList::const_iterator IndexListCIter;
+	typedef IndexList::const_iterator IndexListCRef;
 	typedef std::vector<IndexList> PolygonList;
-	typedef PolygonList::const_iterator PolygonListCIter;
+	typedef PolygonList::const_iterator PolygonListCRef;
 	typedef std::pair<Index, Index> IndexPair;  // ordered pair of vertex indices,
 											// corresponding to an edge of an
 											// oriented polygon
@@ -294,7 +356,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 	std::map<VertexRef, Size> vertexDegree;
 
 	// First, we do some basic sanity checks on the input.
-	for (PolygonListCIter p = polygons.begin(); p != polygons.end(); p++) {
+	for(PolygonListCRef p = polygons.begin(); p != polygons.end(); p++) {
 		if (p->size() < 3) {
 			// Refuse to build the mesh if any of the polygons have fewer than three
 			// vertices.(Note that if we omit this check the code will still
@@ -312,7 +374,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 		std::set<Index> polygonIndices;
 
 		// loop over polygon vertices
-		for (IndexListCIter i = p->begin(); i != p->end(); i++) {
+		for(IndexListCRef i = p->begin(); i != p->end(); i++) {
 			polygonIndices.insert(*i);
 
 			// allocate one vertex for each new index we encounter
@@ -335,7 +397,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 			stream << "One of the input polygons does not have distinct vertices!"
 				<< std::endl;
 			stream << "(vertex indices:";
-			for (IndexListCIter i = p->begin(); i != p->end(); i++) {
+			for(IndexListCRef i = p->begin(); i != p->end(); i++) {
 				stream << " " << *i;
 			}
 			stream << ")" << std::endl;
@@ -355,9 +417,9 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 
 	// Next, we actually build the halfedge connectivity by again looping over
 	// polygons
-	PolygonListCIter p;
+	PolygonListCRef p;
 	FaceRef f;
-	for (p = polygons.begin(), f = faces.begin(); p != polygons.end(); p++, f++) {
+	for(p = polygons.begin(), f = faces.begin(); p != polygons.end(); p++, f++) {
 		
 		std::vector<HalfedgeRef> faceHalfedges; // cyclically ordered list of the half
 												// edges of this face
@@ -365,7 +427,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 
 		// loop over the halfedges of this face (equivalently, the ordered pairs of
 		// consecutive vertices)
-		for (Index i = 0; i < degree; i++) {
+		for(Index i = 0; i < degree; i++) {
 
 			Index a = (*p)[i];                 // current index
 			Index b = (*p)[(i + 1) % degree];  // next index, in cyclic order
@@ -434,7 +496,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 
 		// Now that all the halfedges of this face have been allocated,
 		// we can link them together via their "next" pointers.
-		for (Index i = 0; i < degree; i++) {
+		for(Index i = 0; i < degree; i++) {
 			Index j =
 				(i + 1) % degree;  // index of the next halfedge, in cyclic order
 			faceHalfedges[i]->next() = faceHalfedges[j];
@@ -444,7 +506,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 
 	// For each vertex on the boundary, advance its halfedge pointer to one that
 	// is also on the boundary.
-	for (VertexRef v = vertices_begin(); v != vertices_end(); v++) {
+	for(VertexRef v = vertices_begin(); v != vertices_end(); v++) {
 		// loop over halfedges around vertex
 		HalfedgeRef h = v->halfedge();
 		do {
@@ -459,7 +521,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 	}  // done advancing halfedge pointers for boundary vertices
 
 	// Next we construct new faces for each boundary component.
-	for (HalfedgeRef h = halfedges_begin(); h != halfedges_end();
+	for(HalfedgeRef h = halfedges_begin(); h != halfedges_end();
 		h++)  // loop over all halfedges
 	{
 		// Any halfedge that does not yet have a twin is on the boundary of the
@@ -520,7 +582,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 			// orientation of the boundary loop is opposite the orientation of the
 			// halfedges "inside" the domain boundary.
 			Size degree = boundaryHalfedges.size();
-			for (Index p = 0; p < degree; p++) {
+			for(Index p = 0; p < degree; p++) {
 				Index q = (p - 1 + degree) % degree;
 				boundaryHalfedges[p]->next() = boundaryHalfedges[q];
 			}
@@ -539,12 +601,12 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 	// halfedge
 	// associated with each vertex such that it refers to the *first* non-boundary
 	// halfedge, rather than the last one.
-	for (VertexRef v = vertices_begin(); v != vertices_end(); v++) {
+	for(VertexRef v = vertices_begin(); v != vertices_end(); v++) {
 		v->halfedge() = v->halfedge()->twin()->next();
 	}
 
 	// Finally, we check that all vertices are manifold.
-	for (VertexRef v = vertices.begin(); v != vertices.end(); v++) {
+	for(VertexRef v = vertices.begin(); v != vertices.end(); v++) {
 		// First check that this vertex is not a "floating" vertex;
 		// if it is then we do not have a valid 2-manifold surface.
 		if (v->halfedge() == halfedges.end()) {
@@ -587,7 +649,7 @@ std::string Halfedge_Mesh::from_poly(const std::vector<std::vector<Index>>& poly
 	// from vertex indices to vertex iterators to visit our (input) vertices in
 	// lexicographic order
 	int i = 0;
-	for (std::map<Index, VertexRef>::const_iterator e = indexToVertex.begin();
+	for(std::map<Index, VertexRef>::const_iterator e = indexToVertex.begin();
 		e != indexToVertex.end(); e++) {
 		// grab a pointer to the vertex associated with the current key (i.e., the
 		// current index)

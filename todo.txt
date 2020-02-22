@@ -28,15 +28,15 @@ TODO:
 
 	[ MESHEDIT ]
 
-	finish moving halfedge features with widgets
-		update during drag
-		fix edge width getting small?
+	finish halfedge UI
+		fix edge width getting arbitrarily small (?)
+		rotate & scale widgets
 		undo/redo integration
 
 	stub & bind student mesh ops
 
 	second camera for mesh editing
-		snap/zoom to selected element
+		! snap/zoom to selected element
 
 
 	[ PATHTRACER ]

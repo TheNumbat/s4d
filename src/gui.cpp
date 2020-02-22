@@ -579,6 +579,11 @@ bool Gui::start_drag(Vec3 pos, Vec3 cam, Vec3 dir) {
 		drag_end = {1.0f};
 	}
 	generate_widget_lines(pos);
+
+	if(_mode == Mode::model) {
+		Renderer::begin_transform(action);
+	}
+
 	return dragging;
 }
 
@@ -646,6 +651,14 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 		drag_end = {1.0f};
 		drag_end[(int)axis] = (hit - pos).norm() / (drag_start - pos).norm();
 	} else assert(false);
+
+	if(_mode == Mode::model) {
+		Pose p = apply_action({});
+		if(Renderer::apply_transform(action, p)) {
+			Scene_Object& obj = *scene.get(selected_mesh);
+			obj.set_mesh_dirty();
+		}
+	}
 }
 
 bool Gui::select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir) {

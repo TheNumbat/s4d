@@ -28,6 +28,7 @@ struct Pose {
 	static Pose rotated(Vec3 angles);
 	static Pose moved(Vec3 t);
 	static Pose scaled(Vec3 s);
+	static Pose id();
 };
 
 class Scene_Object {

@@ -52,6 +52,10 @@ Pose Pose::scaled(Vec3 s) {
 	return {{}, {}, s};
 }
 
+Pose Pose::id() {
+	return {{},{},{1.0f, 1.0f, 1.0f}};
+}
+
 Scene_Object::Scene_Object() {
 
 }

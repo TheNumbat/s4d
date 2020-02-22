@@ -44,9 +44,11 @@ public:
     static void set_he_select(unsigned int id);
     static void set_he_select(Halfedge_Mesh::ElementRef elem);
     static void set_he_hover(Vec2 mouse);
-    static bool apply_transform(Gui::Action action, Pose delta);
     static unsigned int get_he_select();
     static std::optional<Halfedge_Mesh::ElementRef> he_selected();
+    
+    static void begin_transform(Gui::Action action);
+    static bool apply_transform(Gui::Action action, Pose delta);
 
     static void mesh(const GL::Mesh& mesh, MeshOpt opt);
     static void lines(const GL::Lines& lines, Mat4 viewproj, float alpha);
@@ -61,6 +63,7 @@ private:
 
     int samples;
     Vec2 window_dim;
+    Pose first_transform;
     GLubyte* id_buffer;
 	GL::Framebuffer framebuffer, id_resolve;
     GL::Shader mesh_shader, line_shader, inst_shader; 

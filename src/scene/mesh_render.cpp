@@ -165,29 +165,60 @@ void Renderer::set_he_select(Halfedge_Mesh::ElementRef elem) {
 	}, elem);
 }
 
-bool Renderer::apply_transform(Gui::Action action, Pose delta) {
+void Renderer::begin_transform(Gui::Action action) {
+
 	assert(data);
 	auto elem = *he_selected();
-	bool dirty = false;
+	data->first_transform = Pose::id();
 	std::visit(overloaded {
 		[&](Halfedge_Mesh::VertexRef vert) {
 			if(action == Gui::Action::move) {
-				vert->pos += delta.pos;
+				data->first_transform.pos = vert->pos;
+			}
+		},
+		[&](Halfedge_Mesh::EdgeRef edge) {
+			if(action == Gui::Action::move)  {
+				data->first_transform.pos = edge->halfedge()->vertex()->pos;
+			}
+		},
+		[&](Halfedge_Mesh::FaceRef face) {
+			if(action == Gui::Action::move) {
+				data->first_transform.pos = face->halfedge()->vertex()->pos;
+			}
+		},
+		[&](auto) {}
+	}, elem);
+}
+
+bool Renderer::apply_transform(Gui::Action action, Pose delta) {
+	assert(data);
+	
+	auto elem = *he_selected();
+	bool dirty = false;
+	Vec3 p = data->first_transform.pos + delta.pos;
+
+	std::visit(overloaded {
+		[&](Halfedge_Mesh::VertexRef vert) {
+			if(action == Gui::Action::move) {
+				vert->pos = p;
 				dirty = true;
 			}
 		},
 		[&](Halfedge_Mesh::EdgeRef edge) {
 			if(action == Gui::Action::move)  {
-				edge->halfedge()->vertex()->pos += delta.pos;
-				edge->halfedge()->twin()->vertex()->pos += delta.pos;
+				auto h = edge->halfedge();
+				Vec3 off = p - h->vertex()->pos;
+				h->vertex()->pos += off;
+				h->twin()->vertex()->pos += off;
 				dirty = true;
 			}
 		},
 		[&](Halfedge_Mesh::FaceRef face) {
 			if(action == Gui::Action::move) {
 				auto h = face->halfedge();
+				Vec3 off = p - h->vertex()->pos;
 				do {
-					h->vertex()->pos += delta.pos;
+					h->vertex()->pos += off;
 					h = h->next();
 				} while(h != face->halfedge());
 				dirty = true;

@@ -623,9 +623,9 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 		pos = Halfedge_Mesh::center_of(*elem);
 	}
 	
+	Vec3 hit; 
 	if(action == Action::rotate) {
 	
-		Vec3 hit;
 		if(!to_plane(pos, cam, dir, hit)) return;
 
 		Vec3 ang = (hit - pos).unit();
@@ -635,7 +635,6 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 
 	} else {
 
-		Vec3 hit; 
 		bool good;
 		if(drag_plane) good = to_plane(pos, cam, dir, hit);
 		else 	       good = to_axis(pos, cam, dir, hit);
@@ -651,6 +650,9 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 	}
 
 	if(_mode == Mode::model) {
+		if(action == Action::scale) {
+			drag_end[(int)axis] *= sign(dot(hit - pos, drag_start - pos));
+		}
 		Pose p = apply_action({});
 		if(Renderer::apply_transform(action, p)) {
 			Scene_Object& obj = *scene.get(selected_mesh);

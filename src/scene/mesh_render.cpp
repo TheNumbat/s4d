@@ -203,23 +203,34 @@ bool Renderer::apply_transform(Gui::Action action, Pose delta) {
 		[&](Halfedge_Mesh::VertexRef vert) {
 			vert->pos = abs_pos;
 		},
+
 		[&](Halfedge_Mesh::EdgeRef edge) {
+			
 			auto h = edge->halfedge();
+			Vec3 v0 = data->first_t.verts[0];
+			Vec3 v1 = data->first_t.verts[1];
+			Vec3 center = data->first_t.center;
+			
 			if(action == Gui::Action::move)  {
 				Vec3 off = abs_pos - edge->center();
 				h->vertex()->pos += off;
 				h->twin()->vertex()->pos += off;
 			} else if(action == Gui::Action::rotate) {
-				Vec3 v0 = data->first_t.verts[0];
-				Vec3 v1 = data->first_t.verts[1];
-				Vec3 center = data->first_t.center;
 				Quat q = Quat::euler(delta.euler);
 				h->vertex()->pos = q.rotate(v0 - center) + center;
 				h->twin()->vertex()->pos = q.rotate(v1 - center) + center;
-			}
+			} else if(action == Gui::Action::scale) {
+				Mat4 s = Mat4::scale(delta.scale);
+				h->vertex()->pos = s * (v0 - center) + center;
+				h->twin()->vertex()->pos = s * (v1 - center) + center;
+			} else assert(false);
 		},
+
 		[&](Halfedge_Mesh::FaceRef face) {
+			
 			auto h = face->halfedge();
+			Vec3 center = data->first_t.center;
+			
 			if(action == Gui::Action::move) {
 				Vec3 off = abs_pos - face->center();
 				do {
@@ -227,7 +238,6 @@ bool Renderer::apply_transform(Gui::Action action, Pose delta) {
 					h = h->next();
 				} while(h != face->halfedge());
 			} else if(action == Gui::Action::rotate) {
-				Vec3 center = data->first_t.center;
 				Quat q = Quat::euler(delta.euler);
 				int i = 0;
 				do {
@@ -235,8 +245,17 @@ bool Renderer::apply_transform(Gui::Action action, Pose delta) {
 					h = h->next();
 					i++;
 				} while(h != face->halfedge());
-			}
+			} else if(action == Gui::Action::scale) {
+				Mat4 s = Mat4::scale(delta.scale);
+				int i = 0;
+				do {
+					h->vertex()->pos = s * (data->first_t.verts[i] - center) + center;
+					h = h->next();
+					i++;
+				} while(h != face->halfedge());
+			} else assert(false);
 		},
+
 		[&](auto) {dirty = false;}
 	}, elem);
 

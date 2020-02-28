@@ -29,8 +29,6 @@ TODO:
 	[ MESHEDIT ]
 
 	finish halfedge UI
-		scale edge
-		scale face
 		undo/redo integration
 		stub & bind student mesh ops	
 

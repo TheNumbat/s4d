@@ -17,7 +17,7 @@ public:
 template<typename R, typename U>
 class Action : public Action_Base {
 public:
-    Action(R r, U u) : _undo(u), _redo(r) {};
+    Action(R&& r, U&& u) : _undo(std::forward<decltype(u)>(u)), _redo(std::forward<decltype(r)>(r)) {};
     ~Action() {}
 
 private:
@@ -36,16 +36,18 @@ public:
     void del_obj(Scene& scene, Scene_Object::ID id);
     void update_obj(Scene& scene, Scene_Object::ID id, Pose new_pos);
 
+    void update_mesh(Scene& scene, Scene_Object::ID id, Halfedge_Mesh&& old);
+
     void undo();
     void redo();
     void reset();
 
 private:
     template<typename R, typename U> 
-    void action(R redo, U undo) {
-        action(std::make_unique<Action<R,U>>(redo, undo));
+    void action(R&& redo, U&& undo) {
+        action(std::make_unique<Action<R,U>>(std::move(redo), std::move(undo)));
     }
-    void action(std::unique_ptr<Action_Base> action);
+    void action(std::unique_ptr<Action_Base>&& action);
     
     std::stack<std::unique_ptr<Action_Base>> undos;
     std::stack<std::unique_ptr<Action_Base>> redos;

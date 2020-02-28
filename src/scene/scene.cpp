@@ -101,6 +101,15 @@ Scene_Object::~Scene_Object() {
 
 }
 
+void Scene_Object::copy_mesh(Halfedge_Mesh& out) {
+	halfedge.copy_to(out);
+}
+
+void Scene_Object::set_mesh(const Halfedge_Mesh& in) {
+	in.copy_to(halfedge);
+	set_mesh_dirty();
+}
+
 void Scene_Object::operator=(Scene_Object&& src) {
 	_mesh = std::move(src._mesh);
 	halfedge = std::move(src.halfedge);

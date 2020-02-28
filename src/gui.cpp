@@ -579,7 +579,7 @@ bool Gui::start_drag(Vec3 pos, Vec3 cam, Vec3 dir) {
 	}
 
 	if(_mode == Mode::model) {
-		Renderer::begin_transform(action);
+		Renderer::begin_transform(action, old_mesh);
 	}
 
 	return dragging;
@@ -598,9 +598,11 @@ void Gui::end_drag(Undo& undo, Scene& scene) {
 	} else if(_mode == Mode::model) {
 
 		Pose p = apply_action({});
+
 		if(Renderer::apply_transform(action, p)) {
 			Scene_Object& obj = *scene.get(selected_mesh);
 			obj.set_mesh_dirty();
+			undo.update_mesh(scene, selected_mesh, std::move(old_mesh));
 		}
 	}
 

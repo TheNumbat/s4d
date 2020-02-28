@@ -165,9 +165,11 @@ void Renderer::set_he_select(Halfedge_Mesh::ElementRef elem) {
 	}, elem);
 }
 
-void Renderer::begin_transform(Gui::Action action) {
+void Renderer::begin_transform(Gui::Action action, Halfedge_Mesh& old) {
 
 	assert(data);
+	data->loaded_mesh->copy_to(old);
+
 	auto elem = *he_selected();
 	data->first_t = {};
 	std::visit(overloaded {

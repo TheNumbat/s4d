@@ -37,6 +37,57 @@ void Halfedge_Mesh::clear() {
 	render_dirty_flag = true;
 }
 
+void Halfedge_Mesh::copy_to(Halfedge_Mesh& mesh) const {
+
+	// Clear any existing elements.
+	mesh.halfedges.clear();
+	mesh.vertices.clear();
+	mesh.edges.clear();
+	mesh.faces.clear();
+	mesh.boundaries.clear();
+
+	// These maps will be used to identify elements of the old mesh
+	// with elements of the new mesh.  (Note that we can use a single
+	// map for both interior and boundary faces, because the map
+	// doesn't care which list of faces these iterators come from.)
+	std::map<HalfedgeCRef, HalfedgeRef> halfedgeOldToNew;
+	std::map<VertexCRef, VertexRef> vertexOldToNew;
+	std::map<EdgeCRef, EdgeRef> edgeOldToNew;
+	std::map<FaceCRef, FaceRef> faceOldToNew;
+
+	// Copy geometry from the original mesh and create a map from
+	// pointers in the original mesh to those in the new mesh.
+	for(HalfedgeCRef h = halfedges_begin(); h != halfedges_end(); h++)
+		halfedgeOldToNew[h] = mesh.halfedges.insert(mesh.halfedges.end(), *h);
+	for(VertexCRef v = vertices_begin(); v != vertices_end(); v++)
+		vertexOldToNew[v] = mesh.vertices.insert(mesh.vertices.end(), *v);
+	for(EdgeCRef e = edges_begin(); e != edges_end(); e++)
+		edgeOldToNew[e] = mesh.edges.insert(mesh.edges.end(), *e);
+	for(FaceCRef f = faces_begin(); f != faces_end(); f++)
+		faceOldToNew[f] = mesh.faces.insert(mesh.faces.end(), *f);
+	for(FaceCRef b = boundaries_begin(); b != boundaries_end(); b++)
+		faceOldToNew[b] = mesh.boundaries.insert(mesh.boundaries.end(), *b);
+
+	// "Search and replace" old pointers with new ones.
+	for(HalfedgeRef he = mesh.halfedges_begin(); he != mesh.halfedges_end(); he++) {
+		he->next() = halfedgeOldToNew[he->next()];
+		he->twin() = halfedgeOldToNew[he->twin()];
+		he->vertex() = vertexOldToNew[he->vertex()];
+		he->edge() = edgeOldToNew[he->edge()];
+		he->face() = faceOldToNew[he->face()];
+	}
+	for(VertexRef v = mesh.vertices_begin(); v != mesh.vertices_end(); v++)
+		v->halfedge() = halfedgeOldToNew[v->halfedge()];
+	for(EdgeRef e = mesh.edges_begin(); e != mesh.edges_end(); e++)
+		e->halfedge() = halfedgeOldToNew[e->halfedge()];
+	for(FaceRef f = mesh.faces_begin(); f != mesh.faces_end(); f++)
+		f->halfedge() = halfedgeOldToNew[f->halfedge()];
+	for(FaceRef b = mesh.boundaries_begin(); b != mesh.boundaries_end(); b++)
+		b->halfedge() = halfedgeOldToNew[b->halfedge()];
+
+	mesh.render_dirty_flag = true;
+}
+
 unsigned int Halfedge_Mesh::Vertex::degree() const {
 	unsigned int d = 0;
 	HalfedgeCRef h = _halfedge;

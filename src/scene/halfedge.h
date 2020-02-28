@@ -165,6 +165,8 @@ public:
 	void operator=(const Halfedge_Mesh& src) = delete;
 	void operator=(Halfedge_Mesh&& src);
 
+	void copy_to(Halfedge_Mesh& mesh) const;
+
 	/*
 		A Halfedge_Mesh is comprised of four atomic element types:
 		vertices, edges, faces, and halfedges.

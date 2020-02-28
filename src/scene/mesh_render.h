@@ -47,7 +47,7 @@ public:
     static unsigned int get_he_select();
     static std::optional<Halfedge_Mesh::ElementRef> he_selected();
     
-    static void begin_transform(Gui::Action action);
+    static void begin_transform(Gui::Action action, Halfedge_Mesh& old);
     static bool apply_transform(Gui::Action action, Pose delta);
 
     static void mesh(const GL::Mesh& mesh, MeshOpt opt);

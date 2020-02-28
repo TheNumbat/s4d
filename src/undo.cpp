@@ -11,6 +11,21 @@ void Undo::reset() {
     redos = {};
 }
 
+void Undo::update_mesh(Scene& scene, Scene_Object::ID id, Halfedge_Mesh&& old_mesh) {
+    Scene_Object& obj = *scene.get(id);
+    
+    Halfedge_Mesh new_mesh;
+    obj.copy_mesh(new_mesh);
+
+    action([id, &scene, nm{std::move(new_mesh)}]() {
+        Scene_Object& obj = *scene.get(id);
+        obj.set_mesh(nm);
+    }, [id, &scene, om{std::move(old_mesh)}]() {
+        Scene_Object& obj = *scene.get(id);
+        obj.set_mesh(om);
+    });
+}
+
 void Undo::del_obj(Scene& scene, Scene_Object::ID id) {
     action([id, &scene](){
         scene.erase(id);
@@ -39,7 +54,7 @@ void Undo::update_obj(Scene& scene, Scene_Object::ID id, Pose new_pos) {
     });
 }
 
-void Undo::action(std::unique_ptr<Action_Base> action) {
+void Undo::action(std::unique_ptr<Action_Base>&& action) {
     redos = {};
     action->redo();
     undos.push(std::move(action));

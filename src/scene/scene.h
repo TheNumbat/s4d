@@ -36,8 +36,8 @@ public:
 	using ID = unsigned int;
 
 	Scene_Object();
-	Scene_Object(ID id, Pose pose, GL::Mesh&& mesh, Vec3 color = {0.7f, 0.7f, 0.7f});
-	Scene_Object(ID id, Pose pose, Halfedge_Mesh&& mesh, Vec3 color = {0.7f, 0.7f, 0.7f});
+	Scene_Object(ID id, Pose pose, GL::Mesh&& mesh, Vec3 color);
+	Scene_Object(ID id, Pose pose, Halfedge_Mesh&& mesh, Vec3 color);
 	Scene_Object(const Scene_Object& src) = delete;
 	Scene_Object(Scene_Object&& src);
 	~Scene_Object();

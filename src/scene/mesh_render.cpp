@@ -312,8 +312,8 @@ void Renderer::build_halfedge(Halfedge_Mesh& mesh) {
 
 		// Create rotated coordinate frame to align edge
 		Mat4 rot;
-		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f});
-		Vec3 z = cross(x, dir);
+		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f}).normalize();
+		Vec3 z = cross(x, dir).normalize();
 		if(x.norm() != 0.0f) {
 			rot = Mat4::axes(x, dir, z);
 		} else if(dir.y == -1.0f) {
@@ -349,8 +349,8 @@ void Renderer::build_halfedge(Halfedge_Mesh& mesh) {
 
 		// Align edge
 		Mat4 rot;
-		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f});
-		Vec3 z = cross(x, dir);
+		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f}).normalize();
+		Vec3 z = cross(x, dir).normalize();
 		if(x.norm() != 0.0f) {
 			rot = Mat4::axes(x, dir, z);
 		} else if(dir.y == -1.0f) {

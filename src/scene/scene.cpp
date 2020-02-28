@@ -3,6 +3,7 @@
 #include "mesh_render.h"
 #include "../lib/log.h"
 #include "../undo.h"
+#include "../gui.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/Exporter.hpp>
@@ -168,7 +169,7 @@ Scene_Object::ID Scene::reserve_id() {
 Scene_Object::ID Scene::add(Pose pose, GL::Mesh&& mesh, Scene_Object::ID id) {
 	if(!id) id = next_id++;
 	assert(objs.find(id) == objs.end());
-	objs.emplace(std::make_pair(id, Scene_Object(id, pose, std::move(mesh))));
+	objs.emplace(std::make_pair(id, Scene_Object(id, pose, std::move(mesh), Gui::Color::obj)));
 	return id;
 }
 
@@ -271,7 +272,7 @@ void Scene::load_node(std::vector<std::string>& errors, const aiScene* scene, ai
 		if(!err.empty()) {
 			errors.push_back(err);
 		} else {
-			Scene_Object obj(reserve_id(), p, std::move(hemesh));
+			Scene_Object obj(reserve_id(), p, std::move(hemesh), Gui::Color::obj);
 			if(mesh->mName.length) {
 				obj.opt.name = std::string(mesh->mName.C_Str());
 			}

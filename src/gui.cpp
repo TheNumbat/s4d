@@ -53,10 +53,6 @@ Vec3 Gui::Color::axis(Axis a) {
 }
 
 bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
-	if(key == SDLK_e && selected_mesh) {
-		action = (Gui::Action)(((int)action + 1) % 3);
-		return true;
-	}
 	if(key == SDLK_DELETE && selected_mesh) {
 		undo.del_obj(scene, selected_mesh);
 		selected_mesh = 0;

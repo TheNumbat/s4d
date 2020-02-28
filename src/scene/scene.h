@@ -50,6 +50,7 @@ public:
 	void render_halfedge(Mat4 view);
 	void copy_mesh(Halfedge_Mesh& out);
 	void set_mesh(const Halfedge_Mesh& in);
+	Halfedge_Mesh& get_mesh();
 
 	ID id() const {return _id;}
 	const GL::Mesh& mesh() const {return _mesh;}

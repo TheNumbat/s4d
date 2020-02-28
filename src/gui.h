@@ -81,6 +81,10 @@ private:
 	bool select_scene(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir);
 	bool select_model(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir);
 
+	bool wrap_button(std::string label);
+	bool mode_button(Gui::Mode m, std::string name);
+	bool action_button(Action act, std::string name, bool same = true);
+
 	// Error handling
 	bool error_shown = false;
 	std::string error_msg;

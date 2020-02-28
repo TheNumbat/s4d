@@ -199,6 +199,48 @@ public:
 	using HalfedgeCRef = std::list<Halfedge>::const_iterator;
 	using ElementCRef = std::variant<VertexCRef, EdgeCRef, HalfedgeCRef, FaceCRef>;
 
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// Student Operations | student/meshedit.cpp
+	//////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+		Merge all faces incident on a given vertex, returning a
+		pointer to the merged face.
+	 */
+	FaceRef erase_vertex(VertexRef v);
+
+	/*
+		Merge the two faces on either side of an edge, returning a
+		pointer to the merged face.
+	 */
+	FaceRef erase_edge(EdgeRef e);
+
+	/*
+		Collapse an edge, returning a pointer to the collapsed vertex
+	*/
+	VertexRef collapse_edge(EdgeRef e);
+
+	/*
+		Collapse a face, returning a pointer to the collapsed vertex
+	*/
+	VertexRef collapse_face(FaceRef f);
+
+	/*
+		Flip an edge, returning a pointer to the flipped edge
+	*/
+	EdgeRef flip_edge(EdgeRef e);
+
+	/*
+		Split an edge, returning a pointer to the inserted midpoint vertex; the
+		halfedge of this vertex should refer to one of the edges in the original
+		mesh
+	 */
+	VertexRef split_edge(EdgeRef e);
+
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// End student operations
+	//////////////////////////////////////////////////////////////////////////////////////////
+
 	class Vertex {
 	public:
 		HalfedgeRef& halfedge() {return _halfedge;}
@@ -253,6 +295,14 @@ public:
 		FaceCRef face() const {return _face;}
 		unsigned int id() const {return _id;}
 		bool is_boundary() const {return _face->is_boundary();}
+		void set_neighbors(HalfedgeRef next, HalfedgeRef twin, VertexRef vertex,
+                    	  EdgeRef edge, FaceRef face) {
+			_next = next;
+			_twin = twin;
+			_vertex = vertex;
+			_edge = edge;
+			_face = face;
+		}
 	private:
 		unsigned int _id = 0;
 		HalfedgeRef _twin, _next;

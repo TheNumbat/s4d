@@ -19,6 +19,7 @@ sources = [
     'src/scene/mesh_render.cpp',
     'src/scene/halfedge.cpp',
     'src/scene/util.cpp',
+    'src/student/meshedit.cpp',
     'src/main.cpp']
 
 link = []

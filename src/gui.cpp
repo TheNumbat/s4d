@@ -53,7 +53,7 @@ Vec3 Gui::Color::axis(Axis a) {
 }
 
 bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
-	if(key == SDLK_t && selected_mesh) {	
+	if(key == SDLK_r && selected_mesh) {	
 		action = (Gui::Action)(((int)action + 1) % 3);	
 		return true;	
 	}
@@ -214,33 +214,33 @@ void Gui::load_scene(Scene& scene, Undo& undo) {
 	}
 }
 
+	
+bool Gui::wrap_button(std::string label) {
+	ImGuiStyle& style = ImGui::GetStyle();
+	float available_w = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+	float last_w = ImGui::GetItemRectMax().x;
+	float next_w = last_w + style.ItemSpacing.x + ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2;
+	if (next_w < available_w)
+		ImGui::SameLine();
+	return ImGui::Button(label.c_str());
+};
+
+bool Gui::action_button(Action act, std::string name, bool same) {
+	bool active = act == action;
+	if(active) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonActive));
+	bool clicked = same ? wrap_button(name) : ImGui::Button(name.c_str());
+	if(active) ImGui::PopStyleColor();
+	return clicked;
+};
+
 void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 
 	const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
-	ImGuiStyle& style = ImGui::GetStyle();
 
 	ImGui::SetNextWindowPos({0.0, menu_height});
 	ImGui::SetNextWindowSize({window_dim.x / 5.0f, window_dim.y});
 
 	ImGui::Begin("Objects", nullptr, flags);
-
-	float available_w = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
-	float last_w = 0.0f, next_w = 0.0f;
-	
-	auto wrap_button = [&](std::string label) -> bool {
-		last_w = ImGui::GetItemRectMax().x;
-		next_w = last_w + style.ItemSpacing.x + ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2;
-		if (next_w < available_w)
-			ImGui::SameLine();
-		return ImGui::Button(label.c_str());
-	};
-	auto state_button = [&](Action act, std::string name, bool same = true) -> bool {
-		bool active = act == action;
-		if(active) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonActive));
-		bool clicked = same ? wrap_button(name) : ImGui::Button(name.c_str());
-		if(active) ImGui::PopStyleColor();
-		return clicked;
-	};
 
 	if(_mode == Mode::scene) {
 		if(ImGui::Button("Load Scene")) {
@@ -318,11 +318,11 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 			fake_display(Action::scale, "Scale", obj.pose.scale, 0.03f);
 		
 			if(is_selected) {
-				if(state_button(Action::move, "Move", false))
+				if(action_button(Action::move, "Move", false))
 					action = Action::move;
-				if(state_button(Action::rotate, "Rotate"))
+				if(action_button(Action::rotate, "Rotate"))
 					action = Action::rotate;
-				if(state_button(Action::scale, "Scale"))
+				if(action_button(Action::scale, "Scale"))
 					action = Action::scale;
 				if(ImGui::Button("Edit"))
 					_mode = Mode::model;
@@ -347,12 +347,34 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 
 		auto sel = Renderer::he_selected();
 		if(selected_mesh && sel.has_value()) {
+			
+			ImGui::Separator();
+			ImGui::Text("Edit:");
+			if(action_button(Action::move, "Move", false))
+				action = Action::move;
+			if(action_button(Action::rotate, "Rotate"))
+				action = Action::rotate;
+			if(action_button(Action::scale, "Scale"))
+				action = Action::scale;
+
+			Scene_Object& obj = *scene.get(selected_mesh);
+			Halfedge_Mesh& mesh = obj.get_mesh();
+			Halfedge_Mesh old;
+			mesh.copy_to(old);
+			bool update_mesh = false;
+
 			ImGui::Separator();
 			std::visit(overloaded {
 				[&](Halfedge_Mesh::VertexRef vert) {
 					ImGui::Text("Navigate to:");
 					if(ImGui::Button("Halfedge")) {
 						Renderer::set_he_select(vert->halfedge());
+					}
+					ImGui::Separator();
+					ImGui::Text("Operations:");
+					if(ImGui::Button("Erase")) {
+						mesh.erase_vertex(vert);
+						update_mesh = true;
 					}
 					ImGui::Separator();
 					ImGui::Text("Degree: %d", vert->degree());
@@ -365,12 +387,36 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 						Renderer::set_he_select(edge->halfedge());
 					}
 					ImGui::Separator();
+					ImGui::Text("Operations:");
+					if(ImGui::Button("Erase")) {
+						mesh.erase_edge(edge);
+						update_mesh = true;
+					}
+					if(wrap_button("Collapse")) {
+						mesh.collapse_edge(edge);
+						update_mesh = true;
+					}
+					if(wrap_button("Flip")) {
+						mesh.flip_edge(edge);
+						update_mesh = true;
+					}
+					if(wrap_button("Split")) {
+						mesh.split_edge(edge);
+						update_mesh = true;
+					}
+					ImGui::Separator();
 					ImGui::Text(edge->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
 				},
 				[&](Halfedge_Mesh::FaceRef face) {
 					ImGui::Text("Navigate to:");
 					if(ImGui::Button("Halfedge")) {
 						Renderer::set_he_select(face->halfedge());
+					}
+					ImGui::Separator();
+					ImGui::Text("Operations:");
+					if(ImGui::Button("Collapse")) {
+						mesh.collapse_face(face);
+						update_mesh = true;
 					}
 					ImGui::Separator();
 					ImGui::Text("Degree: %d", face->degree());
@@ -394,6 +440,16 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 					}
 				}
 			}, *sel);
+
+			if(update_mesh) {
+				std::string err = mesh.validate();
+				if(!err.empty()) {
+					set_error(err);
+					obj.set_mesh(old);
+				} else {
+					undo.update_mesh(scene, selected_mesh, std::move(old));
+				}
+			}
 		}
 	}
 
@@ -418,15 +474,15 @@ void Gui::error() {
 	}
 }
 
-float Gui::menu(Scene& scene, Undo& undo, bool& settings) {
+bool Gui::mode_button(Gui::Mode m, std::string name) {
+	bool active = m == _mode;
+	if(active) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonActive));
+	bool clicked = ImGui::Button(name.c_str());
+	if(active) ImGui::PopStyleColor();
+	return clicked;
+};
 
-	auto state_button = [&](Gui::Mode m, std::string name) -> bool {
-		bool active = m == _mode;
-		if(active) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonActive));
-		bool clicked = ImGui::Button(name.c_str());
-		if(active) ImGui::PopStyleColor();
-		return clicked;
-	};
+float Gui::menu(Scene& scene, Undo& undo, bool& settings) {
 
 	float menu_height = 0.0f;
 	if(ImGui::BeginMainMenuBar()) {
@@ -456,19 +512,19 @@ float Gui::menu(Scene& scene, Undo& undo, bool& settings) {
 			ImGui::EndMenu();
 		}
 
-		if(state_button(Gui::Mode::scene, "Scene"))
+		if(mode_button(Gui::Mode::scene, "Scene"))
 			_mode = Gui::Mode::scene;
 
-		if(state_button(Gui::Mode::model, "Model"))
+		if(mode_button(Gui::Mode::model, "Model"))
 			_mode = Gui::Mode::model;
 
-		// if(state_button(Gui::Mode::render, "Render"))
+		// if(mode_button(Gui::Mode::render, "Render"))
 		// 	_mode = Gui::Mode::render;
 
-		// if(state_button(Gui::Mode::rig, "Rig"))
+		// if(mode_button(Gui::Mode::rig, "Rig"))
 		// 	_mode = Gui::Mode::rig;
 
-		// if(state_button(Gui::Mode::animate, "Animate"))
+		// if(mode_button(Gui::Mode::animate, "Animate"))
 		// 	_mode = Gui::Mode::animate;
 
 		ImGui::Text("FPS: %f", ImGui::GetIO().Framerate);

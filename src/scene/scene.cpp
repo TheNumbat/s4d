@@ -121,6 +121,10 @@ void Scene_Object::operator=(Scene_Object&& src) {
 	mesh_dirty = src.mesh_dirty; src.mesh_dirty = false;
 }
 
+Halfedge_Mesh& Scene_Object::get_mesh() {
+	return halfedge;
+}
+
 void Scene_Object::sync_mesh() {
 	if(editable && mesh_dirty) {
 		halfedge.to_mesh(_mesh, true);

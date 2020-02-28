@@ -61,10 +61,15 @@ private:
     ~Renderer();
     static inline Renderer* data = nullptr;
 
+    struct transform_data {
+        std::vector<Vec3> verts;
+        Vec3 center;
+    };
+
     int samples;
     Vec2 window_dim;
-    Pose first_transform;
     GLubyte* id_buffer;
+    transform_data first_t;
 	GL::Framebuffer framebuffer, id_resolve;
     GL::Shader mesh_shader, line_shader, inst_shader; 
     GL::Instances spheres, cylinders, arrows;

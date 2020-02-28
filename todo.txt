@@ -29,9 +29,10 @@ TODO:
 	[ MESHEDIT ]
 
 	finish halfedge UI
-		rotate & scale widgets
+		scale edge
+		scale face
 		undo/redo integration
-		stub & bind student mesh ops		
+		stub & bind student mesh ops	
 
 	second camera for mesh editing
 		snap/zoom to selected element

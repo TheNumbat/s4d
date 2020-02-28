@@ -53,6 +53,10 @@ Vec3 Gui::Color::axis(Axis a) {
 }
 
 bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
+	if(key == SDLK_t && selected_mesh) {	
+		action = (Gui::Action)(((int)action + 1) % 3);	
+		return true;	
+	}
 	if(key == SDLK_DELETE && selected_mesh) {
 		undo.del_obj(scene, selected_mesh);
 		selected_mesh = 0;
@@ -342,7 +346,7 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 	if(_mode == Mode::model) {
 
 		auto sel = Renderer::he_selected();
-		if(sel.has_value()) {
+		if(selected_mesh && sel.has_value()) {
 			ImGui::Separator();
 			std::visit(overloaded {
 				[&](Halfedge_Mesh::VertexRef vert) {
@@ -557,24 +561,22 @@ bool Gui::start_drag(Vec3 pos, Vec3 cam, Vec3 dir) {
 			drag_start = (hit - pos).unit();
 			drag_end = {0.0f};
 		}
-		return dragging;
-	}
-
-	bool good;
-	if(drag_plane) good = to_plane(pos, cam, dir, hit);
-	else           good = to_axis(pos, cam, dir, hit);
-
-	if(!good) return dragging;
-
-	if(action == Action::move) {
-		
-		drag_start = drag_end = hit;
-
 	} else {
-		drag_start = hit;
-		drag_end = {1.0f};
+
+		bool good;
+		if(drag_plane) good = to_plane(pos, cam, dir, hit);
+		else           good = to_axis(pos, cam, dir, hit);
+
+		if(!good) return dragging;
+
+		if(action == Action::move) {
+			drag_start = drag_end = hit;
+		} else {
+			drag_start = hit;
+			drag_end = {1.0f};
+		}
+		generate_widget_lines(pos);
 	}
-	generate_widget_lines(pos);
 
 	if(_mode == Mode::model) {
 		Renderer::begin_transform(action);
@@ -631,22 +633,22 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 		drag_end = {};
 		drag_end[(int)axis] = sgn * Degrees(std::acos(dot(drag_start, ang)));
 
-		return;
+	} else {
+
+		Vec3 hit; 
+		bool good;
+		if(drag_plane) good = to_plane(pos, cam, dir, hit);
+		else 	       good = to_axis(pos, cam, dir, hit);
+
+		if(!good) return;
+
+		if(action == Action::move) {
+			drag_end = hit;
+		} else if(action == Action::scale) {
+			drag_end = {1.0f};
+			drag_end[(int)axis] = (hit - pos).norm() / (drag_start - pos).norm();
+		} else assert(false);
 	}
-
-	Vec3 hit; 
-	bool good;
-	if(drag_plane) good = to_plane(pos, cam, dir, hit);
-	else 	       good = to_axis(pos, cam, dir, hit);
-
-	if(!good) return;
-
-	if(action == Action::move) {
-		drag_end = hit;
-	} else if(action == Action::scale) {
-		drag_end = {1.0f};
-		drag_end[(int)axis] = (hit - pos).norm() / (drag_start - pos).norm();
-	} else assert(false);
 
 	if(_mode == Mode::model) {
 		Pose p = apply_action({});

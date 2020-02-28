@@ -169,22 +169,24 @@ void Renderer::begin_transform(Gui::Action action) {
 
 	assert(data);
 	auto elem = *he_selected();
-	data->first_transform = Pose::id();
+	data->first_t = {};
 	std::visit(overloaded {
 		[&](Halfedge_Mesh::VertexRef vert) {
-			if(action == Gui::Action::move) {
-				data->first_transform.pos = vert->pos;
-			}
+			data->first_t.verts = {vert->pos};
+			data->first_t.center = vert->pos;
 		},
 		[&](Halfedge_Mesh::EdgeRef edge) {
-			if(action == Gui::Action::move)  {
-				data->first_transform.pos = edge->halfedge()->vertex()->pos;
-			}
+			data->first_t.center = edge->center();
+			data->first_t.verts = {edge->halfedge()->vertex()->pos,
+							 	   edge->halfedge()->twin()->vertex()->pos};
 		},
 		[&](Halfedge_Mesh::FaceRef face) {
-			if(action == Gui::Action::move) {
-				data->first_transform.pos = face->halfedge()->vertex()->pos;
-			}
+			auto h = face->halfedge();
+			data->first_t.center = face->center();
+			do {
+				data->first_t.verts.push_back(h->vertex()->pos);
+				h = h->next();
+			} while(h != face->halfedge());
 		},
 		[&](auto) {}
 	}, elem);
@@ -194,38 +196,50 @@ bool Renderer::apply_transform(Gui::Action action, Pose delta) {
 	assert(data);
 	
 	auto elem = *he_selected();
-	bool dirty = false;
-	Vec3 p = data->first_transform.pos + delta.pos;
+	bool dirty = true;
+	Vec3 abs_pos = data->first_t.center + delta.pos; 
 
 	std::visit(overloaded {
 		[&](Halfedge_Mesh::VertexRef vert) {
-			if(action == Gui::Action::move) {
-				vert->pos = p;
-				dirty = true;
-			}
+			vert->pos = abs_pos;
 		},
 		[&](Halfedge_Mesh::EdgeRef edge) {
+			auto h = edge->halfedge();
 			if(action == Gui::Action::move)  {
-				auto h = edge->halfedge();
-				Vec3 off = p - h->vertex()->pos;
+				Vec3 off = abs_pos - edge->center();
 				h->vertex()->pos += off;
 				h->twin()->vertex()->pos += off;
-				dirty = true;
+			} else if(action == Gui::Action::rotate) {
+				Vec3 v0 = data->first_t.verts[0];
+				Vec3 v1 = data->first_t.verts[1];
+				Vec3 center = data->first_t.center;
+				Quat q = Quat::euler(delta.euler);
+				h->vertex()->pos = q.rotate(v0 - center) + center;
+				h->twin()->vertex()->pos = q.rotate(v1 - center) + center;
 			}
 		},
 		[&](Halfedge_Mesh::FaceRef face) {
+			auto h = face->halfedge();
 			if(action == Gui::Action::move) {
-				auto h = face->halfedge();
-				Vec3 off = p - h->vertex()->pos;
+				Vec3 off = abs_pos - face->center();
 				do {
 					h->vertex()->pos += off;
 					h = h->next();
 				} while(h != face->halfedge());
-				dirty = true;
+			} else if(action == Gui::Action::rotate) {
+				Vec3 center = data->first_t.center;
+				Quat q = Quat::euler(delta.euler);
+				int i = 0;
+				do {
+					h->vertex()->pos = q.rotate(data->first_t.verts[i] - center) + center;
+					h = h->next();
+					i++;
+				} while(h != face->halfedge());
 			}
 		},
-		[&](auto) {}
+		[&](auto) {dirty = false;}
 	}, elem);
+
 	if(dirty) {
 		data->loaded_mesh->render_dirty_flag = true;
 	}
@@ -314,7 +328,7 @@ void Renderer::build_halfedge(Halfedge_Mesh& mesh) {
 		Mat4 rot;
 		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f}).normalize();
 		Vec3 z = cross(x, dir).normalize();
-		if(x.norm() != 0.0f) {
+		if(x.valid()) {
 			rot = Mat4::axes(x, dir, z);
 		} else if(dir.y == -1.0f) {
 			l = -l;
@@ -351,7 +365,7 @@ void Renderer::build_halfedge(Halfedge_Mesh& mesh) {
 		Mat4 rot;
 		Vec3 x = cross(dir, {0.0f, 1.0f, 0.0f}).normalize();
 		Vec3 z = cross(x, dir).normalize();
-		if(x.norm() != 0.0f) {
+		if(x.valid()) {
 			rot = Mat4::axes(x, dir, z);
 		} else if(dir.y == -1.0f) {
 			l = -l;

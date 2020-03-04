@@ -122,6 +122,48 @@ bool Halfedge_Mesh::Edge::on_boundary() const {
 	return _halfedge->is_boundary() || _halfedge->twin()->is_boundary();
 }
 
+Vec3 Halfedge_Mesh::Vertex::normal() const {
+	Vec3 n;
+	Vec3 pi = pos;
+	HalfedgeCRef h = halfedge();
+	if (on_boundary()) {
+		do {
+			Vec3 pj = h->next()->vertex()->pos;
+			Vec3 pk = h->next()->next()->vertex()->pos;
+			n += cross(pj - pi, pk - pi);
+			h = h->next()->twin();
+		} while (h != halfedge());
+	} else {
+		do {
+			Vec3 pj = h->next()->vertex()->pos;
+			Vec3 pk = h->next()->next()->vertex()->pos;
+			n += cross(pj - pi, pk - pi);
+			h = h->twin()->next();
+		} while (h != halfedge());
+	}
+	return n.unit();
+}
+
+Vec3 Halfedge_Mesh::Edge::normal() const {
+	return 0.5f * (halfedge()->face()->normal() + halfedge()->twin()->face()->normal());
+}
+
+Vec3 Halfedge_Mesh::Face::normal() const {
+	Vec3 n;
+	HalfedgeCRef h = halfedge();
+	do {
+		Vec3 pi = h->vertex()->pos;
+		Vec3 pj = h->next()->vertex()->pos;
+		n += cross(pi, pj);
+		h = h->next();
+	} while (h != halfedge());
+	return n.unit();
+}
+
+Vec3 Halfedge_Mesh::Vertex::center() const {
+	return pos;
+}
+
 Vec3 Halfedge_Mesh::Edge::center() const {
 	return 0.5f * (_halfedge->vertex()->pos + _halfedge->twin()->vertex()->pos);
 }
@@ -138,11 +180,27 @@ Vec3 Halfedge_Mesh::Face::center() const {
 	return c / d;
 }
 
+Vec3 Halfedge_Mesh::normal_of(Halfedge_Mesh::ElementRef elem) {
+	Vec3 pos;
+	std::visit(overloaded {
+		[&](Halfedge_Mesh::VertexRef vert) {
+			pos = vert->normal();
+		},
+		[&](Halfedge_Mesh::EdgeRef edge) {
+			pos = edge->normal();
+		},
+		[&](Halfedge_Mesh::FaceRef face) {
+			pos = face->normal();
+		},
+		[&](auto) {}
+	}, elem);
+	return pos;
+}
 Vec3 Halfedge_Mesh::center_of(Halfedge_Mesh::ElementRef elem) {
 	Vec3 pos;
 	std::visit(overloaded {
 		[&](Halfedge_Mesh::VertexRef vert) {
-			pos = vert->pos;
+			pos = vert->center();
 		},
 		[&](Halfedge_Mesh::EdgeRef edge) {
 			pos = edge->center();

@@ -27,6 +27,7 @@ void Undo::update_mesh(Scene& scene, Scene_Object::ID id, Halfedge_Mesh&& old_me
 }
 
 void Undo::del_obj(Scene& scene, Scene_Object::ID id) {
+    scene.erase(id);
     action([id, &scene](){
         scene.erase(id);
     }, [id, &scene](){
@@ -36,6 +37,7 @@ void Undo::del_obj(Scene& scene, Scene_Object::ID id) {
 
 void Undo::add_obj(Scene& scene, GL::Mesh&& mesh) {
     Scene_Object::ID id = scene.add({}, std::move(mesh));
+    scene.restore(id);
     action([id, &scene](){
         scene.restore(id);
     }, [id, &scene](){
@@ -45,6 +47,7 @@ void Undo::add_obj(Scene& scene, GL::Mesh&& mesh) {
 
 void Undo::update_obj(Scene& scene, Scene_Object::ID id, Pose new_pos) {
     Scene_Object& obj = *scene.get(id);
+    obj.pose = new_pos;
     action([id, &scene, new_pos](){
         Scene_Object& obj = *scene.get(id);
         obj.pose = new_pos;
@@ -56,7 +59,6 @@ void Undo::update_obj(Scene& scene, Scene_Object::ID id, Pose new_pos) {
 
 void Undo::action(std::unique_ptr<Action_Base>&& action) {
     redos = {};
-    action->redo();
     undos.push(std::move(action));
 }
 

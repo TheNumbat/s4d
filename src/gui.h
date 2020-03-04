@@ -22,7 +22,10 @@ public:
 		X, Y, Z
 	};
 	enum class Action {
-		move, rotate, scale
+		move,
+		rotate,
+		scale,
+		bevel
 	};
 	struct Color {
 		static inline const Vec3 obj = Vec3(0.7f);
@@ -51,12 +54,12 @@ public:
 	bool keydown(Undo& undo, Scene& scene, SDL_Keycode key);
 
 	// Object interaction
-	bool select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir);
+	bool select(Scene& scene, Undo& undo, Scene_Object::ID id, Vec3 cam, Vec2 spos, Vec3 dir);
 	void clear_select();
 
-	void drag_to(Scene& scene, Vec3 cam, Vec3 dir);
+	void drag_to(Scene& scene, Vec3 cam, Vec2 spos, Vec3 dir);
 	void end_drag(Undo& undo, Scene& scene);
-	bool start_drag(Vec3 pos, Vec3 cam, Vec3 dir);
+	bool start_drag(Vec3 pos, Vec3 cam, Vec2 spos, Vec3 dir);
 	void apply_transform(Scene_Object& obj);
 	Scene_Object::ID selected_id();
 
@@ -76,10 +79,10 @@ private:
 
 	Pose apply_action(const Pose& pose);
 	bool to_axis(Vec3 obj_pos, Vec3 cam_pos, Vec3 dir, Vec3& hit);
-	bool to_plane(Vec3 obj_pos, Vec3 cam_pos, Vec3 dir, Vec3& hit);
+	bool to_plane(Vec3 obj_pos, Vec3 cam_pos, Vec3 dir, Vec3 norm, Vec3& hit);
 
-	bool select_scene(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir);
-	bool select_model(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir);
+	bool select_scene(Scene& scene, Undo& undo, Scene_Object::ID click, Vec3 cam, Vec2 spos, Vec3 dir);
+	bool select_model(Scene& scene, Undo& undo, Scene_Object::ID click, Vec3 cam, Vec2 spos, Vec3 dir);
 
 	bool wrap_button(std::string label);
 	bool mode_button(Gui::Mode m, std::string name);
@@ -97,7 +100,8 @@ private:
 	Action action = Action::move;
 	bool dragging = false, drag_plane = false;
 	Vec3 drag_start, drag_end;
-	Vec3 gui_drag_start;
+	Vec3 dragfloat_start;
+	Vec2 bevel_start, bevel_end;
 
 	// 3D GUI Objects
 	enum class Basic : Scene_Object::ID {

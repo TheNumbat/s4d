@@ -168,7 +168,10 @@ void Renderer::set_he_select(Halfedge_Mesh::ElementRef elem) {
 void Renderer::begin_transform(Gui::Action action, Halfedge_Mesh& old) {
 
 	assert(data);
-	data->loaded_mesh->copy_to(old);
+
+	if(action != Gui::Action::bevel) {
+		data->loaded_mesh->copy_to(old);
+	}
 
 	auto elem = *he_selected();
 	data->first_t = {};
@@ -200,10 +203,15 @@ bool Renderer::apply_transform(Gui::Action action, Pose delta) {
 	auto elem = *he_selected();
 	bool dirty = true;
 	Vec3 abs_pos = data->first_t.center + delta.pos; 
+	Halfedge_Mesh& mesh = *data->loaded_mesh;
 
 	std::visit(overloaded {
 		[&](Halfedge_Mesh::VertexRef vert) {
-			vert->pos = abs_pos;
+			if(action == Gui::Action::move) {
+				vert->pos = abs_pos;
+			} else if(action == Gui::Action::bevel) {
+				mesh.bevel_vertex_position(data->first_t.verts, vert, delta.pos.x);
+			}
 		},
 
 		[&](Halfedge_Mesh::EdgeRef edge) {
@@ -225,6 +233,8 @@ bool Renderer::apply_transform(Gui::Action action, Pose delta) {
 				Mat4 s = Mat4::scale(delta.scale);
 				h->vertex()->pos = s * (v0 - center) + center;
 				h->twin()->vertex()->pos = s * (v1 - center) + center;
+			} else if(action == Gui::Action::bevel) {
+				mesh.bevel_edge_position(data->first_t.verts, edge, delta.pos.x);
 			} else assert(false);
 		},
 
@@ -255,6 +265,8 @@ bool Renderer::apply_transform(Gui::Action action, Pose delta) {
 					h = h->next();
 					i++;
 				} while(h != face->halfedge());
+			} else if(action == Gui::Action::bevel) {
+				mesh.bevel_face_position(data->first_t.verts, face, delta.pos.x, delta.pos.y);
 			} else assert(false);
 		},
 

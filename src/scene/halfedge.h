@@ -252,6 +252,10 @@ public:
 	*/
 	FaceRef bevel_face(FaceRef f);
 
+	void bevel_vertex_position(const std::vector<Vec3>& start_positions, VertexRef vertex, float tangent_offset);
+	void bevel_edge_position(const std::vector<Vec3>& start_positions, EdgeRef edge, float tangent_offset);
+	void bevel_face_position(const std::vector<Vec3>& start_positions, FaceRef face, float tangent_offset, float normal_offset);
+
 	///// Global Ops /////////////////////////////////////////////////////////////////////////
 
 	/*
@@ -270,6 +274,8 @@ public:
 		unsigned int id() const {return _id;}
 		bool on_boundary() const;
 		unsigned int degree() const;
+		Vec3 center() const;
+		Vec3 normal() const;
 		Vec3 pos, norm;
 	private:
 		unsigned int _id = 0;
@@ -283,6 +289,7 @@ public:
 		unsigned int id() const {return _id;}
 		bool on_boundary() const;
 		Vec3 center() const;
+		Vec3 normal() const;
 	private:
 		unsigned int _id = 0;
 		HalfedgeRef _halfedge;
@@ -295,6 +302,7 @@ public:
 		HalfedgeCRef halfedge() const {return _halfedge;}
 		bool is_boundary() const {return boundary;}
 		Vec3 center() const;
+		Vec3 normal() const;
 		unsigned int degree() const;
 		unsigned int id() const {return _id;}
 	private:
@@ -425,6 +433,7 @@ public:
 	FaceCRef face_by_idx(unsigned int idx) const;
 
 	static Vec3 center_of(ElementRef elem);
+	static Vec3 normal_of(ElementRef elem);
 
 private:
 	std::list<Vertex> vertices;

@@ -7,11 +7,8 @@ Exporting meshes from blender:
 TODO:
 	General:
 		swap to cmake build system
-		
 		better per-frame mesh update performance
 		better mesh undo memory usage
-		
-		refactor gui.cpp to better separate the controls/GUI/selection info for the different edit modes (scene, model)
 		document app/gui/scene code
 
 	UX Features:
@@ -31,9 +28,11 @@ TODO:
 
 	[ MESHEDIT ]
 
-	stub global ops
-	find a better bevel compute positions
-		currently you just move the new face afterward
+	fix bevel compute positions dragging at edge of window
+	split scene & modeling GUI data - no bevel op in scene view
+	move mesh update & select code out of Renderer
+
+	stub meshedit global ops
 
 	second camera for mesh editing
 		zoom to selected element

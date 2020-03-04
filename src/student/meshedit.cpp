@@ -77,6 +77,21 @@ Halfedge_Mesh::FaceRef Halfedge_Mesh::bevel_face(Halfedge_Mesh::FaceRef f) {
     return f;
 }
 
+void Halfedge_Mesh::bevel_vertex_position(const std::vector<Vec3>& start_positions, Halfedge_Mesh::VertexRef vertex, 
+                                          float tangent_offset) {
+
+}
+
+void Halfedge_Mesh::bevel_edge_position(const std::vector<Vec3>& start_positions, Halfedge_Mesh::EdgeRef edge, 
+                                         float tangent_offset) {
+
+}
+
+void Halfedge_Mesh::bevel_face_position(const std::vector<Vec3>& start_positions, Halfedge_Mesh::FaceRef face, 
+                                        float tangent_offset, float normal_offset) {
+
+}
+
 /*
     Splits all non-triangular faces into triangles.
 */

@@ -52,3 +52,36 @@ Halfedge_Mesh::VertexRef Halfedge_Mesh::split_edge(Halfedge_Mesh::EdgeRef e) {
     
     return e->halfedge()->vertex();
 }
+
+/*
+    Creates a face in place of the vertex, returning a pointer to the new face
+*/
+Halfedge_Mesh::FaceRef Halfedge_Mesh::bevel_vertex(Halfedge_Mesh::VertexRef v) {
+
+    return v->halfedge()->face();
+}
+
+/*
+    Creates a face in place of the edge, returning a pointer to the new face
+*/
+Halfedge_Mesh::FaceRef Halfedge_Mesh::bevel_edge(Halfedge_Mesh::EdgeRef e) {
+
+    return e->halfedge()->face();
+}
+
+/*
+    Insets a face into the given face, returning a pointer to the new center face
+*/
+Halfedge_Mesh::FaceRef Halfedge_Mesh::bevel_face(Halfedge_Mesh::FaceRef f) {
+
+    return f;
+}
+
+/*
+    Splits all non-triangular faces into triangles.
+*/
+void Halfedge_Mesh::triangulate() {
+
+}
+
+

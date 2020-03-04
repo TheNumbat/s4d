@@ -31,8 +31,9 @@ TODO:
 
 	[ MESHEDIT ]
 
-	finish stubbing local ops
 	stub global ops
+	find a better bevel compute positions
+		currently you just move the new face afterward
 
 	second camera for mesh editing
 		zoom to selected element

@@ -206,13 +206,13 @@ public:
 	/*
 		Merge all faces incident on a given vertex, returning a
 		pointer to the merged face.
-	 */
+	*/
 	FaceRef erase_vertex(VertexRef v);
 
 	/*
 		Merge the two faces on either side of an edge, returning a
 		pointer to the merged face.
-	 */
+	*/
 	FaceRef erase_edge(EdgeRef e);
 
 	/*
@@ -234,8 +234,30 @@ public:
 		Split an edge, returning a pointer to the inserted midpoint vertex; the
 		halfedge of this vertex should refer to one of the edges in the original
 		mesh
-	 */
+	*/
 	VertexRef split_edge(EdgeRef e);
+
+	/*
+		Creates a face in place of the vertex, returning a pointer to the new face
+	*/
+	FaceRef bevel_vertex(VertexRef v);
+
+	/*
+		Creates a face in place of the edge, returning a pointer to the new face
+	*/
+	FaceRef bevel_edge(EdgeRef e);
+
+	/*
+		Insets a face into the given face, returning a pointer to the new center face
+	*/
+	FaceRef bevel_face(FaceRef f);
+
+	///// Global Ops /////////////////////////////////////////////////////////////////////////
+
+	/*
+		Splits all non-triangular faces into triangles.
+	*/
+	void triangulate();	
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// End student operations

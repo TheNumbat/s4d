@@ -271,6 +271,10 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 	size_t i = 0;
 	Scene_Object::ID to_delete = 0;
 
+	if(_mode == Mode::model) {
+		ImGui::Text("Select a Model");
+	}
+
 	scene.for_objs([&](Scene_Object& obj) {
 
 		ImGui::PushID(obj.id());
@@ -346,16 +350,8 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 	if(_mode == Mode::model) {
 
 		auto sel = Renderer::he_selected();
-		if(selected_mesh && sel.has_value()) {
-			
-			ImGui::Separator();
-			ImGui::Text("Edit:");
-			if(action_button(Action::move, "Move", false))
-				action = Action::move;
-			if(action_button(Action::rotate, "Rotate"))
-				action = Action::rotate;
-			if(action_button(Action::scale, "Scale"))
-				action = Action::scale;
+		
+		if(selected_mesh) {
 
 			Scene_Object& obj = *scene.get(selected_mesh);
 			Halfedge_Mesh& mesh = obj.get_mesh();
@@ -364,82 +360,112 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 			bool update_mesh = false;
 
 			ImGui::Separator();
-			std::visit(overloaded {
-				[&](Halfedge_Mesh::VertexRef vert) {
-					ImGui::Text("Navigate to:");
-					if(ImGui::Button("Halfedge")) {
-						Renderer::set_he_select(vert->halfedge());
+			if(ImGui::Button("Triangulate")) {
+				mesh.triangulate();
+				update_mesh = true;
+			}
+			ImGui::Separator();
+
+			if(sel.has_value()) {
+				
+				ImGui::Text("Edit:");
+				if(action_button(Action::move, "Move", false))
+					action = Action::move;
+				if(action_button(Action::rotate, "Rotate"))
+					action = Action::rotate;
+				if(action_button(Action::scale, "Scale"))
+					action = Action::scale;
+
+				ImGui::Separator();
+				std::visit(overloaded {
+					[&](Halfedge_Mesh::VertexRef vert) {
+						ImGui::Text("Navigate to:");
+						if(ImGui::Button("Halfedge")) {
+							Renderer::set_he_select(vert->halfedge());
+						}
+						ImGui::Separator();
+						ImGui::Text("Operations:");
+						if(ImGui::Button("Erase")) {
+							Renderer::set_he_select(mesh.erase_vertex(vert));
+							update_mesh = true;
+						}
+						if(wrap_button("Bevel")) {
+							Renderer::set_he_select(mesh.bevel_vertex(vert));
+							update_mesh = true;
+						}
+						ImGui::Separator();
+						ImGui::Text("Degree: %d", vert->degree());
+						ImGui::Text("Position: (%f,%f,%f)", vert->pos.x, vert->pos.y, vert->pos.z);
+						ImGui::Text(vert->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
+					},
+					[&](Halfedge_Mesh::EdgeRef edge) {
+						ImGui::Text("Navigate to:");
+						if(ImGui::Button("Halfedge")) {
+							Renderer::set_he_select(edge->halfedge());
+						}
+						ImGui::Separator();
+						ImGui::Text("Operations:");
+						if(ImGui::Button("Erase")) {
+							Renderer::set_he_select(mesh.erase_edge(edge));
+							update_mesh = true;
+						}
+						if(wrap_button("Collapse")) {
+							Renderer::set_he_select(mesh.collapse_edge(edge));
+							update_mesh = true;
+						}
+						if(wrap_button("Flip")) {
+							Renderer::set_he_select(mesh.flip_edge(edge));
+							update_mesh = true;
+						}
+						if(wrap_button("Split")) {
+							Renderer::set_he_select(mesh.split_edge(edge));
+							update_mesh = true;
+						}
+						if(wrap_button("Bevel")) {
+							Renderer::set_he_select(mesh.bevel_edge(edge));
+							update_mesh = true;
+						}
+						ImGui::Separator();
+						ImGui::Text(edge->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
+					},
+					[&](Halfedge_Mesh::FaceRef face) {
+						ImGui::Text("Navigate to:");
+						if(ImGui::Button("Halfedge")) {
+							Renderer::set_he_select(face->halfedge());
+						}
+						ImGui::Separator();
+						ImGui::Text("Operations:");
+						if(ImGui::Button("Collapse")) {
+							Renderer::set_he_select(mesh.collapse_face(face));
+							update_mesh = true;
+						}
+						if(wrap_button("Bevel")) {
+							Renderer::set_he_select(mesh.bevel_face(face));
+							update_mesh = true;
+						}
+						ImGui::Separator();
+						ImGui::Text("Degree: %d", face->degree());
+					},
+					[&](Halfedge_Mesh::HalfedgeRef halfedge) {
+						ImGui::Text("Navigate to:");
+						if(ImGui::Button("Vertex")) {
+							Renderer::set_he_select(halfedge->vertex());
+						}
+						if(wrap_button("Edge")) {
+							Renderer::set_he_select(halfedge->edge());
+						}
+						if(wrap_button("Face")) {
+							Renderer::set_he_select(halfedge->face());
+						}
+						if(ImGui::Button("Twin")) {
+							Renderer::set_he_select(halfedge->twin());
+						}
+						if(wrap_button("Next")) {
+							Renderer::set_he_select(halfedge->next());
+						}
 					}
-					ImGui::Separator();
-					ImGui::Text("Operations:");
-					if(ImGui::Button("Erase")) {
-						mesh.erase_vertex(vert);
-						update_mesh = true;
-					}
-					ImGui::Separator();
-					ImGui::Text("Degree: %d", vert->degree());
-					ImGui::Text("Position: (%f,%f,%f)", vert->pos.x, vert->pos.y, vert->pos.z);
-					ImGui::Text(vert->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
-				},
-				[&](Halfedge_Mesh::EdgeRef edge) {
-					ImGui::Text("Navigate to:");
-					if(ImGui::Button("Halfedge")) {
-						Renderer::set_he_select(edge->halfedge());
-					}
-					ImGui::Separator();
-					ImGui::Text("Operations:");
-					if(ImGui::Button("Erase")) {
-						mesh.erase_edge(edge);
-						update_mesh = true;
-					}
-					if(wrap_button("Collapse")) {
-						mesh.collapse_edge(edge);
-						update_mesh = true;
-					}
-					if(wrap_button("Flip")) {
-						mesh.flip_edge(edge);
-						update_mesh = true;
-					}
-					if(wrap_button("Split")) {
-						mesh.split_edge(edge);
-						update_mesh = true;
-					}
-					ImGui::Separator();
-					ImGui::Text(edge->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
-				},
-				[&](Halfedge_Mesh::FaceRef face) {
-					ImGui::Text("Navigate to:");
-					if(ImGui::Button("Halfedge")) {
-						Renderer::set_he_select(face->halfedge());
-					}
-					ImGui::Separator();
-					ImGui::Text("Operations:");
-					if(ImGui::Button("Collapse")) {
-						mesh.collapse_face(face);
-						update_mesh = true;
-					}
-					ImGui::Separator();
-					ImGui::Text("Degree: %d", face->degree());
-				},
-				[&](Halfedge_Mesh::HalfedgeRef halfedge) {
-					ImGui::Text("Navigate to:");
-					if(ImGui::Button("Vertex")) {
-						Renderer::set_he_select(halfedge->vertex());
-					}
-					if(wrap_button("Edge")) {
-						Renderer::set_he_select(halfedge->edge());
-					}
-					if(wrap_button("Face")) {
-						Renderer::set_he_select(halfedge->face());
-					}
-					if(ImGui::Button("Twin")) {
-						Renderer::set_he_select(halfedge->twin());
-					}
-					if(wrap_button("Next")) {
-						Renderer::set_he_select(halfedge->next());
-					}
-				}
-			}, *sel);
+				}, *sel);
+			}
 
 			if(update_mesh) {
 				std::string err = mesh.validate();

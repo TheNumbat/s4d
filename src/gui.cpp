@@ -348,9 +348,14 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 
 			Scene_Object& obj = *scene.get(selected_mesh);
 			Halfedge_Mesh& mesh = obj.get_mesh();
+<<<<<<< HEAD
 			Halfedge_Mesh before;
 			mesh.copy_to(before);
 			unsigned int before_id = Renderer::get_he_select();
+=======
+			Halfedge_Mesh old;
+			mesh.copy_to(old);
+>>>>>>> 8bf60dae22cb89bec8f216285be5d6f830bbc632
 
 			bool update_mesh = false;
 			bool update_ref = false;
@@ -423,6 +428,10 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 						if(ImGui::Button("Halfedge")) {
 							Renderer::set_he_select(vert->halfedge());
 						}
+<<<<<<< HEAD
+=======
+						ImGui::Separator();
+>>>>>>> 8bf60dae22cb89bec8f216285be5d6f830bbc632
 					},
 					[&](Halfedge_Mesh::EdgeRef edge) {
 						if(ImGui::Button("Halfedge")) {
@@ -841,7 +850,10 @@ bool Gui::select_model(Scene& scene, Undo& undo, Scene_Object::ID click, Vec3 ca
 		
 		Halfedge_Mesh::ElementRef new_ref;
 		mesh.copy_to(old_mesh);
+<<<<<<< HEAD
 		old_id = Renderer::get_he_select();
+=======
+>>>>>>> 8bf60dae22cb89bec8f216285be5d6f830bbc632
 
 		auto sel = Renderer::he_selected();
 
@@ -862,7 +874,10 @@ bool Gui::select_model(Scene& scene, Undo& undo, Scene_Object::ID click, Vec3 ca
 		if(!err.empty()) {
 			set_error(err);
 			obj.set_mesh(old_mesh);
+<<<<<<< HEAD
 			old_id = Renderer::get_he_select();
+=======
+>>>>>>> 8bf60dae22cb89bec8f216285be5d6f830bbc632
 		} else {
 			Renderer::set_he_select(new_ref);
 			dragging = true;

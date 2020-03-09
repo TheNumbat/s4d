@@ -178,35 +178,6 @@ void Halfedge_Mesh::bevel_edge_position(const std::vector<Vec3>& start_positions
 void Halfedge_Mesh::bevel_face_position(const std::vector<Vec3>& start_positions, Halfedge_Mesh::FaceRef face, 
                                         float tangent_offset, float normal_offset) {
 
-    std::vector<HalfedgeRef> new_halfedges;
-    auto h = face->halfedge();
-    do {
-        new_halfedges.push_back(h);
-        h = h->next();
-    } while(h != face->halfedge());
-
-    for(int i = 0; i < new_halfedges.size(); i++) {
-            
-        int inext = i + 1 == new_halfedges.size() ? 0 : i + 1;
-        int iprev = i - 1 == -1 ? new_halfedges.size() - 1 : i - 1;
-
-        // Get positions
-        Vec3 vert = start_positions[i];
-        Vec3 next = start_positions[inext];
-        Vec3 prev = start_positions[iprev];
-
-        // Get angle bisector vector
-        Vec3 top = (next - vert).unit();
-        Vec3 bot = (vert - prev).unit();
-        Vec3 norm = cross(top, bot);
-
-        // Should take care of non-convexity
-        Vec3 avg = (cross(norm, top) + cross(norm, bot)).unit();
-
-        // Update position
-        VertexRef here = new_halfedges[i]->vertex();
-        here->pos = start_positions[i] + avg * tangent_offset + norm * normal_offset;
-    }
 }
 
 /*

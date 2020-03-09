@@ -36,7 +36,7 @@ public:
     void del_obj(Scene& scene, Scene_Object::ID id);
     void update_obj(Scene& scene, Scene_Object::ID id, Pose new_pos);
 
-    void update_mesh(Scene& scene, Scene_Object::ID id, Halfedge_Mesh&& old);
+    void update_mesh(Scene& scene, Scene_Object::ID id, Halfedge_Mesh&& old, unsigned int old_id);
 
     void undo();
     void redo();

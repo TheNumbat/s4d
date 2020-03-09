@@ -54,6 +54,8 @@ public:
     static void lines(const GL::Lines& lines, Mat4 viewproj, float alpha);
     static void outline(Mat4 viewproj, Mat4 view, Scene_Object& obj);
 
+    static void dirty();
+
 private:
     void build_halfedge(Halfedge_Mesh& mesh);
 

@@ -53,9 +53,9 @@ Vec3 Gui::Color::axis(Axis a) {
 }
 
 bool Gui::keydown(Undo& undo, Scene& scene, SDL_Keycode key) {
-	if(key == SDLK_r && selected_mesh) {	
-		action = (Gui::Action)(((int)action + 1) % 3);	
-		return true;	
+	if(key == SDLK_r && selected_mesh) {
+		action = (Gui::Action)(((int)action + 1) % 4);	
+		return true;
 	}
 	if(key == SDLK_DELETE && selected_mesh) {
 		undo.del_obj(scene, selected_mesh);
@@ -184,6 +184,8 @@ void Gui::render_widgets(Mat4 viewproj, Mat4 view, Vec3 pos, float scl) {
 		z_scale.pose.pos = pos + Vec3(0.0f, 0.0f, 0.15f * scl);
 		z_scale.render_mesh(view, true);
 	
+	} else if(action == Action::bevel) {
+
 	} else assert(false);
 }
 
@@ -243,6 +245,8 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 	ImGui::Begin("Objects", nullptr, flags);
 
 	if(_mode == Mode::scene) {
+		ImGui::Text("Edit Scene");
+
 		if(ImGui::Button("Load Scene")) {
 			load_scene(scene, undo);
 		}
@@ -250,7 +254,7 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 			write_scene(scene);
 		}
 
-		if(ImGui::Button("Load Objects")) {
+		if(ImGui::Button("Add Objects")) {
 			char* path = nullptr;
 			NFD_OpenDialog(file_types, nullptr, &path);
 
@@ -262,17 +266,11 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 				free(path);
 			}
 		}
-
-		if(!scene.empty())
-			ImGui::Separator();
-
 	}
 
-	size_t i = 0;
-	Scene_Object::ID to_delete = 0;
-
-	if(_mode == Mode::model) {
-		ImGui::Text("Select a Model");
+	if(!scene.empty()) {
+		ImGui::Separator();	
+		ImGui::Text("Select an Object");
 	}
 
 	scene.for_objs([&](Scene_Object& obj) {
@@ -289,6 +287,13 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 			else 		    selected_mesh = 0;
 		}
 
+		ImGui::PopID();
+	});
+
+	if(_mode == Mode::scene && selected_mesh) {
+
+		Scene_Object& obj = *scene.get(selected_mesh);
+
 		auto check_undo = [&](Action act, Vec3& old, const Vec3& newv) {
 			if (ImGui::IsItemActivated()) {
 				old = newv;
@@ -303,51 +308,39 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 		};
 
 		auto fake_display = [&](Action act, std::string label, Vec3& data, float sens) {
-			if(is_selected && dragging && action == act) {
+			if(dragging && action == act) {
 				Pose fake = apply_action(obj.pose);
 				if(action == Action::rotate) fake.euler = fake.euler.range(0.0f, 360.0f);
 				ImGui::DragFloat3(label.c_str(), fake.euler.data);
 			} else if(ImGui::DragFloat3(label.c_str(), data.data, sens)) {
-				if(is_selected) {
-					action = act;
-				}
+				action = act;
 			}
-			check_undo(act, gui_drag_start, data);
+			check_undo(act, dragfloat_start, data);
 		};
-		
-		if(_mode == Mode::scene) {
-			obj.pose.clamp_euler();
-			fake_display(Action::move, "Position", obj.pose.pos, 0.1f);
-			fake_display(Action::rotate, "Rotation", obj.pose.euler, 1.0f);
-			fake_display(Action::scale, "Scale", obj.pose.scale, 0.03f);
-		
-			if(is_selected) {
-				if(action_button(Action::move, "Move", false))
-					action = Action::move;
-				if(action_button(Action::rotate, "Rotate"))
-					action = Action::rotate;
-				if(action_button(Action::scale, "Scale"))
-					action = Action::scale;
-				if(ImGui::Button("Edit"))
-					_mode = Mode::model;
-				if(wrap_button("Delete"))
-					to_delete = obj.id();
-			}
-		} else if(_mode == Mode::model) {
 
-		} else assert(false);
+		ImGui::Separator();
+		ImGui::Text("Edit Object");
 
-		if(i++ != scene.size() - 1) ImGui::Separator();
+		obj.pose.clamp_euler();
+		fake_display(Action::move, "Position", obj.pose.pos, 0.1f);
+		fake_display(Action::rotate, "Rotation", obj.pose.euler, 1.0f);
+		fake_display(Action::scale, "Scale", obj.pose.scale, 0.03f);
 
-		ImGui::PopID();
-	});
+		if(ImGui::Button("Edit Mesh"))
+			_mode = Mode::model;
+		if(wrap_button("Delete")) {
+			undo.del_obj(scene, selected_mesh);
+			selected_mesh = 0;
+		}	
 
-	if(to_delete) {
-		undo.del_obj(scene, to_delete);
-		if(to_delete == selected_mesh) selected_mesh = 0;
-	}
+		if(action_button(Action::move, "Move", false))
+			action = Action::move;
+		if(action_button(Action::rotate, "Rotate"))
+			action = Action::rotate;
+		if(action_button(Action::scale, "Scale"))
+			action = Action::scale;
 
-	if(_mode == Mode::model) {
+	} else if(_mode == Mode::model) {
 
 		auto sel = Renderer::he_selected();
 		
@@ -355,11 +348,16 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 
 			Scene_Object& obj = *scene.get(selected_mesh);
 			Halfedge_Mesh& mesh = obj.get_mesh();
-			Halfedge_Mesh old;
-			mesh.copy_to(old);
+			Halfedge_Mesh before;
+			mesh.copy_to(before);
+			unsigned int before_id = Renderer::get_he_select();
+
 			bool update_mesh = false;
+			bool update_ref = false;
+			Halfedge_Mesh::ElementRef new_ref;
 
 			ImGui::Separator();
+			ImGui::Text("Global Operations");
 			if(ImGui::Button("Triangulate")) {
 				mesh.triangulate();
 				update_mesh = true;
@@ -368,86 +366,75 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 
 			if(sel.has_value()) {
 				
-				ImGui::Text("Edit:");
+				ImGui::Text("Local Operations");
 				if(action_button(Action::move, "Move", false))
 					action = Action::move;
 				if(action_button(Action::rotate, "Rotate"))
 					action = Action::rotate;
 				if(action_button(Action::scale, "Scale"))
 					action = Action::scale;
+				if(action_button(Action::bevel, "Bevel"))
+					action = Action::bevel;
 
-				ImGui::Separator();
 				std::visit(overloaded {
 					[&](Halfedge_Mesh::VertexRef vert) {
-						ImGui::Text("Navigate to:");
+						if(ImGui::Button("Erase")) {
+							new_ref = mesh.erase_vertex(vert);
+							update_mesh = true;
+							update_ref = true;
+						}
+					},
+					[&](Halfedge_Mesh::EdgeRef edge) {
+						if(ImGui::Button("Erase")) {
+							new_ref = mesh.erase_edge(edge);
+							update_mesh = true;
+							update_ref = true;
+						}
+						if(wrap_button("Collapse")) {
+							new_ref = mesh.collapse_edge(edge);
+							update_mesh = true;
+							update_ref = true;
+						}
+						if(wrap_button("Flip")) {
+							new_ref = mesh.flip_edge(edge);
+							update_mesh = true;
+							update_ref = true;
+						}
+						if(wrap_button("Split")) {
+							new_ref = mesh.split_edge(edge);
+							update_mesh = true;
+							update_ref = true;
+						}
+					},
+					[&](Halfedge_Mesh::FaceRef face) {
+						if(ImGui::Button("Collapse")) {
+							new_ref = mesh.collapse_face(face);
+							update_mesh = true;
+							update_ref = true;
+						}
+					},
+					[&](auto) {}
+				}, *sel);
+
+				ImGui::Separator();
+				ImGui::Text("Navigation");
+				std::visit(overloaded {
+					[&](Halfedge_Mesh::VertexRef vert) {
 						if(ImGui::Button("Halfedge")) {
 							Renderer::set_he_select(vert->halfedge());
 						}
-						ImGui::Separator();
-						ImGui::Text("Operations:");
-						if(ImGui::Button("Erase")) {
-							Renderer::set_he_select(mesh.erase_vertex(vert));
-							update_mesh = true;
-						}
-						if(wrap_button("Bevel")) {
-							Renderer::set_he_select(mesh.bevel_vertex(vert));
-							update_mesh = true;
-						}
-						ImGui::Separator();
-						ImGui::Text("Degree: %d", vert->degree());
-						ImGui::Text("Position: (%f,%f,%f)", vert->pos.x, vert->pos.y, vert->pos.z);
-						ImGui::Text(vert->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
 					},
 					[&](Halfedge_Mesh::EdgeRef edge) {
-						ImGui::Text("Navigate to:");
 						if(ImGui::Button("Halfedge")) {
 							Renderer::set_he_select(edge->halfedge());
 						}
-						ImGui::Separator();
-						ImGui::Text("Operations:");
-						if(ImGui::Button("Erase")) {
-							Renderer::set_he_select(mesh.erase_edge(edge));
-							update_mesh = true;
-						}
-						if(wrap_button("Collapse")) {
-							Renderer::set_he_select(mesh.collapse_edge(edge));
-							update_mesh = true;
-						}
-						if(wrap_button("Flip")) {
-							Renderer::set_he_select(mesh.flip_edge(edge));
-							update_mesh = true;
-						}
-						if(wrap_button("Split")) {
-							Renderer::set_he_select(mesh.split_edge(edge));
-							update_mesh = true;
-						}
-						if(wrap_button("Bevel")) {
-							Renderer::set_he_select(mesh.bevel_edge(edge));
-							update_mesh = true;
-						}
-						ImGui::Separator();
-						ImGui::Text(edge->on_boundary() ? "On Boundary: YES" : "On Boundary: NO");
 					},
-					[&](Halfedge_Mesh::FaceRef face) {
-						ImGui::Text("Navigate to:");
+					[&](Halfedge_Mesh::FaceRef face)  {
 						if(ImGui::Button("Halfedge")) {
 							Renderer::set_he_select(face->halfedge());
 						}
-						ImGui::Separator();
-						ImGui::Text("Operations:");
-						if(ImGui::Button("Collapse")) {
-							Renderer::set_he_select(mesh.collapse_face(face));
-							update_mesh = true;
-						}
-						if(wrap_button("Bevel")) {
-							Renderer::set_he_select(mesh.bevel_face(face));
-							update_mesh = true;
-						}
-						ImGui::Separator();
-						ImGui::Text("Degree: %d", face->degree());
 					},
 					[&](Halfedge_Mesh::HalfedgeRef halfedge) {
-						ImGui::Text("Navigate to:");
 						if(ImGui::Button("Vertex")) {
 							Renderer::set_he_select(halfedge->vertex());
 						}
@@ -466,14 +453,18 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 					}
 				}, *sel);
 			}
+			ImGui::Separator();
 
 			if(update_mesh) {
 				std::string err = mesh.validate();
 				if(!err.empty()) {
 					set_error(err);
-					obj.set_mesh(old);
+					obj.set_mesh(before);
 				} else {
-					undo.update_mesh(scene, selected_mesh, std::move(old));
+					Renderer::dirty();
+					Renderer::set_he_select(new_ref);
+					obj.set_mesh_dirty();
+					undo.update_mesh(scene, selected_mesh, std::move(before), before_id);
 				}
 			}
 		}
@@ -490,7 +481,7 @@ void Gui::set_error(std::string msg) {
 void Gui::error() {
 	if(error_shown) {
 		Vec2 center = window_dim / 2.0f;
-		ImGui::SetNextWindowPos(ImVec2{center.x, center.y}, 0, ImVec2{0.5f, 0.5f});
+		ImGui::SetNextWindowPos(Vec2{center.x, center.y}, 0, Vec2{0.5f, 0.5f});
 		ImGui::Begin("Errors", &error_shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize);
 		ImGui::Text("%s", error_msg.c_str());
 		if(ImGui::Button("Close")) {
@@ -598,6 +589,10 @@ Pose Gui::apply_action(const Pose& pose) {
 		Mat4 trans = Mat4::transpose(rot) * Mat4::scale(result.scale) * rot * Mat4::scale(pose.scale);
 		result.scale = Vec3(trans[0][0], trans[1][1], trans[2][2]);
 	} break;
+	case Action::bevel: {
+		Vec2 off = bevel_start - bevel_end;
+		result.pos = 2.0f * Vec3(off.x, -off.y, 0.0f);
+	} break;
 	default: assert(false);
 	}
 
@@ -627,37 +622,45 @@ bool Gui::to_axis(Vec3 obj_pos, Vec3 cam_pos, Vec3 dir, Vec3& hit) {
 	return hit.valid();
  }
 
-bool Gui::to_plane(Vec3 obj_pos, Vec3 cam_pos, Vec3 dir, Vec3& hit) {
+bool Gui::to_plane(Vec3 obj_pos, Vec3 cam_pos, Vec3 dir, Vec3 norm, Vec3& hit) {
 
 	Line look(cam_pos, dir);
-	Vec3 vaxis; vaxis[(int)axis] = 1.0f;
-	Plane p(obj_pos, vaxis);
+	Plane p(obj_pos, norm);
 	return p.hit(look, hit);
 }
 
-bool Gui::start_drag(Vec3 pos, Vec3 cam, Vec3 dir) {
+bool Gui::start_drag(Vec3 pos, Vec3 cam, Vec2 spos, Vec3 dir) {
 	
 	Vec3 hit;
+	Vec3 norm; norm[(int)axis] = 1.0f;
+
 	if(action == Action::rotate) {
-		if(to_plane(pos, cam, dir, hit)) {
+		if(to_plane(pos, cam, dir, norm, hit)) {
 			drag_start = (hit - pos).unit();
 			drag_end = {0.0f};
 		}
 	} else {
 
 		bool good;
-		if(drag_plane) good = to_plane(pos, cam, dir, hit);
-		else           good = to_axis(pos, cam, dir, hit);
+		
+		auto elem = Renderer::he_selected();
+
+		if(drag_plane) good = to_plane(pos, cam, dir, norm, hit);
+		else 	       good = to_axis(pos, cam, dir, hit);
 
 		if(!good) return dragging;
 
-		if(action == Action::move) {
+		if(action == Action::bevel) {
+			bevel_start = bevel_end = spos;
+		} if(action == Action::move) {
 			drag_start = drag_end = hit;
 		} else {
 			drag_start = hit;
 			drag_end = {1.0f};
 		}
-		generate_widget_lines(pos);
+
+		if(action != Action::bevel)
+			generate_widget_lines(pos);
 	}
 
 	if(_mode == Mode::model) {
@@ -684,7 +687,7 @@ void Gui::end_drag(Undo& undo, Scene& scene) {
 		if(Renderer::apply_transform(action, p)) {
 			Scene_Object& obj = *scene.get(selected_mesh);
 			obj.set_mesh_dirty();
-			undo.update_mesh(scene, selected_mesh, std::move(old_mesh));
+			undo.update_mesh(scene, selected_mesh, std::move(old_mesh), old_id);
 		}
 	}
 
@@ -693,7 +696,7 @@ void Gui::end_drag(Undo& undo, Scene& scene) {
 	dragging = false;
 }
 
-void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
+void Gui::drag_to(Scene& scene, Vec3 cam, Vec2 spos, Vec3 dir) {
 
 	if(!dragging) return;
 	
@@ -708,9 +711,11 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 	}
 	
 	Vec3 hit; 
+	Vec3 norm; norm[(int)axis] = 1.0f;
+
 	if(action == Action::rotate) {
 	
-		if(!to_plane(pos, cam, dir, hit)) return;
+		if(!to_plane(pos, cam, dir, norm, hit)) return;
 
 		Vec3 ang = (hit - pos).unit();
 		float sgn = sign(cross(drag_start, ang)[(int)axis]);
@@ -720,12 +725,15 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 	} else {
 
 		bool good;
-		if(drag_plane) good = to_plane(pos, cam, dir, hit);
+		
+		if(drag_plane) good = to_plane(pos, cam, dir, norm, hit);
 		else 	       good = to_axis(pos, cam, dir, hit);
 
 		if(!good) return;
 
-		if(action == Action::move) {
+		if(action == Action::bevel) {
+			bevel_end = spos;
+		} else if(action == Action::move) {
 			drag_end = hit;
 		} else if(action == Action::scale) {
 			drag_end = {1.0f};
@@ -745,7 +753,7 @@ void Gui::drag_to(Scene& scene, Vec3 cam, Vec3 dir) {
 	}
 }
 
-bool Gui::select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir) {
+bool Gui::select(Scene& scene, Undo& undo, Scene_Object::ID id, Vec3 cam, Vec2 spos, Vec3 dir) {
 
 	dragging = true;
 	drag_plane = false;
@@ -808,8 +816,8 @@ bool Gui::select(Scene& scene, Scene_Object::ID id, Vec3 cam, Vec3 dir) {
 	}
 
 	switch(_mode) {
-	case Mode::scene: return select_scene(scene, id, cam, dir);
-	case Mode::model: return select_model(scene, id, cam, dir);
+	case Mode::scene: return select_scene(scene, undo, id, cam, spos, dir);
+	case Mode::model: return select_model(scene, undo, id, cam, spos, dir);
 	default: assert(false);
 	}
 	return dragging;
@@ -824,23 +832,59 @@ void Gui::clear_select() {
 	}
 }
 
-bool Gui::select_model(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir) {
+bool Gui::select_model(Scene& scene, Undo& undo, Scene_Object::ID click, Vec3 cam, Vec2 spos, Vec3 dir) {
+
+	if(click && action == Action::bevel && click == Renderer::get_he_select()) {
+		
+		Scene_Object& obj = *scene.get(selected_mesh);
+		Halfedge_Mesh& mesh = obj.get_mesh();
+		
+		Halfedge_Mesh::ElementRef new_ref;
+		mesh.copy_to(old_mesh);
+		old_id = Renderer::get_he_select();
+
+		auto sel = Renderer::he_selected();
+
+		std::visit(overloaded {
+			[&](Halfedge_Mesh::VertexRef vert) {
+				new_ref = mesh.bevel_vertex(vert);
+			},
+			[&](Halfedge_Mesh::EdgeRef edge) {
+				new_ref = mesh.bevel_edge(edge);
+			},
+			[&](Halfedge_Mesh::FaceRef face) {
+				new_ref = mesh.bevel_face(face);
+			},
+			[&](auto) {}
+		}, *sel);
+
+		std::string err = mesh.validate();
+		if(!err.empty()) {
+			set_error(err);
+			obj.set_mesh(old_mesh);
+			old_id = Renderer::get_he_select();
+		} else {
+			Renderer::set_he_select(new_ref);
+			dragging = true;
+			drag_plane = true;
+		}
+	} else if(!dragging && click >= num_ids()) {
+		Renderer::set_he_select((unsigned int)click);
+	}
 
 	if(dragging) {
 		auto e = Renderer::he_selected();
 		if(e.has_value() && !std::holds_alternative<Halfedge_Mesh::HalfedgeRef>(*e))
-			return start_drag(Halfedge_Mesh::center_of(*e), cam, dir);
-	} else if(click >= num_ids()) {
-		Renderer::set_he_select((unsigned int)click);
-	}
+			return start_drag(Halfedge_Mesh::center_of(*e), cam, spos, dir);
+	} 
 	return dragging;
 }
 
-bool Gui::select_scene(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir) {
+bool Gui::select_scene(Scene& scene, Undo& undo, Scene_Object::ID click, Vec3 cam, Vec2 spos, Vec3 dir) {
 
 	if(dragging) {
 		Scene_Object& obj = *scene.get(selected_mesh);
-		return start_drag(obj.pose.pos, cam, dir);
+		return start_drag(obj.pose.pos, cam, spos, dir);
 	} else if(click >= num_ids()) {
 		selected_mesh = click;
 	}
@@ -848,12 +892,7 @@ bool Gui::select_scene(Scene& scene, Scene_Object::ID click, Vec3 cam, Vec3 dir)
 }
 
 void Gui::apply_transform(Scene_Object& obj) {
-	if(dragging) {
-			 if(action == Gui::Action::scale)  obj.pose = apply_action(obj.pose);
-		else if(action == Gui::Action::rotate) obj.pose = apply_action(obj.pose);
-		else if(action == Gui::Action::move)   obj.pose = apply_action(obj.pose);
-		else assert(false);
-	}
+	if(dragging) obj.pose = apply_action(obj.pose);
 }
 
 void Gui::render_base(Mat4 viewproj) {

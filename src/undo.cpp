@@ -1,6 +1,7 @@
 
 #include "undo.h"
 
+#include "scene/mesh_render.h"
 #include "lib/log.h"
 
 Undo::Undo() {}
@@ -11,22 +12,25 @@ void Undo::reset() {
     redos = {};
 }
 
-void Undo::update_mesh(Scene& scene, Scene_Object::ID id, Halfedge_Mesh&& old_mesh) {
+void Undo::update_mesh(Scene& scene, Scene_Object::ID id, Halfedge_Mesh&& old_mesh, unsigned int old_id) {
     Scene_Object& obj = *scene.get(id);
     
     Halfedge_Mesh new_mesh;
     obj.copy_mesh(new_mesh);
 
-    action([id, &scene, nm{std::move(new_mesh)}]() {
+    action([id, &scene, nm=std::move(new_mesh), old_id]() {
         Scene_Object& obj = *scene.get(id);
         obj.set_mesh(nm);
-    }, [id, &scene, om{std::move(old_mesh)}]() {
+        Renderer::set_he_select(old_id);
+    }, [id, &scene, om=std::move(old_mesh), new_id=Renderer::get_he_select()]() {
         Scene_Object& obj = *scene.get(id);
         obj.set_mesh(om);
+        Renderer::set_he_select(new_id);
     });
 }
 
 void Undo::del_obj(Scene& scene, Scene_Object::ID id) {
+    scene.erase(id);
     action([id, &scene](){
         scene.erase(id);
     }, [id, &scene](){
@@ -36,6 +40,7 @@ void Undo::del_obj(Scene& scene, Scene_Object::ID id) {
 
 void Undo::add_obj(Scene& scene, GL::Mesh&& mesh) {
     Scene_Object::ID id = scene.add({}, std::move(mesh));
+    scene.restore(id);
     action([id, &scene](){
         scene.restore(id);
     }, [id, &scene](){
@@ -45,6 +50,7 @@ void Undo::add_obj(Scene& scene, GL::Mesh&& mesh) {
 
 void Undo::update_obj(Scene& scene, Scene_Object::ID id, Pose new_pos) {
     Scene_Object& obj = *scene.get(id);
+    obj.pose = new_pos;
     action([id, &scene, new_pos](){
         Scene_Object& obj = *scene.get(id);
         obj.pose = new_pos;
@@ -56,7 +62,6 @@ void Undo::update_obj(Scene& scene, Scene_Object::ID id, Pose new_pos) {
 
 void Undo::action(std::unique_ptr<Action_Base>&& action) {
     redos = {};
-    action->redo();
     undos.push(std::move(action));
 }
 

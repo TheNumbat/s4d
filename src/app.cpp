@@ -26,6 +26,7 @@ App::~App() {
 void App::event(SDL_Event e) {
 
 	ImGuiIO& IO = ImGui::GetIO();
+	IO.DisplayFramebufferScale = plt.scale_mouse({1.0f, 1.0f});
 
 	switch(e.type) {
 	case SDL_KEYDOWN: {
@@ -55,10 +56,12 @@ void App::event(SDL_Event e) {
 	case SDL_MOUSEMOTION: {
 
 		Vec2 d(e.motion.xrel, e.motion.yrel);
-		Vec2 p = plt.scale_mouse({e.motion.x, e.motion.y});
+		Vec2 p = plt.scale_mouse({e.button.x, e.button.y});
+		Vec2 dim = plt.window_draw();
+		Vec2 n = Vec2(2.0f * p.x / dim.x - 1.0f, 2.0f * p.y / dim.y - 1.0f);
 		
 		if(gui_capture) {
-			gui.drag_to(scene, camera.pos(), screen_to_world(p));
+			gui.drag_to(scene, camera.pos(), n, screen_to_world(p));
 		} else if(cam_mode == Camera_Control::orbit) {
 			camera.mouse_orbit(d);
 		} else if(cam_mode == Camera_Control::move) {
@@ -74,11 +77,13 @@ void App::event(SDL_Event e) {
 		if(IO.WantCaptureMouse) break;
 
 		Vec2 p = plt.scale_mouse({e.button.x, e.button.y});
+		Vec2 dim = plt.window_draw();
+		Vec2 n = Vec2(2.0f * p.x / dim.x - 1.0f, 2.0f * p.y / dim.y - 1.0f);
 
 		if(e.button.button == SDL_BUTTON_LEFT) {
 
 			Scene_Object::ID id = Renderer::read_id(p);
-			if(gui.select(scene, id, camera.pos(), screen_to_world(p))) {
+			if(gui.select(scene, undo, id, camera.pos(), n, screen_to_world(p))) {
 				cam_mode = Camera_Control::none;
 				plt.grab_mouse();
 				gui_capture = true;
@@ -99,11 +104,13 @@ void App::event(SDL_Event e) {
 	case SDL_MOUSEBUTTONUP: {
 
 		Vec2 p = plt.scale_mouse({e.button.x, e.button.y});
+		Vec2 dim = plt.window_draw();
+		Vec2 n = Vec2(2.0f * p.x / dim.x - 1.0f, 2.0f * p.y / dim.y - 1.0f);
 
 		if(e.button.button == SDL_BUTTON_LEFT) {
 			if(!IO.WantCaptureMouse && gui_capture) {
 				gui_capture = false;
-				gui.drag_to(scene, camera.pos(), screen_to_world(p));
+				gui.drag_to(scene, camera.pos(), n, screen_to_world(p));
 				gui.end_drag(undo, scene);
 				plt.ungrab_mouse();
 				break;

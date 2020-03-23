@@ -294,7 +294,8 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 
 		Scene_Object& obj = *scene.get(selected_mesh);
 
-		auto check_undo = [&](Action act, Vec3& old, const Vec3& newv) {
+		auto check_undo = [&](Action act, const Vec3& newv) {
+			static Vec3 old;
 			if (ImGui::IsItemActivated()) {
 				old = newv;
 			}
@@ -315,7 +316,7 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 			} else if(ImGui::DragFloat3(label.c_str(), data.data, sens)) {
 				action = act;
 			}
-			check_undo(act, dragfloat_start, data);
+			check_undo(act, data);
 		};
 
 		ImGui::Separator();

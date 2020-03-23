@@ -37,6 +37,7 @@ TODO:
 	second camera for mesh editing
 		zoom to selected element
 
+	don't clear root scene transform?
 
 	[ PATHTRACER ]
 

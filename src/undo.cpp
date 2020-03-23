@@ -50,11 +50,12 @@ void Undo::add_obj(Scene& scene, GL::Mesh&& mesh) {
 
 void Undo::update_obj(Scene& scene, Scene_Object::ID id, Pose new_pos) {
     Scene_Object& obj = *scene.get(id);
+    Pose old_pos = obj.pose;
     obj.pose = new_pos;
     action([id, &scene, new_pos](){
         Scene_Object& obj = *scene.get(id);
         obj.pose = new_pos;
-    }, [id, &scene, old_pos=obj.pose](){
+    }, [id, &scene, old_pos](){
         Scene_Object& obj = *scene.get(id);
         obj.pose = old_pos;
     });

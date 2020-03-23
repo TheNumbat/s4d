@@ -100,7 +100,6 @@ private:
 	Action action = Action::move;
 	bool dragging = false, drag_plane = false;
 	Vec3 drag_start, drag_end;
-	Vec3 dragfloat_start;
 	Vec2 bevel_start, bevel_end;
 
 	// 3D GUI Objects

@@ -463,7 +463,8 @@ void Gui::objs(Scene& scene, Undo& undo, float menu_height) {
 					obj.set_mesh(before);
 				} else {
 					Renderer::dirty();
-					Renderer::set_he_select(new_ref);
+					if(update_ref)
+						Renderer::set_he_select(new_ref);
 					obj.set_mesh_dirty();
 					undo.update_mesh(scene, selected_mesh, std::move(before), before_id);
 				}
